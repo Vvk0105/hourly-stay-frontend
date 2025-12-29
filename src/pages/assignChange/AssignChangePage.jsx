@@ -12,7 +12,7 @@ function AssignChangePage() {
     const fetchUsers = async () => {
         setLoading(true);
         const res = await api.get("users/users/", {
-        params: { status: "ACTIVE",  exclude_roles: "SUPER_ADMIN,SUPPORT" }
+        params: { status: "ACTIVE",  exclude_roles: "SUPER_ADMIN,SUPPORT,GUEST" }
         });
         setUsers(res.data.results);
         setLoading(false);

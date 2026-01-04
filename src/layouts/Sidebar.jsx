@@ -43,12 +43,18 @@ function Sidebar() {
           label: "Assign and Change",
           onClick: () => navigate("/assignandchange"),
         },
-        
         {
-        key: "/hotels",
-        icon: <HomeOutlined />,
-        label: "Hotel Management",
-        onClick: () => navigate("/hotels"),
+          key: "/hotels",
+          icon: <HomeOutlined />,
+          label: "Hotel Management",
+          onClick: () => navigate("/hotels"),
+        },
+      
+        user?.role === "HOTEL_MANAGER" || user?.role === "SUPER_ADMIN" || user?.role === "FRONT_DESK" && {
+          key: "bookings",
+          icon: <UserOutlined />,
+          label: "Bookings",
+          onClick: () => navigate("/bookings/1"),
         },
 
         {

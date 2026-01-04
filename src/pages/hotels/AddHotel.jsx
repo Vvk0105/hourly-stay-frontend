@@ -1,9 +1,9 @@
-import { Form, Input, Select, Button, Upload, Row, Col, TimePicker, message } from "antd";
+import React, { useState } from "react";
+import { Form, Input, Select, Button, Upload, Row, Col, TimePicker, Switch, InputNumber, message, Card } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import api from "../../api/axios"; 
 import PageHeader from "../../components/common/PageHeader";
-import api from "../../api/axios";
 
 const { TextArea } = Input;
 const { Option } = Select;
@@ -14,9 +14,7 @@ const AddHotel = () => {
   const [loading, setLoading] = useState(false);
 
   const normFile = (e) => {
-    if (Array.isArray(e)) {
-      return e;
-    }
+    if (Array.isArray(e)) return e;
     return e?.fileList;
   };
 
@@ -25,25 +23,23 @@ const AddHotel = () => {
     try {
       const formData = new FormData();
 
-      if (values.images && values.images.length > 0) {
+      // Append standard fields
+      Object.keys(values).forEach(key => {
+        if (key !== 'images' && key !== 'check_in_time' && key !== 'check_out_time' && values[key] !== undefined) {
+          formData.append(key, values[key]);
+        }
+      });
+
+      // Format Times
+      if (values.check_in_time) formData.append("check_in_time", values.check_in_time.format("HH:mm"));
+      if (values.check_out_time) formData.append("check_out_time", values.check_out_time.format("HH:mm"));
+
+      // Handle Images
+      if (values.images?.length > 0) {
         values.images.forEach((file) => {
           formData.append('images', file.originFileObj);
         });
       }
-
-      if (values.checkIn) {
-        formData.append("check_in_time", values.checkIn.format("HH:mm"));
-      }
-      if (values.checkOut) {
-        formData.append("check_out_time", values.checkOut.format("HH:mm"));
-      }
-
-      const textFields = ["name", "address", "state", "zip_code", "city", "phone_number", "email", "description"];
-      textFields.forEach((field) => {
-        if (values[field]) {
-          formData.append(field, values[field]);
-        }
-      });
 
       await api.post("property/hotels/create/", formData, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -52,111 +48,114 @@ const AddHotel = () => {
       message.success("Hotel created successfully!");
       navigate("/hotels");
     } catch (error) {
-      console.error("Failed to create hotel:", error);
-      message.error(error.response?.data?.detail || "Failed to create hotel. Please check inputs.");
+      console.error(error);
+      message.error("Failed to create hotel.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <>
-      <PageHeader title="Add Hotel" />
-      <div style={{ background: "#fff", padding: 24, borderRadius: 8 }}>
-        <Form form={form} layout="vertical" onFinish={onFinish}>
-          <Row gutter={24}>
-            <Col span={8}>
-              <Form.Item
-                label="Upload Images"
-                name="images"
-                valuePropName="fileList"
-                getValueFromEvent={normFile}
-              >
-                <Upload 
-                  listType="picture-card" 
-                  multiple={true}
-                  beforeUpload={() => false}
-                >
-                  <div>
-                    <PlusOutlined />
-                    <div style={{ marginTop: 8 }}>Upload</div>
-                  </div>
-                </Upload>
-              </Form.Item>
-            </Col>
+    <div style={{ padding: 24 }}>
+      <PageHeader title="Add New Hotel" />
+      <Form form={form} layout="vertical" onFinish={onFinish} initialValues={{ is_hourly_enabled: false }}>
+        
+        <Row gutter={24}>
+          <Col span={16}>
+            <Card title="Basic Details" style={{ marginBottom: 24 }}>
+                <Row gutter={16}>
+                    <Col span={12}>
+                        <Form.Item label="Hotel Name" name="name" rules={[{ required: true }]}>
+                            <Input placeholder="Grand Luxury Hotel" />
+                        </Form.Item>
+                    </Col>
+                    <Col span={12}>
+                        <Form.Item label="Star Rating" name="star_rating">
+                            <InputNumber min={1} max={5} step={0.5} style={{ width: '100%' }} />
+                        </Form.Item>
+                    </Col>
+                    <Col span={24}>
+                        <Form.Item label="Description" name="description">
+                            <TextArea rows={3} />
+                        </Form.Item>
+                    </Col>
+                </Row>
+            </Card>
 
-            <Col span={16}>
-              <Row gutter={16}>
-                <Col span={12}>
-                  <Form.Item label="Hotel Name" name="name" rules={[{ required: true }]}>
-                    <Input placeholder="Hotel Name" />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item label="Address" name="address">
-                    <Input placeholder="Address" />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item label="State" name="state">
-                    <Select placeholder="Select State">
-                      <Option value="kerala">Kerala</Option>
-                      <Option value="delhi">Delhi</Option>
-                    </Select>
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item label="ZIP Code" name="zip_code">
-                    <Input placeholder="ZIP Code" />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item label="City" name="city">
-                    <Input placeholder="City" />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item label="Phone Number" name="phone_number">
-                    <Input placeholder="Phone Number" />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item label="Email ID" name="email">
-                    <Input placeholder="Email ID" />
-                  </Form.Item>
-                </Col>
-                <Col span={6}>
-                  <Form.Item label="Check In Time" name="checkIn">
+            <Card title="Location">
+                <Row gutter={16}>
+                    <Col span={24}>
+                        <Form.Item label="Address" name="address_line_1" rules={[{ required: true }]}>
+                            <Input />
+                        </Form.Item>
+                    </Col>
+                    <Col span={8}>
+                        <Form.Item label="City" name="city" rules={[{ required: true }]}>
+                            <Input />
+                        </Form.Item>
+                    </Col>
+                    <Col span={8}>
+                        <Form.Item label="State" name="state" rules={[{ required: true }]}>
+                            <Input />
+                        </Form.Item>
+                    </Col>
+                    <Col span={8}>
+                        <Form.Item label="Zip Code" name="zip_code" rules={[{ required: true }]}>
+                            <Input />
+                        </Form.Item>
+                    </Col>
+                    <Col span={12}>
+                        <Form.Item label="Latitude" name="latitude" help="e.g. 12.9716">
+                            <InputNumber style={{ width: '100%' }} precision={6} />
+                        </Form.Item>
+                    </Col>
+                    <Col span={12}>
+                        <Form.Item label="Longitude" name="longitude" help="e.g. 77.5946">
+                            <InputNumber style={{ width: '100%' }} precision={6} />
+                        </Form.Item>
+                    </Col>
+                </Row>
+            </Card>
+          </Col>
+
+          <Col span={8}>
+            <Card title="Operations" style={{ marginBottom: 24 }}>
+                <Form.Item label="Standard Check In" name="check_in_time" rules={[{ required: true }]}>
                     <TimePicker format="HH:mm" style={{ width: "100%" }} />
-                  </Form.Item>
-                </Col>
-                <Col span={6}>
-                  <Form.Item label="Check Out Time" name="checkOut">
+                </Form.Item>
+                <Form.Item label="Standard Check Out" name="check_out_time" rules={[{ required: true }]}>
                     <TimePicker format="HH:mm" style={{ width: "100%" }} />
-                  </Form.Item>
-                </Col>
-              </Row>
-            </Col>
-          </Row>
+                </Form.Item>
+                
+                <div style={{ background: '#f0f5ff', padding: 12, borderRadius: 8, marginTop: 16 }}>
+                    <Form.Item 
+                        label="Enable Hourly Booking?" 
+                        name="is_hourly_enabled" 
+                        valuePropName="checked"
+                        help="Master switch for this hotel"
+                        style={{ marginBottom: 0 }}
+                    >
+                        <Switch />
+                    </Form.Item>
+                </div>
+            </Card>
 
-          <Form.Item label="Description" name="description">
-            <TextArea rows={4} placeholder="Description" />
-          </Form.Item>
+            <Card title="Cover Image">
+                <Form.Item name="images" valuePropName="fileList" getValueFromEvent={normFile}>
+                    <Upload listType="picture-card" beforeUpload={() => false} maxCount={1}>
+                        <div><PlusOutlined /><div style={{ marginTop: 8 }}>Upload</div></div>
+                    </Upload>
+                </Form.Item>
+            </Card>
+          </Col>
+        </Row>
 
-          <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
-            <Button onClick={() => navigate("/hotels")}>Cancel</Button>
-            <Button 
-                type="primary" 
-                htmlType="submit" 
-                loading={loading}
-                style={{ background: "#000" }}
-            >
-              Submit
-            </Button>
-          </div>
-        </Form>
-      </div>
-    </>
+        <div style={{ marginTop: 24, textAlign: 'right' }}>
+            <Button onClick={() => navigate("/hotels")} style={{ marginRight: 12 }}>Cancel</Button>
+            <Button type="primary" htmlType="submit" loading={loading} size="large">Create Hotel</Button>
+        </div>
+      </Form>
+    </div>
   );
 };
 

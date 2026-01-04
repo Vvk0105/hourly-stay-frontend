@@ -11,6 +11,13 @@ import UserManagement from "./pages/users/UserManagement";
 import AssignChangePage from "./pages/assignChange/AssignChangePage";
 import HotelManagement from "./pages/hotels/HotelManagement";
 import AddHotel from "./pages/hotels/AddHotel";
+import HotelDetails from "./pages/hotels/HotelDetails"; 
+import RoomDetails from "./pages/hotels/RoomDetails";
+import AddRoomType from "./pages/hotels/AddRoomType";
+import AddPhysicalRoom from "./pages/hotels/AddPhysicalRoom";
+import EditHotel from "./pages/hotels/EditHotel";
+import BookingManagement from "./pages/hotels/BookingManagement";
+
 
 function App() {
   const dispatch = useDispatch();
@@ -62,9 +69,13 @@ function App() {
           }
         />
         <Route path="/hotels/add" element={<MainLayout><AddHotel /></MainLayout>} />
-        {/* <Route path="/hotels/:id" element={<MainLayout><HotelDetails /></MainLayout>} /> */}
-        {/* <Route path="/hotels/:id/add-room" element={<MainLayout><AddRoom /></MainLayout>} />
-        <Route path="/hotels/:id/rooms/:roomId" element={<MainLayout><RoomDetails /></MainLayout>} /> */}
+        <Route path="/hotels/:id" element={<MainLayout><HotelDetails /></MainLayout>} />
+        <Route path="/hotels/:id/rooms/:roomId" element={<MainLayout><RoomDetails /></MainLayout>} />
+        <Route path="/hotels/:id/add-room-type" element={<MainLayout><AddRoomType /></MainLayout>} />
+        <Route path="/hotels/:id/add-physical-room" element={<MainLayout><AddPhysicalRoom /></MainLayout>} />
+        <Route path="/hotels/:id/edit" element={<MainLayout><EditHotel /></MainLayout>} />
+
+        <Route path="/bookings/:id" element={<MainLayout><BookingManagement /></MainLayout>} />
       </Routes>
     </BrowserRouter>
   )

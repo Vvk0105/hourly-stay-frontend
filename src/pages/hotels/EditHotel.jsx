@@ -1,0 +1,178 @@
+import React, { useEffect, useState } from "react";
+import {
+  Form,
+  Input,
+  Button,
+  Row,
+  Col,
+  TimePicker,
+  Switch,
+  InputNumber,
+  message,
+  Card,
+} from "antd";
+import { useNavigate, useParams } from "react-router-dom";
+import dayjs from "dayjs";
+import api from "../../api/axios";
+import PageHeader from "../../components/common/PageHeader";
+
+const { TextArea } = Input;
+
+const EditHotel = () => {
+  const { id } = useParams(); // hotel id from URL
+  const [form] = Form.useForm();
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+
+  // Load hotel details
+  useEffect(() => {
+    api.get(`property/hotels/${id}/`)
+      .then(res => {
+        form.setFieldsValue({
+          ...res.data,
+          check_in_time: dayjs(res.data.check_in_time, "HH:mm"),
+          check_out_time: dayjs(res.data.check_out_time, "HH:mm"),
+        });
+      })
+      .catch(() => {
+        message.error("Hotel not found");
+        navigate("/hotels");
+      });
+  }, [id]);
+
+  const onFinish = async (values) => {
+    setLoading(true);
+
+    try {
+      const formData = new FormData();
+
+      Object.entries(values).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          if (dayjs.isDayjs(value)) {
+            formData.append(key, value.format("HH:mm"));
+          } else {
+            formData.append(key, value);
+          }
+        }
+      });
+
+      await api.patch(`property/hotels/${id}/`, formData);
+
+      message.success("Hotel updated successfully");
+      navigate("/hotels");
+    } catch (error) {
+      if (error.response?.data) {
+        Object.entries(error.response.data).forEach(([field, errors]) => {
+          message.error(`${field}: ${errors.join(", ")}`);
+        });
+      } else {
+        message.error("Failed to update hotel");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div style={{ padding: 24 }}>
+      <PageHeader title="Edit Hotel" />
+
+      <Form
+        form={form}
+        layout="vertical"
+        onFinish={onFinish}
+        initialValues={{ is_hourly_enabled: false }}
+      >
+        <Row gutter={24}>
+          <Col span={16}>
+            <Card title="Basic Details">
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item
+                    label="Hotel Name"
+                    name="name"
+                    rules={[{ required: true }]}
+                  >
+                    <Input />
+                  </Form.Item>
+                </Col>
+
+                <Col span={24}>
+                  <Form.Item label="Description" name="description">
+                    <TextArea rows={3} />
+                  </Form.Item>
+                </Col>
+              </Row>
+            </Card>
+
+            <Card title="Location" style={{ marginTop: 24 }}>
+              <Row gutter={16}>
+                <Col span={24}>
+                  <Form.Item label="Address" name="address_line_1">
+                    <Input />
+                  </Form.Item>
+                </Col>
+                <Col span={8}>
+                  <Form.Item label="City" name="city">
+                    <Input />
+                  </Form.Item>
+                </Col>
+                <Col span={8}>
+                  <Form.Item label="State" name="state">
+                    <Input />
+                  </Form.Item>
+                </Col>
+                <Col span={8}>
+                  <Form.Item label="Zip Code" name="zip_code">
+                    <Input />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item label="Latitude" name="latitude">
+                    <InputNumber style={{ width: "100%" }} />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item label="Longitude" name="longitude">
+                    <InputNumber style={{ width: "100%" }} />
+                  </Form.Item>
+                </Col>
+              </Row>
+            </Card>
+          </Col>
+
+          <Col span={8}>
+            <Card title="Operations">
+              <Form.Item label="Check In Time" name="check_in_time">
+                <TimePicker format="HH:mm" style={{ width: "100%" }} />
+              </Form.Item>
+
+              <Form.Item label="Check Out Time" name="check_out_time">
+                <TimePicker format="HH:mm" style={{ width: "100%" }} />
+              </Form.Item>
+
+              <Form.Item
+                label="Enable Hourly Booking"
+                name="is_hourly_enabled"
+                valuePropName="checked"
+              >
+                <Switch />
+              </Form.Item>
+            </Card>
+          </Col>
+        </Row>
+
+        <div style={{ marginTop: 24, textAlign: "right" }}>
+          <Button onClick={() => navigate("/hotels")} style={{ marginRight: 12 }}>
+            Cancel
+          </Button>
+          <Button type="primary" htmlType="submit" loading={loading}>
+            Update Hotel
+          </Button>
+        </div>
+      </Form>
+    </div>
+  );
+};
+
+export default EditHotel;

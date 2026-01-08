@@ -49,8 +49,8 @@ function Sidebar() {
           label: "Hotel Management",
           onClick: () => navigate("/hotels"),
         },
-      
-        user?.role === "HOTEL_MANAGER" || user?.role === "SUPER_ADMIN" || user?.role === "FRONT_DESK" && {
+
+        user?.role === "HOTEL_MANAGER" || user?.role === "SUPER_ADMIN" && {
           key: "bookings",
           icon: <UserOutlined />,
           label: "Bookings",

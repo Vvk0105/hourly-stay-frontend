@@ -75,8 +75,8 @@ function EditUserModal({ userId, open, onClose }) {
               <Select>
                 <Select.Option value="GROUP_ADMIN">Group Admin</Select.Option>
                 <Select.Option value="HOTEL_MANAGER">Hotel Manager</Select.Option>
-                <Select.Option value="HOTEL_STAFF">Hotel Staff</Select.Option>
-                <Select.Option value="SUPPORT">Support</Select.Option>
+                <Select.Option value="FRONT_DESK">Hotel Staff</Select.Option>
+                <Select.Option value="GUEST">Guest</Select.Option>
               </Select>
             </Form.Item>
 

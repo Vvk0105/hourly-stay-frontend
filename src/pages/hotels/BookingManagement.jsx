@@ -1,34 +1,96 @@
 import React, { useState, useEffect } from "react";
-import { Table, Button, Tag, Space, Modal, Form, Select, DatePicker, Input, message, Tabs } from "antd";
-import { PlusOutlined, UserOutlined } from "@ant-design/icons";
+import { 
+  Table, Button, Tag, Tabs, Modal, Select, message, 
+  Card, Popconfirm, Tooltip, Badge, Form, DatePicker, Input 
+} from "antd";
+import { 
+  LoginOutlined, LogoutOutlined, CloseCircleOutlined, 
+  HomeOutlined, UserOutlined, PlusOutlined 
+} from "@ant-design/icons";
 import { useParams } from "react-router-dom";
+import dayjs from "dayjs";
 import api from "../../api/axios";
 import PageHeader from "../../components/common/PageHeader";
-import dayjs from "dayjs";
 
-const { Option } = Select;
 const { TabPane } = Tabs;
+const { Option } = Select;
 
 function BookingManagement() {
-  const { hotel_id } = useParams(); // URL should be /hotels/:hotel_id/bookings
+  const { id } = useParams();
+
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [roomTypes, setRoomTypes] = useState([]);
-  const [form] = Form.useForm();
 
-  // Fetch Data
+  /* ================= WALK-IN STATE ================= */
+  const [isWalkInModalOpen, setIsWalkInModalOpen] = useState(false);
+  const [roomTypes, setRoomTypes] = useState([]);
+  const [walkInForm] = Form.useForm();
+
+  /* ================= CHECK-IN STATE ================= */
+  const [isCheckInModalOpen, setIsCheckInModalOpen] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState(null);
+  const [availableRooms, setAvailableRooms] = useState([]);
+  const [selectedRoomId, setSelectedRoomId] = useState(null);
+  const [assignLoading, setAssignLoading] = useState(false);
+
+  // useEffect(() => {
+  //   fetchBookings();
+  //   fetchRoomTypes();
+    
+  //   const interval = setInterval(() => {
+  //     fetchBookings();
+  //   }, 5000);
+    
+  //   return () => clearInterval(interval);
+
+  // }, [id]);
   useEffect(() => {
-    fetchBookings();
-    fetchRoomTypes();
-  }, [hotel_id]);
+    let interval = null;
+
+    const startPolling = () => {
+      if (!interval) {
+        fetchBookings();
+        interval = setInterval(fetchBookings, 5000);
+      }
+    };
+
+    const stopPolling = () => {
+      if (interval) {
+        clearInterval(interval);
+        interval = null;
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        startPolling();
+      } else {
+        stopPolling();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    // Start immediately if visible
+    if (document.visibilityState === "visible") {
+      startPolling();
+    }
+
+    return () => {
+      stopPolling();
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [id]);
+
+
+  /* ================= API CALLS ================= */
 
   const fetchBookings = async () => {
     setLoading(true);
     try {
-      const res = await api.get(`property/hotels/${hotel_id}/bookings/`);
+      const res = await api.get(`property/hotels/${id}/bookings/`);
       setBookings(res.data);
-    } catch (err) {
+    } catch {
       message.error("Failed to load bookings");
     } finally {
       setLoading(false);
@@ -37,20 +99,21 @@ function BookingManagement() {
 
   const fetchRoomTypes = async () => {
     try {
-      const res = await api.get(`property/hotels/${hotel_id}/room-types/`);
+      const res = await api.get(`property/hotels/${id}/room-types/`);
       setRoomTypes(res.data);
-    } catch (err) {
+    } catch {
       console.error("Failed to load room types");
     }
   };
 
-  // Handle Walk-in Submission
+  /* ================= WALK-IN SUBMIT ================= */
+
   const handleWalkIn = async (values) => {
     try {
       const payload = {
-        hotel_id: hotel_id,
+        hotel_id: id,
         room_type_id: values.room_type_id,
-        user_uuid: "00000000-0000-0000-0000-000000000000", // MOCK GUEST UUID or input from form
+        user_uuid: "00000000-0000-0000-0000-000000000000",
         check_in: values.dates[0].toISOString(),
         check_out: values.dates[1].toISOString(),
         booking_type: values.booking_type,
@@ -59,12 +122,11 @@ function BookingManagement() {
 
       await api.post(`property/bookings/create/`, payload);
       message.success("Walk-in Booking Confirmed!");
-      setIsModalOpen(false);
-      form.resetFields();
-      fetchBookings(); // Refresh table
+      setIsWalkInModalOpen(false);
+      walkInForm.resetFields();
+      fetchBookings();
     } catch (err) {
-      // Backend returns 409 if no rooms available
-      if (err.response && err.response.status === 409) {
+      if (err.response?.status === 409) {
         message.error("No rooms available for this time slot!");
       } else {
         message.error("Booking failed");
@@ -72,131 +134,255 @@ function BookingManagement() {
     }
   };
 
+  /* ================= CHECK-IN LOGIC ================= */
+
+  const openCheckInModal = async (booking) => {
+    setSelectedBooking(booking);
+    setIsCheckInModalOpen(true);
+    setAvailableRooms([]);
+    setAssignLoading(true);
+
+    try {
+      const res = await api.get(
+        `property/bookings/${booking.id}/available-rooms/`
+      );
+      setAvailableRooms(res.data);
+    } catch {
+      message.error("Could not fetch available rooms");
+    } finally {
+      setAssignLoading(false);
+    }
+  };
+
+  const handleCheckInSubmit = async () => {
+    if (!selectedRoomId) {
+      message.error("Please select a room number");
+      return;
+    }
+
+    try {
+      await api.post(
+        `property/bookings/${selectedBooking.id}/action/`,
+        { action: "CHECK_IN", room_id: selectedRoomId }
+      );
+      message.success("Guest Checked In Successfully");
+      setIsCheckInModalOpen(false);
+      setSelectedRoomId(null);
+      fetchBookings();
+    } catch {
+      message.error("Check-in failed");
+    }
+  };
+
+  const handleAction = async (bookingId, action) => {
+    try {
+      await api.post(
+        `property/bookings/${bookingId}/action/`,
+        { action }
+      );
+      message.success(`Booking ${action} successful`);
+      fetchBookings();
+    } catch {
+      message.error("Action failed");
+    }
+  };
+
+  /* ================= TABLE COLUMNS ================= */
+
   const columns = [
     {
-      title: "Reference",
+      title: "Guest / Ref",
       dataIndex: "booking_reference",
-      render: (text) => <Text strong>{text}</Text>
+      render: (ref) => (
+        <div>
+          <strong>{ref}</strong>
+          <div style={{ fontSize: 12, color: "#888" }}>
+            <UserOutlined /> Guest
+          </div>
+        </div>
+      )
     },
     {
       title: "Type",
       dataIndex: "booking_type",
       render: (type) => (
-        <Tag color={type === 'HOURLY' ? 'purple' : 'blue'}>
+        <Tag color={type === "HOURLY" ? "purple" : "blue"}>
           {type}
         </Tag>
       )
     },
     {
-      title: "Room Category",
-      dataIndex: ["room_type", "name"], // Nested data access
+      title: "Category",
+      dataIndex: ["room_type", "name"]
     },
     {
-      title: "Check In",
-      dataIndex: "scheduled_check_in",
-      render: (date) => dayjs(date).format("DD MMM, HH:mm")
+      title: "Dates",
+      render: (_, r) => (
+        <div>
+          <div>In: {dayjs(r.scheduled_check_in).format("DD MMM HH:mm")}</div>
+          <div>Out: {dayjs(r.scheduled_check_out).format("DD MMM HH:mm")}</div>
+        </div>
+      )
     },
     {
-      title: "Check Out",
-      dataIndex: "scheduled_check_out",
-      render: (date) => dayjs(date).format("DD MMM, HH:mm")
+      title: "Room",
+      dataIndex: "assigned_room",
+      render: (room) =>
+        room ? (
+          <Tag color="geekblue">{room.room_number}</Tag>
+        ) : (
+          <span style={{ color: "#999" }}>Unassigned</span>
+        )
     },
     {
       title: "Status",
       dataIndex: "status",
       render: (status) => {
-        let color = 'default';
-        if (status === 'CONFIRMED') color = 'green';
-        if (status === 'CHECKED_IN') color = 'gold';
-        if (status === 'CANCELLED') color = 'red';
+        let color = "default";
+        if (status === "CONFIRMED") color = "green";
+        if (status === "CHECKED_IN") color = "gold";
+        if (status === "CANCELLED") color = "red";
         return <Tag color={color}>{status}</Tag>;
       }
     },
     {
-      title: "Amount",
-      dataIndex: "total_amount",
-      render: (amt) => `₹${amt}`
+      title: "Action",
+      render: (_, r) => (
+        <div style={{ display: "flex", gap: 8 }}>
+          {r.status === "CONFIRMED" && (
+            <Button
+              type="primary"
+              size="small"
+              icon={<LoginOutlined />}
+              onClick={() => openCheckInModal(r)}
+            >
+              Check In
+            </Button>
+          )}
+
+          {r.status === "CHECKED_IN" && (
+            <Popconfirm
+              title="Confirm Check Out?"
+              onConfirm={() => handleAction(r.id, "CHECK_OUT")}
+            >
+              <Button size="small" icon={<LogoutOutlined />}>
+                Check Out
+              </Button>
+            </Popconfirm>
+          )}
+
+          {r.status === "CONFIRMED" && (
+            <Popconfirm
+              title="Cancel Booking?"
+              onConfirm={() => handleAction(r.id, "CANCEL")}
+            >
+              <Button danger size="small" icon={<CloseCircleOutlined />} />
+            </Popconfirm>
+          )}
+        </div>
+      )
     }
   ];
 
+  const confirmed = bookings.filter(b => b.status === "CONFIRMED");
+  const checkedIn = bookings.filter(b => b.status === "CHECKED_IN");
+  const history = bookings.filter(b =>
+    ["CHECKED_OUT", "CANCELLED"].includes(b.status)
+  );
+
   return (
     <div style={{ padding: 24 }}>
-      <PageHeader 
-        title="Front Desk & Bookings" 
+      <PageHeader
+        title="Booking Management"
         actions={
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => setIsModalOpen(true)}>
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => setIsWalkInModalOpen(true)}
+          >
             New Walk-in
           </Button>
         }
       />
 
-      <Tabs defaultActiveKey="1">
-        <TabPane tab="All Bookings" key="1">
-          <Table 
-            columns={columns} 
-            dataSource={bookings} 
-            rowKey="id" 
-            loading={loading} 
-          />
-        </TabPane>
-        <TabPane tab="Checked In" key="2">
-           {/* Filter logic usually goes here */}
-           <Table 
-            columns={columns} 
-            dataSource={bookings.filter(b => b.status === 'CHECKED_IN')} 
-            rowKey="id" 
-           />
-        </TabPane>
-      </Tabs>
+      <Card bordered={false}>
+        <Tabs defaultActiveKey="1">
+          <TabPane tab={`Upcoming (${confirmed.length})`} key="1">
+            <Table columns={columns} dataSource={confirmed} rowKey="id" />
+          </TabPane>
 
-      {/* WALK-IN MODAL */}
+          <TabPane tab={`Checked In (${checkedIn.length})`} key="2">
+            <Table columns={columns} dataSource={checkedIn} rowKey="id" />
+          </TabPane>
+
+          <TabPane tab="History" key="3">
+            <Table columns={columns} dataSource={history} rowKey="id" />
+          </TabPane>
+        </Tabs>
+      </Card>
+
+      {/* ================= WALK-IN MODAL ================= */}
       <Modal
         title="New Walk-in Booking"
-        open={isModalOpen}
-        onCancel={() => setIsModalOpen(false)}
+        open={isWalkInModalOpen}
+        onCancel={() => setIsWalkInModalOpen(false)}
         footer={null}
       >
-        <Form form={form} layout="vertical" onFinish={handleWalkIn}>
-          
-          <Form.Item label="Guest Name (Mock)" name="guest_name">
-            <Input prefix={<UserOutlined />} placeholder="Enter Guest Name" />
+        <Form form={walkInForm} layout="vertical" onFinish={handleWalkIn}>
+          <Form.Item label="Guest Name" name="guest_name">
+            <Input placeholder="Enter guest name" />
           </Form.Item>
 
           <Form.Item label="Booking Type" name="booking_type" initialValue="NIGHTLY">
-            <Select onChange={() => form.setFieldsValue({ dates: null })}>
-              <Option value="NIGHTLY">Nightly Stay</Option>
-              <Option value="HOURLY">Hourly Stay</Option>
+            <Select onChange={() => walkInForm.setFieldsValue({ dates: null })}>
+              <Option value="NIGHTLY">Nightly</Option>
+              <Option value="HOURLY">Hourly</Option>
             </Select>
           </Form.Item>
 
           <Form.Item label="Room Category" name="room_type_id" rules={[{ required: true }]}>
-            <Select placeholder="Select a Category">
+            <Select>
               {roomTypes.map(rt => (
                 <Option key={rt.id} value={rt.id}>
-                  {rt.name} (Avl: {rt.total_inventory})
+                  {rt.name}
                 </Option>
               ))}
             </Select>
           </Form.Item>
 
           <Form.Item label="Duration" name="dates" rules={[{ required: true }]}>
-            <DatePicker.RangePicker 
-              showTime 
-              format="YYYY-MM-DD HH:mm" 
-              style={{ width: '100%' }} 
-            />
+            <DatePicker.RangePicker showTime style={{ width: "100%" }} />
           </Form.Item>
 
-          <Button type="primary" htmlType="submit" block size="large">
+          <Button type="primary" htmlType="submit" block>
             Confirm Booking
           </Button>
         </Form>
       </Modal>
+
+      {/* ================= CHECK-IN MODAL ================= */}
+      <Modal
+        title={<><HomeOutlined /> Check In Guest</>}
+        open={isCheckInModalOpen}
+        onCancel={() => setIsCheckInModalOpen(false)}
+        onOk={handleCheckInSubmit}
+        okText="Confirm & Check In"
+        confirmLoading={assignLoading}
+      >
+        <Select
+          style={{ width: "100%" }}
+          placeholder="Select room"
+          onChange={setSelectedRoomId}
+        >
+          {availableRooms.map(room => (
+            <Option key={room.id} value={room.id}>
+              Room {room.room_number}
+            </Option>
+          ))}
+        </Select>
+      </Modal>
     </div>
   );
 }
-
-import { Typography } from "antd";
-const { Text } = Typography;
 
 export default BookingManagement;

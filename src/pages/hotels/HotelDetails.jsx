@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Row, Col, Typography, Button, Spin, Breadcrumb, Tabs, Table, Tag } from "antd";
+import { Row, Col, Typography, Button, Spin, Breadcrumb, Tabs, Table, Tag, Card } from "antd";
 import { HomeOutlined, PlusOutlined } from "@ant-design/icons";
 import api from "../../api/axios";
+import HourlyOperations from "./HourlyOperations";
 
 const { Title } = Typography;
 const { TabPane } = Tabs;
@@ -68,8 +69,24 @@ function HotelDetails() {
 
       <Tabs defaultActiveKey="1">
         
-        {/* TAB 1: ROOM CATEGORIES (Products) */}
-        <TabPane tab="Room Categories" key="1">
+        {/* TAB 1: OPERATIONS (NEW) */}
+        <TabPane tab="Live Operations" key="1">
+           <Row gutter={24}>
+             <Col xs={24} md={12}>
+                <HourlyOperations hotelId={id} />
+             </Col>
+             <Col xs={24} md={12}>
+                {/* You can put a summary of today's hourly bookings here later */}
+                <Card title="Quick Stats">
+                   <p>Hourly Guests Today: 0</p>
+                   <p>Revenue Today: ₹0</p>
+                </Card>
+             </Col>
+           </Row>
+        </TabPane>
+
+        {/* TAB 2: ROOM CATEGORIES (Moved) */}
+        <TabPane tab="Room Categories" key="2">
           <div style={{ marginBottom: 16, textAlign: 'right' }}>
             <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate(`/hotels/${id}/add-room-type`)}>
               Add Category
@@ -83,9 +100,9 @@ function HotelDetails() {
           />
         </TabPane>
 
-        {/* TAB 2: PHYSICAL ROOMS (Inventory) */}
-        <TabPane tab="Physical Rooms" key="2">
-          <div style={{ marginBottom: 16, textAlign: 'right' }}>
+        {/* TAB 3: PHYSICAL ROOMS (Moved) */}
+        <TabPane tab="Physical Rooms" key="3">
+           <div style={{ marginBottom: 16, textAlign: 'right' }}>
             <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate(`/hotels/${id}/add-physical-room`)}>
               Add Physical Room
             </Button>

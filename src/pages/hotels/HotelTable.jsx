@@ -50,6 +50,17 @@ function HotelTable({ data, loading }) {
           />
         </Space>
       )
+    },
+    {
+      title: "Manage Bookings",
+      key: "manage_bookings",
+      render: (_, record) => (
+        <Button 
+          onClick={() => navigate(`/bookings/${record.id}`)} 
+        >
+          Bookings
+        </Button>
+      )
     }
   ];
 

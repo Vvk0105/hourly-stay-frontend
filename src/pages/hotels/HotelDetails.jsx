@@ -45,6 +45,16 @@ function HotelDetails() {
 
   const physicalRoomColumns = [
     { title: "Room No", dataIndex: "room_number", key: "room_number" },
+    {
+      title: "Category",
+      dataIndex: "room_type",
+      key: "room_type",
+      render: (typeId) => {
+        // Assuming hotel.room_types is populated
+        const type = hotel.room_types.find(t => t.id === typeId);
+        return type ? type.name : "Unknown";
+      }
+    },
     { title: "Floor", dataIndex: "floor_number", key: "floor_number" },
     { title: "Status", dataIndex: "current_status", key: "current_status" },
     { title: "Active", dataIndex: "is_active", key: "is_active", render: (active) => <Tag color={active ? "green" : "red"}>{active ? "YES" : "NO"}</Tag> },

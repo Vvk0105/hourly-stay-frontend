@@ -16,24 +16,23 @@ const { RangePicker } = DatePicker;
 
 function HourlyOperations({ hotelId }) {
   const [loading, setLoading] = useState(true);
-  const [status, setStatus] = useState("INACTIVE"); // ACTIVE | INACTIVE
+  const [status, setStatus] = useState("INACTIVE"); 
   const [currentWindow, setCurrentWindow] = useState(null);
   const [mode, setMode] = useState("AUTO");
   const [customRange, setCustomRange] = useState([]);
-  
+
   // Slots Data
   const [slotsData, setSlotsData] = useState(null);
   const [slotsLoading, setSlotsLoading] = useState(false);
-  
-  
+
+
   useEffect(() => {
     fetchStatus();
-    // Poll for slots if active
     const interval = setInterval(() => {
       if (status === 'ACTIVE') {
         fetchSlots();
       }
-    }, 10000); // Poll every 10s
+    }, 10000);
     return () => clearInterval(interval);
   }, [hotelId, status]);
 
@@ -42,12 +41,12 @@ function HourlyOperations({ hotelId }) {
     try {
       const res = await api.get(`property/hotels/${hotelId}/hourly-operations/`);
       console.log(res, 'testing res');
-      
+
       const apiStatus = res.data.status;
       setStatus(apiStatus);
       if (apiStatus === 'ACTIVE') {
         setCurrentWindow(res.data.window);
-        fetchSlots(); // Initial fetch
+        fetchSlots();
       } else {
         setCurrentWindow(null);
       }
@@ -176,34 +175,56 @@ function HourlyOperations({ hotelId }) {
       {/* 3. SLOTS GRID (Only if Active) */}
       {status === 'ACTIVE' && slotsData && (
         <div style={{ marginTop: 24 }}>
-          <Title level={4}>Live Availability (Next 12 Hours)</Title>
+          <Title level={4}>
+            Live Availability
+            {currentWindow && (
+              <span style={{ fontSize: 16, fontWeight: 'normal', marginLeft: 8, color: '#888' }}>
+                (Window ends: {dayjs(currentWindow.end_datetime).format('MMM D, h:mm A')})
+              </span>
+            )}
+          </Title>
           <div style={{ overflowX: 'auto', paddingBottom: 10 }}>
             {slotsData?.rooms.map(room => (
               <Card key={room.id} size="small" style={{ marginBottom: 16 }} bodyStyle={{ padding: 12 }}>
                 <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
                   <Tag color="geekblue" style={{ fontSize: 14 }}>Room {room.number}</Tag>
-                  <Text type="secondary" style={{ fontSize: 12 }}>{room.type} ({room.status})</Text>
+                  <Text type="secondary" style={{ marginRight: 8 }}>{room.type}</Text>
+                  <Tag color={room.status === 'CLEAN' ? 'success' : room.status === 'DIRTY' ? 'warning' : 'error'}>
+                    {room.status}
+                  </Tag>
                 </div>
 
                 {/* Timeline Bar */}
-                <div style={{ display: 'flex', gap: 4, height: 40, alignItems: 'center', backgroundColor: '#f0f0f0', borderRadius: 4, padding: 4, position: 'relative' }}>
+                <div style={{ display: 'flex', height: 40, alignItems: 'center', backgroundColor: '#f0f0f0', borderRadius: 4, overflow: 'hidden' }}>
                   {room.slots.length === 0 ? (
-                    <Text type="secondary" style={{ width: '100%', textAlign: 'center' }}>No upcoming bookings</Text>
+                    <div style={{ width: '100%', textAlign: 'center', color: '#888', padding: 8 }}>
+                      No Availability Data
+                    </div>
                   ) : (
-                    room.slots.map(slot => {
+                    room.slots.map((slot, idx) => {
                       const start = dayjs(slot.start);
                       const end = dayjs(slot.end);
+                      const durationMins = end.diff(start, 'minute');
+
                       return (
-                        <Tooltip key={slot.id} title={`${start.format('HH:mm')} - ${end.format('HH:mm')} (${slot.status})`}>
+                        <Tooltip
+                          key={idx}
+                          title={`${slot.type === 'BOOKED' ? 'Booked' : 'Available'} (${start.format('HH:mm')} - ${end.format('HH:mm')})`}
+                        >
                           <div style={{
-                            backgroundColor: slot.status === 'CONFIRMED' ? '#1890ff' : '#52c41a',
-                            color: '#fff',
-                            padding: '2px 8px',
-                            borderRadius: 4,
+                            flex: durationMins,
+                            height: '100%',
+                            backgroundColor: slot.type === 'BOOKED' ? '#ffccc7' : '#d9f7be',
+                            borderRight: '1px solid #fff',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
                             fontSize: 10,
-                            whiteSpace: 'nowrap'
+                            color: '#555',
+                            cursor: 'pointer',
+                            minWidth: 30
                           }}>
-                            {start.format('HH:mm')} - {end.format('HH:mm')}
+                            {slot.type === 'BOOKED' ? 'Booked' : 'Free'}
                           </div>
                         </Tooltip>
                       );

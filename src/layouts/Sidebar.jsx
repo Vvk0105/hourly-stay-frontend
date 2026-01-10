@@ -50,7 +50,7 @@ function Sidebar() {
           onClick: () => navigate("/hotels"),
         },
 
-        user?.role === "HOTEL_MANAGER" || user?.role === "SUPER_ADMIN" && {
+        user?.role === "HOTEL_MANAGER" && {
           key: "bookings",
           icon: <UserOutlined />,
           label: "Bookings",

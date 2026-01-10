@@ -1,0 +1,119 @@
+/* HotelManagement.css */
+.hotel-management-container {
+    font-family: 'Inter', sans-serif;
+}
+
+.hm-breadcrumb {
+    margin-bottom: 20px;
+    color: #666;
+    font-size: 14px;
+}
+
+.hm-breadcrumb a {
+    color: #666;
+}
+
+.hm-card {
+    background-color: #fff;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    /* Gentle shadow like mockup */
+}
+
+.hm-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.hm-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+}
+
+.hm-actions {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+}
+
+.hm-search-input {
+    border-radius: 20px !important;
+    width: 300px;
+}
+
+.hm-add-btn {
+    background-color: #1a1a1a !important;
+    color: #fff !important;
+    border-radius: 20px !important;
+    border: none !important;
+    height: 40px !important;
+    padding: 0 20px !important;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+}
+
+.hm-add-btn:hover {
+    background-color: #333 !important;
+}
+
+/* Table Customization */
+.ant-table-wrapper .ant-table-thead>tr>th {
+    background-color: #fafafa !important;
+    font-weight: 600;
+    color: #333;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.ant-table-wrapper .ant-table-tbody>tr>td {
+    padding: 16px 16px !important;
+    /* Proper spacing */
+}
+
+.ant-tag-success {
+    background-color: #f6ffed;
+    border-color: #b7eb8f;
+    color: #52c41a;
+    border-radius: 12px;
+    padding: 0 10px;
+}
+
+.ant-tag-warning,
+.ant-tag-error {
+    /* Using error for inactive usually in AntD logic, but mapped to warning/error */
+    padding: 0 10px;
+}
+
+@media (max-width: 768px) {
+    .hm-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+
+    .hm-actions {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+
+    .hm-search-input {
+        width: 100% !important;
+    }
+
+    .hm-add-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    /* Table horizontal scroll */
+    .ant-table-wrapper {
+        overflow-x: auto;
+    }
+}

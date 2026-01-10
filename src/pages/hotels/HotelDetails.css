@@ -1,0 +1,279 @@
+/* HotelDetails.css */
+.hotel-details-container {
+    font-family: 'Inter', sans-serif;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.hd-breadcrumb .ant-breadcrumb {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 24px;
+}
+
+.hd-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.hd-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+}
+
+.hd-action-icon {
+    font-size: 20px;
+    color: #666;
+    cursor: pointer;
+    margin-left: 16px;
+    padding: 8px;
+    border-radius: 50%;
+    transition: background 0.3s;
+}
+
+.hd-action-icon:hover {
+    background-color: #f0f0f0;
+    color: #333;
+}
+
+.hd-action-icon.danger:hover {
+    color: #ff4d4f;
+    background-color: #fff1f0;
+}
+
+/* Main Info Card */
+.hd-main-card {
+    background-color: #fff;
+    border-radius: 16px;
+    padding: 32px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    /* Gentle shadow */
+    margin-bottom: 40px;
+}
+
+.hd-layout-row {
+    display: flex;
+    gap: 40px;
+}
+
+.hd-gallery {
+    flex: 1;
+    max-width: 600px;
+}
+
+.hd-main-image {
+    width: 100%;
+    height: 350px;
+    border-radius: 16px;
+    object-fit: cover;
+    margin-bottom: 16px;
+}
+
+.hd-thumbnails {
+    display: flex;
+    gap: 16px;
+}
+
+.hd-thumb {
+    flex: 1;
+    height: 100px;
+    border-radius: 12px;
+    object-fit: cover;
+    cursor: pointer;
+}
+
+.hd-thumb.more-overlay {
+    position: relative;
+    overflow: hidden;
+}
+
+/* Info Section */
+.hd-info {
+    flex: 1;
+}
+
+.hd-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px 40px;
+    margin-bottom: 32px;
+}
+
+.hd-info-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.hd-label {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 4px;
+    font-weight: 500;
+}
+
+.hd-value {
+    font-size: 16px;
+    color: #111;
+    font-weight: 500;
+}
+
+.hd-description-label {
+    display: block;
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.hd-description {
+    font-size: 14px;
+    color: #333;
+    line-height: 1.6;
+}
+
+/* Categories Section */
+.hd-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.hd-section-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #333;
+}
+
+.hd-add-btn {
+    background-color: #1a1a1a !important;
+    color: #fff !important;
+    border-radius: 20px !important;
+    border: none !important;
+    height: 40px !important;
+    padding: 0 24px !important;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+}
+
+.hd-add-btn:hover {
+    background-color: #333 !important;
+}
+
+.hd-categories-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    /* Responsive grid */
+    gap: 24px;
+}
+
+.hd-category-card {
+    background-color: #f9f9f9;
+    /* Light gray background for cards as per mockup */
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+}
+
+.hd-category-card:hover {
+    background-color: #fff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transform: translateY(-2px);
+}
+
+.hd-cat-image {
+    width: 120px;
+    height: 80px;
+    border-radius: 8px;
+    object-fit: cover;
+}
+
+.hd-cat-details {
+    flex: 1;
+}
+
+.hd-cat-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #111;
+    margin-bottom: 4px;
+}
+
+.hd-cat-sub {
+    font-size: 12px;
+    color: #888;
+}
+
+.hd-cat-arrow {
+    font-size: 16px;
+    color: #333;
+}
+
+@media (max-width: 992px) {
+    .hd-layout-row {
+        flex-direction: column;
+    }
+
+    .hd-gallery {
+        max-width: 100%;
+        margin-bottom: 24px;
+    }
+
+    .hd-info-grid {
+        gap: 16px;
+    }
+}
+
+@media (max-width: 576px) {
+    .hotel-details-container {
+        padding: 16px;
+    }
+
+    .hd-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .hd-title {
+        font-size: 20px;
+    }
+
+    .hd-main-card {
+        padding: 20px;
+    }
+
+    .hd-main-image {
+        height: 200px;
+    }
+
+    .hd-thumbnails {
+        gap: 8px;
+    }
+
+    .hd-thumb {
+        height: 70px;
+    }
+
+    .hd-info-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .hd-categories-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .hd-add-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}

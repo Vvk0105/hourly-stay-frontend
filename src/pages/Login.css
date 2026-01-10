@@ -1,0 +1,120 @@
+.login-container {
+    display: flex;
+    position: fixed;
+    /* Force full viewport coverage */
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    /* Handle overflow locally */
+    font-family: 'Inter', sans-serif;
+    z-index: 1000;
+    /* Ensure it sits on top if needed */
+    background-color: white;
+    /* Prevent transparent background showing underlying content */
+}
+
+@media (max-width: 768px) {
+    .login-container {
+        flex-direction: column;
+    }
+
+    .login-left {
+        display: none;
+        /* Hide image on mobile for simpler login */
+    }
+
+    .login-right {
+        width: 100%;
+        padding: 20px;
+    }
+}
+
+
+.login-left {
+    flex: 1;
+    background-image: url('https://images.unsplash.com/photo-1611892440504-42a792e24d32?q=80&w=2070&auto=format&fit=crop');
+    /* Hotel room placeholder */
+    background-size: cover;
+    background-position: center;
+    border-top-right-radius: 20px;
+    border-bottom-right-radius: 20px;
+    margin: 10px;
+    height: calc(100vh - 20px);
+    border-radius: 20px;
+}
+
+.login-right {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: #fff;
+    padding: 40px;
+}
+
+.brand-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 60px;
+    /* Space between logo and form */
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+}
+
+.brand-icon {
+    margin-right: 10px;
+    color: #ffca28;
+    /* Yellowish color from mockup */
+    font-size: 28px;
+}
+
+.login-form-wrapper {
+    width: 100%;
+    max-width: 400px;
+}
+
+.login-title {
+    font-size: 32px;
+    font-weight: 600;
+    margin-bottom: 40px;
+    text-align: center;
+    color: #333;
+}
+
+.login-form .ant-form-item-label>label {
+    color: #666;
+    font-weight: 500;
+}
+
+.login-input {
+    height: 45px;
+    border-radius: 8px;
+}
+
+.forgot-password {
+    float: right;
+    color: #666;
+    margin-bottom: 20px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.login-button {
+    width: 100%;
+    height: 45px;
+    background-color: #1a1a1a;
+    border-color: #1a1a1a;
+    border-radius: 25px;
+    /* Rounded pill shape */
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.login-button:hover {
+    background-color: #333 !important;
+    border-color: #333 !important;
+}

@@ -59,7 +59,9 @@ function CategoryDetails() {
                 try {
                     const hotelRes = await api.get(`property/hotels/${id}/`);
                     setHotelName(hotelRes.data.name);
-                    setRooms(hotelRes.data.rooms);
+                    const allRooms = hotelRes.data.rooms || [];
+                    const filteredRooms = allRooms.filter(r => String(r.room_type) === String(categoryId));
+                    setRooms(filteredRooms);
                 } catch {
                     setHotelName("Hotel");
                 }

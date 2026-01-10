@@ -21,7 +21,13 @@ function CategoryDetails() {
     // Modal State
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [addLoading, setAddLoading] = useState(false);
+
+    // Edit Modal State
+    const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+    const [editLoading, setEditLoading] = useState(false);
+    const [editingRoom, setEditingRoom] = useState(null);
     const [form] = Form.useForm();
+    const [editForm] = Form.useForm();
 
     useEffect(() => {
         fetchDetails();
@@ -108,6 +114,41 @@ function CategoryDetails() {
                 }
             }
         });
+    };
+
+    const handleEditRoom = (room) => {
+        setEditingRoom(room);
+        editForm.setFieldsValue({
+            room_number: room.room_number,
+            floor_number: room.floor_number,
+            current_status: room.current_status
+        });
+        setIsEditModalVisible(true);
+    };
+
+    const handleUpdateRoom = async (values) => {
+        setEditLoading(true);
+        try {
+            const payload = {
+                hotel: id,
+                room_type: categoryId,
+                room_number: values.room_number,
+                floor_number: values.floor_number,
+                current_status: values.current_status,
+                is_active: true
+            };
+
+            await api.put(`property/rooms/${editingRoom.id}/`, payload);
+            message.success("Room Updated Successfully");
+            setIsEditModalVisible(false);
+            setEditingRoom(null);
+            fetchDetails(); // Refresh list
+        } catch (error) {
+            console.error("Update room error:", error);
+            message.error("Failed to update room");
+        } finally {
+            setEditLoading(false);
+        }
     };
 
     if (loading) return <Spin size="large" style={{ display: 'block', margin: '100px auto' }} />;
@@ -214,10 +255,16 @@ function CategoryDetails() {
                     rooms.map(room => (
                         <div key={room.id} className="cd-room-card" style={{ position: 'relative' }}>
                             <div style={{ position: 'absolute', top: 10, right: 10 }}>
-                                <DeleteOutlined
-                                    style={{ color: '#ff4d4f', cursor: 'pointer' }}
-                                    onClick={() => handleDeleteRoom(room.id)}
-                                />
+                                <div style={{ display: 'flex', gap: '8px' }}>
+                                    <EditOutlined
+                                        style={{ color: '#1890ff', cursor: 'pointer' }}
+                                        onClick={() => handleEditRoom(room)}
+                                    />
+                                    <DeleteOutlined
+                                        style={{ color: '#ff4d4f', cursor: 'pointer' }}
+                                        onClick={() => handleDeleteRoom(room.id)}
+                                    />
+                                </div>
                             </div>
                             <div className="cd-room-header">
                                 <span className="cd-room-number">{room.room_number}</span>
@@ -255,6 +302,36 @@ function CategoryDetails() {
                     <Form.Item label="Floor Number" name="floor_number" initialValue={1}>
                         <InputNumber style={{ width: '100%', borderRadius: '8px' }} />
                     </Form.Item>
+                </Form>
+            </Modal>
+
+            {/* Edit Room Modal */}
+            <Modal
+                title={<span style={{ fontWeight: 600, fontSize: '18px' }}>Edit Room Details</span>}
+                open={isEditModalVisible}
+                onCancel={() => { setIsEditModalVisible(false); setEditingRoom(null); }}
+                onOk={() => editForm.submit()}
+                confirmLoading={editLoading}
+                okText="Update Room"
+                okButtonProps={{ style: { backgroundColor: '#1a1a1a', borderRadius: '20px' } }}
+                cancelButtonProps={{ style: { borderRadius: '20px' } }}
+            >
+                <Form form={editForm} layout="vertical" onFinish={handleUpdateRoom} style={{ marginTop: 24 }}>
+                    <Form.Item label="Room Number / Name" name="room_number" rules={[{ required: true, message: 'Please enter room identifier' }]}>
+                        <Input placeholder="e.g. 101 or A-01" style={{ borderRadius: '8px' }} />
+                    </Form.Item>
+                    <Form.Item label="Floor Number" name="floor_number" initialValue={1}>
+                        <InputNumber style={{ width: '100%', borderRadius: '8px' }} />
+                    </Form.Item>
+                    {isEditModalVisible && (
+                        <Form.Item label="Current Status" name="current_status" initialValue="CLEAN">
+                            <Select style={{ borderRadius: '8px' }}>
+                                <Option value="CLEAN">Clean</Option>
+                                <Option value="DIRTY">Dirty</Option>
+                                <Option value="MAINTENANCE">Maintenance</Option>
+                            </Select>
+                        </Form.Item>
+                    )}
                 </Form>
             </Modal>
 

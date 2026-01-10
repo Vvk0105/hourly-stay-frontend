@@ -110,7 +110,10 @@ function HotelDetails() {
 
       {/* Header with Actions */}
       <div className="hd-header">
-        <h1 className="hd-title">{hotel.name}</h1>
+        <div>
+          <h1 className="hd-title" style={{ marginBottom: 8 }}>{hotel.name}</h1>
+
+        </div>
         <div>
           <EditOutlined
             className="hd-action-icon"
@@ -138,13 +141,7 @@ function HotelDetails() {
               </div>
             </div>
           </div>
-<Form.Item
-                label="Enable Hourly Booking"
-                name="is_hourly_enabled"
-                valuePropName="checked"
-              >
-                <Switch />
-              </Form.Item>
+
           {/* Right: Details */}
           <div className="hd-info">
             <div className="hd-info-grid">
@@ -180,6 +177,30 @@ function HotelDetails() {
                 <span className="hd-label">Standard Check Out Time</span>
                 <span className="hd-value">{hotel.check_out_time || "11:00 AM"}</span>
               </div>
+              <div className="hd-info-item">
+                <span className="hd-label">Hourly Enabled</span>
+                <span className="hd-value">
+                  <Tag color={hotel.is_hourly_enabled ? "green" : "red"}>
+                    {hotel.is_hourly_enabled ? "YES" : "NO"}</Tag>
+                </span>
+              </div>
+              {hotel.is_hourly_enabled && (
+                <div className="hd-info-item">
+                  <span className="hd-label">Hourly Status</span>
+                  <span className="hd-value">
+                    <Button
+                      type="primary"
+                      danger={!hotel.is_hourly_enabled}
+                      style={hotel.is_hourly_enabled ? { backgroundColor: '#52c41a', borderColor: '#52c41a' } : {}}
+                      onClick={() => navigate(`/hotels/${id}/hourly-status`)}
+                      size="small"
+                    >
+                      {hotel.is_hourly_enabled ? "Hourly Active" : "Hourly Inactive"}
+                      <span style={{ marginLeft: 8 }}>Manage</span>
+                    </Button>
+                  </span>
+                </div>
+              )}
             </div>
 
             <div className="hd-info-item">
@@ -234,7 +255,6 @@ function HotelDetails() {
         )}
       </div>
 
-      {/* Add Category Modal */}
       <Modal
         title={<span style={{ fontSize: '20px', fontWeight: '600' }}>Add Room Category</span>}
         open={isModalVisible}
@@ -292,8 +312,8 @@ function HotelDetails() {
 
                 <Divider style={{ margin: '12px 0' }} />
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
-                  <Text>Enable Hourly?</Text>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12, alignItems: 'center' }}>
+                  <Text strong>Enable Hourly?</Text>
                   <Form.Item name="is_hourly_enabled" valuePropName="checked" noStyle>
                     <Switch onChange={(checked) => setIsHourly(checked)} />
                   </Form.Item>
@@ -321,7 +341,7 @@ function HotelDetails() {
         </Form>
       </Modal>
 
-    </div>
+    </div >
   );
 }
 

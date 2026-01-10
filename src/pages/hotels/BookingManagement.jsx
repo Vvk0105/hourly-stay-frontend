@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { 
-  Table, Button, Tag, Tabs, Modal, Select, message, 
-  Card, Popconfirm, Tooltip, Badge, Form, DatePicker, Input 
+import {
+  Table, Button, Tag, Tabs, Modal, Select, message,
+  Card, Popconfirm, Tooltip, Badge, Form, DatePicker, Input
 } from "antd";
-import { 
-  LoginOutlined, LogoutOutlined, CloseCircleOutlined, 
-  HomeOutlined, UserOutlined, PlusOutlined 
+import {
+  LoginOutlined, LogoutOutlined, CloseCircleOutlined,
+  HomeOutlined, UserOutlined, PlusOutlined
 } from "@ant-design/icons";
 import { useParams } from "react-router-dom";
 import dayjs from "dayjs";
@@ -36,11 +36,11 @@ function BookingManagement() {
   // useEffect(() => {
   //   fetchBookings();
   //   fetchRoomTypes();
-    
+
   //   const interval = setInterval(() => {
   //     fetchBookings();
   //   }, 5000);
-    
+
   //   return () => clearInterval(interval);
 
   // }, [id]);
@@ -139,7 +139,8 @@ function BookingManagement() {
   const openCheckInModal = async (booking) => {
     setSelectedBooking(booking);
     setIsCheckInModalOpen(true);
-    setAvailableRooms([]);
+    setAvailableRooms([]); // Clear previous list
+    setSelectedRoomId(null); // Clear previous selection
     setAssignLoading(true);
 
     try {
@@ -167,8 +168,9 @@ function BookingManagement() {
       );
       message.success("Guest Checked In Successfully");
       setIsCheckInModalOpen(false);
-      setSelectedRoomId(null);
-      fetchBookings();
+      setSelectedRoomId(null); // Clear selection
+      setAvailableRooms([]); // Clear list
+      fetchBookings(); // Refresh main table
     } catch {
       message.error("Check-in failed");
     }

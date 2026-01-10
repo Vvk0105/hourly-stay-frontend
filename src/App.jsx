@@ -11,9 +11,10 @@ import UserManagement from "./pages/users/UserManagement";
 import AssignChangePage from "./pages/assignChange/AssignChangePage";
 import HotelManagement from "./pages/hotels/HotelManagement";
 import AddHotel from "./pages/hotels/AddHotel";
-import HotelDetails from "./pages/hotels/HotelDetails"; 
+import HotelDetails from "./pages/hotels/HotelDetails";
 import RoomDetails from "./pages/hotels/RoomDetails";
 import AddRoomType from "./pages/hotels/AddRoomType";
+import EditRoomType from "./pages/hotels/EditRoomType";
 import AddPhysicalRoom from "./pages/hotels/AddPhysicalRoom";
 import EditHotel from "./pages/hotels/EditHotel";
 import BookingManagement from "./pages/hotels/BookingManagement";
@@ -28,7 +29,7 @@ function App() {
   }, [dispatch]);
 
   if (!initialized) {
-      return <div>Loading application...</div>;
+    return <div>Loading application...</div>;
   }
 
   return (
@@ -36,13 +37,13 @@ function App() {
       <Routes>
         <Route path="/" element={<Login />} />
         <Route element={<ProtectedRoute />}>
-          <Route 
-          path="/dashboard" 
-          element={
-            <MainLayout>
-              <Dashboard />
-            </MainLayout>
-          } />
+          <Route
+            path="/dashboard"
+            element={
+              <MainLayout>
+                <Dashboard />
+              </MainLayout>
+            } />
         </Route>
         <Route
           path="/users"
@@ -72,6 +73,7 @@ function App() {
         <Route path="/hotels/:id" element={<MainLayout><HotelDetails /></MainLayout>} />
         <Route path="/hotels/:id/rooms/:roomId" element={<MainLayout><RoomDetails /></MainLayout>} />
         <Route path="/hotels/:id/add-room-type" element={<MainLayout><AddRoomType /></MainLayout>} />
+        <Route path="/hotels/:id/room-types/:typeId/edit" element={<MainLayout><EditRoomType /></MainLayout>} />
         <Route path="/hotels/:id/add-physical-room" element={<MainLayout><AddPhysicalRoom /></MainLayout>} />
         <Route path="/hotels/:id/edit" element={<MainLayout><EditHotel /></MainLayout>} />
 

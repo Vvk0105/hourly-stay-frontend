@@ -36,10 +36,10 @@ function HotelDetails() {
     { title: "Category", dataIndex: "name", key: "name" },
     { title: "Inventory", dataIndex: "total_inventory", key: "total_inventory" },
     { title: "Nightly Price", dataIndex: "base_price_nightly", render: (p) => `₹${p}` },
-    { 
-      title: "Hourly Enabled", 
-      dataIndex: "is_hourly_enabled", 
-      render: (enabled) => <Tag color={enabled ? "green" : "red"}>{enabled ? "YES" : "NO"}</Tag> 
+    {
+      title: "Hourly Enabled",
+      dataIndex: "is_hourly_enabled",
+      render: (enabled) => <Tag color={enabled ? "green" : "red"}>{enabled ? "YES" : "NO"}</Tag>
     },
   ];
 
@@ -52,7 +52,7 @@ function HotelDetails() {
 
   ]
   console.log(hotel);
-  
+
   return (
     <div style={{ padding: 24 }}>
       <Breadcrumb items={[{ href: '/hotels', title: 'Hotels' }, { title: hotel.name }]} style={{ marginBottom: 16 }} />
@@ -61,28 +61,28 @@ function HotelDetails() {
         <div>
           <Title level={2} style={{ margin: 0 }}>{hotel.name}</Title>
           <Tag color={hotel.is_hourly_enabled ? "blue" : "default"}>
-             Hotel Master Switch: {hotel.is_hourly_enabled ? "HOURLY ON" : "HOURLY OFF"}
+            Hotel Master Switch: {hotel.is_hourly_enabled ? "HOURLY ON" : "HOURLY OFF"}
           </Tag>
         </div>
         <Button onClick={() => navigate(`/hotels/${id}/edit`)}>Edit Hotel</Button>
       </div>
 
       <Tabs defaultActiveKey="1">
-        
+
         {/* TAB 1: OPERATIONS (NEW) */}
         <TabPane tab="Live Operations" key="1">
-           <Row gutter={24}>
-             <Col xs={24} md={12}>
-                <HourlyOperations hotelId={id} />
-             </Col>
-             <Col xs={24} md={12}>
-                {/* You can put a summary of today's hourly bookings here later */}
-                <Card title="Quick Stats">
-                   <p>Hourly Guests Today: 0</p>
-                   <p>Revenue Today: ₹0</p>
-                </Card>
-             </Col>
-           </Row>
+          <Row gutter={24}>
+            <Col xs={24} md={12}>
+              <HourlyOperations hotelId={id} />
+            </Col>
+            <Col xs={24} md={12}>
+              {/* You can put a summary of today's hourly bookings here later */}
+              <Card title="Quick Stats">
+                <p>Hourly Guests Today: 0</p>
+                <p>Revenue Today: ₹0</p>
+              </Card>
+            </Col>
+          </Row>
         </TabPane>
 
         {/* TAB 2: ROOM CATEGORIES (Moved) */}
@@ -92,29 +92,40 @@ function HotelDetails() {
               Add Category
             </Button>
           </div>
-          <Table 
-            dataSource={hotel.room_types} 
-            columns={typeColumns} 
-            rowKey="id" 
-            pagination={false} 
+          <Table
+            dataSource={hotel.room_types}
+            columns={[
+              ...typeColumns,
+              {
+                title: "Action",
+                render: (_, r) => <Button type="link" onClick={() => navigate(`/hotels/${id}/room-types/${r.id}/edit`)}>Edit</Button>
+              }
+            ]}
+            rowKey="id"
+            pagination={false}
           />
         </TabPane>
 
         {/* TAB 3: PHYSICAL ROOMS (Moved) */}
         <TabPane tab="Physical Rooms" key="3">
-           <div style={{ marginBottom: 16, textAlign: 'right' }}>
+          <div style={{ marginBottom: 16, textAlign: 'right' }}>
             <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate(`/hotels/${id}/add-physical-room`)}>
               Add Physical Room
             </Button>
           </div>
-          {/* You would fetch and list physical rooms here. For now, referencing the counts in Tab 1 is often enough for overview */}
           <div style={{ padding: 20, background: '#f5f5f5', textAlign: 'center' }}>
-            <Table 
-            dataSource={hotel.rooms} 
-            columns={physicalRoomColumns} 
-            rowKey="id" 
-            pagination={false} 
-          />
+            <Table
+              dataSource={hotel.rooms}
+              columns={[
+                ...physicalRoomColumns,
+                {
+                  title: "Action",
+                  render: (_, r) => <Button type="link" onClick={() => navigate(`/hotels/${id}/rooms/${r.id}`)}>View</Button>
+                }
+              ]}
+              rowKey="id"
+              pagination={false}
+            />
           </div>
         </TabPane>
 

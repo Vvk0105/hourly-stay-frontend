@@ -22,7 +22,7 @@ function HeaderBar({ setMobileSiderOpen }) {
         {!screens.md && (
           <MenuOutlined
             style={{ fontSize: 20, cursor: "pointer", marginRight: 16 }}
-            onClick={() => setMobileSiderOpen(true)}
+            onClick={() => setMobileSiderOpen && setMobileSiderOpen(true)}
           />
         )}
       </div>

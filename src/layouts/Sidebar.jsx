@@ -4,7 +4,8 @@ import {
   UserOutlined,
   SettingOutlined,
   LogoutOutlined,
-  HomeOutlined
+  HomeOutlined,
+  ClockCircleFilled
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -24,48 +25,50 @@ function Sidebar({ mobileSiderOpen, setMobileSiderOpen }) {
     navigate("/");
   };
 
+  const handleMenuClick = (path) => {
+    navigate(path);
+    if (!screens.md && setMobileSiderOpen) {
+      setMobileSiderOpen(false);
+    }
+  };
+
   const items = [
     {
       key: "/dashboard",
       icon: <DashboardOutlined />,
       label: "Dashboard",
-      onClick: () => { navigate("/dashboard"); if (!screens.md) setMobileSiderOpen(false); },
+      onClick: () => handleMenuClick("/dashboard"),
     },
-
     user?.role === "SUPER_ADMIN" && {
       key: "/users",
       icon: <UserOutlined />,
       label: "Users Management",
-      onClick: () => { navigate("/users"); if (!screens.md) setMobileSiderOpen(false); },
+      onClick: () => handleMenuClick("/users"),
     },
-
     user?.role === "SUPER_ADMIN" && {
       key: "/assignandchange",
       icon: <UserOutlined />,
       label: "Assign and Change",
-      onClick: () => { navigate("/assignandchange"); if (!screens.md) setMobileSiderOpen(false); },
+      onClick: () => handleMenuClick("/assignandchange"),
     },
     {
       key: "/hotels",
       icon: <HomeOutlined />,
       label: "Hotel Management",
-      onClick: () => { navigate("/hotels"); if (!screens.md) setMobileSiderOpen(false); },
+      onClick: () => handleMenuClick("/hotels"),
     },
-
     user?.role === "HOTEL_MANAGER" && {
       key: "bookings",
       icon: <UserOutlined />,
       label: "Bookings",
-      onClick: () => { navigate("/bookings/1"); if (!screens.md) setMobileSiderOpen(false); },
+      onClick: () => handleMenuClick("/bookings/1"),
     },
-
     {
       key: "/settings",
       icon: <SettingOutlined />,
       label: "Settings",
-      onClick: () => { navigate("/settings"); if (!screens.md) setMobileSiderOpen(false); },
+      onClick: () => handleMenuClick("/settings"),
     },
-
     {
       key: "logout",
       icon: <LogoutOutlined />,
@@ -74,35 +77,55 @@ function Sidebar({ mobileSiderOpen, setMobileSiderOpen }) {
     },
   ].filter(Boolean);
 
-  const MenuContent = (
-    <>
-      <div style={{ padding: 16, textAlign: 'center', fontSize: 20, fontWeight: 'bold', color: screens.md ? '#fff' : '#000' }}>
-        HourlyStay
-      </div>
-      <Menu theme={screens.md ? "dark" : "light"} mode="inline" items={items} />
-    </>
+  const MenuComponent = (props) => (
+    <Menu
+      theme="light"
+      mode="inline"
+      items={items}
+      selectedKeys={[window.location.pathname]}
+      style={{ borderRight: 0 }}
+    />
+  );
+
+  const LogoContent = (
+    <div className="logo" style={{
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '24px 16px',
+      gap: '8px',
+      cursor: 'pointer'
+    }} onClick={() => navigate('/dashboard')}>
+      <ClockCircleFilled style={{ fontSize: '24px', color: '#FFD700' }} />
+      <span style={{ fontSize: '18px', fontWeight: 'bold', color: '#333' }}>HourlyStay.com</span>
+    </div>
   );
 
   if (!screens.md) {
     return (
       <Drawer
-        title="Menu"
         placement="left"
-        onClose={() => setMobileSiderOpen(false)}
+        onClose={() => setMobileSiderOpen && setMobileSiderOpen(false)}
         open={mobileSiderOpen}
         bodyStyle={{ padding: 0 }}
+        width={240}
+        closable={false}
       >
-        {MenuContent}
+        {LogoContent}
+        <MenuComponent />
       </Drawer>
     );
   }
 
   return (
-    <Sider width={240} className="sidebar" breakpoint="lg" collapsedWidth="0">
-      <div className="logo" style={{ color: '#fff', fontSize: 20, fontWeight: 'bold', padding: 16, textAlign: 'center' }}>HourlyStay</div>
-      <Menu theme="dark" mode="inline" items={items} />
+    <Sider width={250} className="sidebar" breakpoint="lg" collapsedWidth="0" theme="light" style={{
+      boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+      zIndex: 10
+    }}>
+      {LogoContent}
+      <MenuComponent />
     </Sider>
-  )
+  );
 }
 
-export default Sidebar
+export default Sidebar;

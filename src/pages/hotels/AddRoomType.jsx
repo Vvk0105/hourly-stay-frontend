@@ -16,19 +16,19 @@ function AddRoomType() {
 
   const onFinish = async (values) => {
     setLoading(true);
-    
+
     const payload = {
       hotel: id,
       name: values.name,
       // Total inventory is just a number here for reference, 
       // actual inventory increases when adding Physical Rooms.
-      total_inventory: values.total_inventory, 
+      total_inventory: values.total_inventory,
       max_adults: values.max_adults,
       max_children: values.max_children,
       size_sqft: values.size_sqft,
       base_price_nightly: values.base_price_nightly,
       description: values.description,
-      is_hourly_enabled: values.is_hourly_enabled, 
+      is_hourly_enabled: values.is_hourly_enabled,
     };
 
     if (values.is_hourly_enabled) {
@@ -59,36 +59,36 @@ function AddRoomType() {
       <PageHeader title="Add Room Category" />
       <Form form={form} layout="vertical" onFinish={onFinish} initialValues={{ max_adults: 2, is_hourly_enabled: false }}>
         <Row gutter={24}>
-          <Col span={16}>
+          <Col xs={24} lg={16}>
             <Card title="Category Details">
               <Row gutter={16}>
-                <Col span={12}>
+                <Col xs={24} sm={12}>
                   <Form.Item label="Name" name="name" rules={[{ required: true, message: 'Ex: Deluxe King' }]}>
                     <Input placeholder="e.g. Deluxe King" />
                   </Form.Item>
                 </Col>
-                <Col span={12}>
+                <Col xs={24} sm={12}>
                   <Form.Item label="Initial Inventory Count" name="total_inventory" rules={[{ required: true }]}>
                     <InputNumber style={{ width: '100%' }} placeholder="0" />
                   </Form.Item>
                 </Col>
-                <Col span={8}>
-                   <Form.Item label="Max Adults" name="max_adults"><InputNumber min={1} style={{ width: '100%' }} /></Form.Item>
+                <Col xs={24} sm={8}>
+                  <Form.Item label="Max Adults" name="max_adults"><InputNumber min={1} style={{ width: '100%' }} /></Form.Item>
                 </Col>
-                <Col span={8}>
-                   <Form.Item label="Max Children" name="max_children"><InputNumber min={0} style={{ width: '100%' }} /></Form.Item>
+                <Col xs={24} sm={8}>
+                  <Form.Item label="Max Children" name="max_children"><InputNumber min={0} style={{ width: '100%' }} /></Form.Item>
                 </Col>
-                <Col span={8}>
-                   <Form.Item label="Size (Sq. Ft)" name="size_sqft"><InputNumber style={{ width: '100%' }} /></Form.Item>
+                <Col xs={24} sm={8}>
+                  <Form.Item label="Size (Sq. Ft)" name="size_sqft"><InputNumber style={{ width: '100%' }} /></Form.Item>
                 </Col>
-                <Col span={24}>
+                <Col xs={24}>
                   <Form.Item label="Description" name="description"><TextArea rows={3} /></Form.Item>
                 </Col>
               </Row>
             </Card>
           </Col>
 
-          <Col span={8}>
+          <Col xs={24} lg={8}>
             <Card title="Pricing & Rules">
               <Text strong>Standard Nightly Rate</Text>
               <Form.Item name="base_price_nightly" rules={[{ required: true }]} style={{ marginTop: 8 }}>
@@ -115,7 +115,7 @@ function AddRoomType() {
                   <Form.Item label="Extra Hour Price" name="price_per_extra_hour" rules={[{ required: true }]}>
                     <InputNumber style={{ width: '100%' }} prefix="₹" />
                   </Form.Item>
-                   <Form.Item label="Cleaning Gap (Mins)" name="cleaning_buffer_minutes" initialValue={30}>
+                  <Form.Item label="Cleaning Gap (Mins)" name="cleaning_buffer_minutes" initialValue={30}>
                     <InputNumber step={15} style={{ width: '100%' }} />
                   </Form.Item>
                 </div>
@@ -124,8 +124,8 @@ function AddRoomType() {
           </Col>
         </Row>
         <div style={{ marginTop: 24, textAlign: 'right' }}>
-           <Button onClick={() => navigate(-1)} style={{ marginRight: 12 }}>Cancel</Button>
-           <Button type="primary" htmlType="submit" loading={loading}>Create Category</Button>
+          <Button onClick={() => navigate(-1)} style={{ marginRight: 12 }}>Cancel</Button>
+          <Button type="primary" htmlType="submit" loading={loading}>Create Category</Button>
         </div>
       </Form>
     </div>

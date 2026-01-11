@@ -84,10 +84,10 @@ const EditHotel = () => {
         initialValues={{ is_hourly_enabled: false }}
       >
         <Row gutter={24}>
-          <Col span={16}>
+          <Col xs={24} lg={16}>
             <Card title="Basic Details">
               <Row gutter={16}>
-                <Col span={12}>
+                <Col xs={24} sm={12}>
                   <Form.Item
                     label="Hotel Name"
                     name="name"
@@ -97,7 +97,7 @@ const EditHotel = () => {
                   </Form.Item>
                 </Col>
 
-                <Col span={24}>
+                <Col xs={24}>
                   <Form.Item label="Description" name="description">
                     <TextArea rows={3} />
                   </Form.Item>
@@ -107,32 +107,32 @@ const EditHotel = () => {
 
             <Card title="Location" style={{ marginTop: 24 }}>
               <Row gutter={16}>
-                <Col span={24}>
+                <Col xs={24}>
                   <Form.Item label="Address" name="address_line_1">
                     <Input />
                   </Form.Item>
                 </Col>
-                <Col span={8}>
+                <Col xs={24} sm={8}>
                   <Form.Item label="City" name="city">
                     <Input />
                   </Form.Item>
                 </Col>
-                <Col span={8}>
+                <Col xs={24} sm={8}>
                   <Form.Item label="State" name="state">
                     <Input />
                   </Form.Item>
                 </Col>
-                <Col span={8}>
+                <Col xs={24} sm={8}>
                   <Form.Item label="Zip Code" name="zip_code">
                     <Input />
                   </Form.Item>
                 </Col>
-                <Col span={12}>
+                <Col xs={24} sm={12}>
                   <Form.Item label="Latitude" name="latitude">
                     <InputNumber style={{ width: "100%" }} />
                   </Form.Item>
                 </Col>
-                <Col span={12}>
+                <Col xs={24} sm={12}>
                   <Form.Item label="Longitude" name="longitude">
                     <InputNumber style={{ width: "100%" }} />
                   </Form.Item>
@@ -141,7 +141,7 @@ const EditHotel = () => {
             </Card>
           </Col>
 
-          <Col span={8}>
+          <Col xs={24} lg={8}>
             <Card title="Operations">
               <Form.Item label="Check In Time" name="check_in_time">
                 <TimePicker format="HH:mm" style={{ width: "100%" }} />

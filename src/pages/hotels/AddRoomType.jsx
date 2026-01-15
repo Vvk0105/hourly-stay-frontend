@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Form, Input, Switch, Button, Row, Col, Typography, InputNumber, message, Card, Divider, Alert } from "antd";
+import { Form, Input, Switch, Button, Row, Col, Typography, InputNumber, message, Card, Divider, Alert, Select } from "antd";
 import api from "../../api/axios";
 import PageHeader from "../../components/common/PageHeader";
 
@@ -13,22 +13,37 @@ function AddRoomType() {
   const [form] = Form.useForm();
   const [isHourly, setIsHourly] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [amenities, setAmenities] = useState([]);
+
+  useEffect(() => {
+    fetchAmenities();
+  }, []);
+
+  const fetchAmenities = async () => {
+    try {
+      const res = await api.get("property/amenities/");
+      setAmenities(res.data);
+    } catch (err) {
+      console.error("Failed to load amenities", err);
+    }
+  };
 
   const onFinish = async (values) => {
     setLoading(true);
-    
+
     const payload = {
       hotel: id,
       name: values.name,
       // Total inventory is just a number here for reference, 
       // actual inventory increases when adding Physical Rooms.
-      total_inventory: values.total_inventory, 
+      total_inventory: values.total_inventory,
       max_adults: values.max_adults,
       max_children: values.max_children,
       size_sqft: values.size_sqft,
       base_price_nightly: values.base_price_nightly,
       description: values.description,
-      is_hourly_enabled: values.is_hourly_enabled, 
+      is_hourly_enabled: values.is_hourly_enabled,
+      amenity_ids: values.amenity_ids || [],
     };
 
     if (values.is_hourly_enabled) {
@@ -73,16 +88,25 @@ function AddRoomType() {
                   </Form.Item>
                 </Col>
                 <Col span={8}>
-                   <Form.Item label="Max Adults" name="max_adults"><InputNumber min={1} style={{ width: '100%' }} /></Form.Item>
+                  <Form.Item label="Max Adults" name="max_adults"><InputNumber min={1} style={{ width: '100%' }} /></Form.Item>
                 </Col>
                 <Col span={8}>
-                   <Form.Item label="Max Children" name="max_children"><InputNumber min={0} style={{ width: '100%' }} /></Form.Item>
+                  <Form.Item label="Max Children" name="max_children"><InputNumber min={0} style={{ width: '100%' }} /></Form.Item>
                 </Col>
                 <Col span={8}>
-                   <Form.Item label="Size (Sq. Ft)" name="size_sqft"><InputNumber style={{ width: '100%' }} /></Form.Item>
+                  <Form.Item label="Size (Sq. Ft)" name="size_sqft"><InputNumber style={{ width: '100%' }} /></Form.Item>
                 </Col>
                 <Col span={24}>
                   <Form.Item label="Description" name="description"><TextArea rows={3} /></Form.Item>
+                </Col>
+                <Col span={24}>
+                  <Form.Item label="Amenities" name="amenity_ids">
+                    <Select
+                      mode="multiple"
+                      placeholder="Select amenities"
+                      options={amenities.map(a => ({ label: a.name, value: a.id }))}
+                    />
+                  </Form.Item>
                 </Col>
               </Row>
             </Card>
@@ -115,7 +139,7 @@ function AddRoomType() {
                   <Form.Item label="Extra Hour Price" name="price_per_extra_hour" rules={[{ required: true }]}>
                     <InputNumber style={{ width: '100%' }} prefix="₹" />
                   </Form.Item>
-                   <Form.Item label="Cleaning Gap (Mins)" name="cleaning_buffer_minutes" initialValue={30}>
+                  <Form.Item label="Cleaning Gap (Mins)" name="cleaning_buffer_minutes" initialValue={30}>
                     <InputNumber step={15} style={{ width: '100%' }} />
                   </Form.Item>
                 </div>
@@ -124,8 +148,8 @@ function AddRoomType() {
           </Col>
         </Row>
         <div style={{ marginTop: 24, textAlign: 'right' }}>
-           <Button onClick={() => navigate(-1)} style={{ marginRight: 12 }}>Cancel</Button>
-           <Button type="primary" htmlType="submit" loading={loading}>Create Category</Button>
+          <Button onClick={() => navigate(-1)} style={{ marginRight: 12 }}>Cancel</Button>
+          <Button type="primary" htmlType="submit" loading={loading}>Create Category</Button>
         </div>
       </Form>
     </div>

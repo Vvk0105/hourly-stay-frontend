@@ -60,11 +60,11 @@ function Sidebar({ mobileSiderOpen, setMobileSiderOpen }) {
       onClick: () => navigate("/amenities"),
     },
 
-    user?.role === "HOTEL_MANAGER" && {
-      key: "bookings",
+    {
+      key: "/bookings",
       icon: <UserOutlined />,
       label: "Bookings",
-      onClick: () => navigate("/bookings/1"),
+      onClick: () => navigate("/bookings"),
     },
 
     // {

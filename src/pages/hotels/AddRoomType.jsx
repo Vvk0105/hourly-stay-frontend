@@ -83,8 +83,8 @@ function AddRoomType() {
                   </Form.Item>
                 </Col>
                 <Col xs={24} sm={12}>
-                  <Form.Item label="Initial Inventory Count" name="total_inventory" rules={[{ required: true }]}>
-                    <InputNumber style={{ width: '100%' }} placeholder="0" />
+                  <Form.Item label="Initial Inventory Count" name="total_inventory" rules={[{ required: true, message: "Enter initial inventory" }]}>
+                    <InputNumber min={0} style={{ width: '100%' }} placeholder="0" />
                   </Form.Item>
                 </Col>
                 <Col span={8}>
@@ -115,8 +115,8 @@ function AddRoomType() {
           <Col xs={24} lg={8}>
             <Card title="Pricing & Rules">
               <Text strong>Standard Nightly Rate</Text>
-              <Form.Item name="base_price_nightly" rules={[{ required: true }]} style={{ marginTop: 8 }}>
-                <InputNumber style={{ width: '100%' }} prefix="₹" placeholder="2000" />
+              <Form.Item name="base_price_nightly" rules={[{ required: true, message: "Enter nightly rate" }]} style={{ marginTop: 8 }}>
+                <InputNumber min={0} style={{ width: '100%' }} prefix="₹" placeholder="2000" />
               </Form.Item>
 
               <Divider />
@@ -134,13 +134,13 @@ function AddRoomType() {
                     <InputNumber min={1} style={{ width: '100%' }} />
                   </Form.Item>
                   <Form.Item label="Base Price (Min Duration)" name="hourly_base_price" rules={[{ required: true }]}>
-                    <InputNumber style={{ width: '100%' }} prefix="₹" />
+                    <InputNumber min={0} style={{ width: '100%' }} prefix="₹" />
                   </Form.Item>
                   <Form.Item label="Extra Hour Price" name="price_per_extra_hour" rules={[{ required: true }]}>
-                    <InputNumber style={{ width: '100%' }} prefix="₹" />
+                    <InputNumber min={0} style={{ width: '100%' }} prefix="₹" />
                   </Form.Item>
                   <Form.Item label="Cleaning Gap (Mins)" name="cleaning_buffer_minutes" initialValue={30}>
-                    <InputNumber step={15} style={{ width: '100%' }} />
+                    <InputNumber min={0} step={15} style={{ width: '100%' }} />
                   </Form.Item>
                 </div>
               )}

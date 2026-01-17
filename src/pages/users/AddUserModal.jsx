@@ -21,8 +21,8 @@ function AddUserModal({ open, onClose, role }) {
       });
     }
   }, [open]);
-  console.log('test hotels',hotels);
-  
+  console.log('test hotels', hotels);
+
   const isMultiHotel = role === "GROUP_ADMIN";
 
   const handleSubmit = async (values) => {
@@ -36,7 +36,7 @@ function AddUserModal({ open, onClose, role }) {
       };
 
       if (role === "GROUP_ADMIN") {
-        payload.hotel_ids = values.hotels; 
+        payload.hotel_ids = values.hotels;
       } else if (role !== "SUPPORT") {
         payload.hotel_id = values.hotels;
       }
@@ -85,12 +85,18 @@ function AddUserModal({ open, onClose, role }) {
           <Input placeholder="Username" />
         </Form.Item>
 
-        <Form.Item label="Email ID" name="email" rules={[{ required: true }]}>
+        <Form.Item label="Email ID" name="email" rules={[
+          { required: true, message: "Please enter Email ID" },
+          { type: 'email', message: "Please enter a valid email" }
+        ]}>
           <Input placeholder="Email ID" />
         </Form.Item>
 
-        <Form.Item label="Phone Number" name="phone" rules={[{ required: true }]}>
-          <Input placeholder="Phone Number" />
+        <Form.Item label="Phone Number" name="phone" rules={[
+          { required: true, message: "Please enter Phone Number" },
+          { pattern: /^[0-9]{10}$/, message: "Phone number must be 10 digits" }
+        ]}>
+          <Input placeholder="Phone Number" maxLength={10} />
         </Form.Item>
 
         <Button

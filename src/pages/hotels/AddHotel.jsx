@@ -115,11 +115,11 @@ const AddHotel = () => {
                   </Form.Item>
                 </Col>
                 <Col span={8}>
-                  <Form.Item label="Country" name="country" rules={[{ required: true }]}>
+                  <Form.Item label="Country" name="country">
                     <Input placeholder="India" />
                   </Form.Item>
                 </Col>
-                <Col span={8}>
+                <Col span={12}>
                   <Form.Item label="Zip Code" name="zip_code" rules={[{ required: true }]}>
                     <Input />
                   </Form.Item>

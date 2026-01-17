@@ -342,7 +342,7 @@ function CategoryDetails() {
                         <Input placeholder="e.g. 101 or A-01" style={{ borderRadius: '8px' }} />
                     </Form.Item>
                     <Form.Item label="Floor Number" name="floor_number" initialValue={1}>
-                        <InputNumber style={{ width: '100%', borderRadius: '8px' }} />
+                        <InputNumber min={0} style={{ width: '100%', borderRadius: '8px' }} />
                     </Form.Item>
                 </Form>
             </Modal>
@@ -363,7 +363,7 @@ function CategoryDetails() {
                         <Input placeholder="e.g. 101 or A-01" style={{ borderRadius: '8px' }} />
                     </Form.Item>
                     <Form.Item label="Floor Number" name="floor_number" initialValue={1}>
-                        <InputNumber style={{ width: '100%', borderRadius: '8px' }} />
+                        <InputNumber min={0} style={{ width: '100%', borderRadius: '8px' }} />
                     </Form.Item>
                     {isEditModalVisible && (
                         <Form.Item label="Current Status" name="current_status" initialValue="CLEAN">

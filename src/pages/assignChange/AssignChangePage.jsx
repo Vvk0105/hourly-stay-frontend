@@ -3,13 +3,21 @@ import PageHeader from "../../components/common/PageHeader";
 import AssignChangeTable from "./AssignChangeTable";
 import AssignHotelModal from "./AssignHotelModal";
 import api from "../../api/axios";
-import { Input } from "antd";
+import { Input, Segmented } from "antd";
+
+const roleOptions = [
+  { label: "All", value: "All" },
+  { label: "Group Admin", value: "GROUP_ADMIN" },
+  { label: "Hotel Manager", value: "HOTEL_MANAGER" },
+  { label: "Hotel Staff", value: "FRONT_DESK" }
+];
 
 function AssignChangePage() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [search, setSearch] = useState("");
+  const [role, setRole] = useState("All");
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -17,7 +25,8 @@ function AssignChangePage() {
       params: {
         status: "ACTIVE",
         exclude_roles: "SUPER_ADMIN,SUPPORT_AGENT,GUEST",
-        search: search
+        search: search,
+        role: role !== "All" ? role : undefined
       }
     });
     setUsers(res.data.results);
@@ -29,12 +38,18 @@ function AssignChangePage() {
       fetchUsers();
     }, 300);
     return () => clearTimeout(timer);
-  }, [search]);
+  }, [search, role]);
+
   return (
     <>
       <PageHeader title="Assign & Change" />
 
-      <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'flex-end' }}>
+      <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between' }}>
+        <Segmented
+          options={roleOptions}
+          value={role}
+          onChange={setRole}
+        />
         <Input.Search
           placeholder="Search Users..."
           style={{ width: 300 }}

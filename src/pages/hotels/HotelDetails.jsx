@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Breadcrumb, Button, Spin, Tag, message, Modal, Form, Input, InputNumber, Row, Col, Card, Divider, Typography, Switch } from "antd";
+import { Breadcrumb, Button, Spin, Tag, message, Modal, Form, Input, InputNumber, Row, Col, Card, Divider, Typography, Switch, Select } from "antd";
 import { HomeOutlined, EditOutlined, DeleteOutlined, RightOutlined, PlusOutlined } from "@ant-design/icons";
 import api from "../../api/axios";
 import "./HotelDetails.css";
 
 const { TextArea } = Input;
 const { Text } = Typography;
+const { Option } = Select;
 
 // Placeholder images for mockup feel
 const MAIN_IMAGE = "https://images.unsplash.com/photo-1611892440504-42a792e24d32?q=80&w=2070&auto=format&fit=crop";
@@ -18,6 +19,7 @@ function HotelDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [hotel, setHotel] = useState(null);
+  const [amenities, setAmenities] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // Modal States
@@ -38,8 +40,18 @@ function HotelDetails() {
     }
   };
 
+  const fetchAmenities = async () => {
+    try {
+      const res = await api.get("property/amenities/");
+      setAmenities(res.data);
+    } catch (err) {
+      console.error("Failed to load amenities", err);
+    }
+  };
+
   useEffect(() => {
     fetchHotel();
+    fetchAmenities();
   }, [id]);
 
 
@@ -63,6 +75,7 @@ function HotelDetails() {
       base_price_nightly: values.base_price_nightly,
       description: values.description,
       is_hourly_enabled: values.is_hourly_enabled,
+      amenity_ids: values.amenity_ids || [],
     };
 
     if (values.is_hourly_enabled) {
@@ -295,6 +308,19 @@ function HotelDetails() {
                 </Col>
                 <Col span={8}>
                   <Form.Item label="Sq. Ft" name="size_sqft"><InputNumber style={{ width: '100%', borderRadius: '8px' }} /></Form.Item>
+                </Col>
+                <Col span={24}>
+                  <Form.Item label="Amenities" name="amenity_ids">
+                    <Select
+                      mode="multiple"
+                      placeholder="Select amenities"
+                      style={{ width: '100%', borderRadius: '8px' }}
+                    >
+                      {amenities.map(a => (
+                        <Option key={a.id} value={a.id}>{a.name}</Option>
+                      ))}
+                    </Select>
+                  </Form.Item>
                 </Col>
                 <Col span={24}>
                   <Form.Item label="Description" name="description"><TextArea rows={3} style={{ borderRadius: '8px' }} /></Form.Item>

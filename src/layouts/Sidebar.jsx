@@ -14,7 +14,8 @@ import { logout } from "../store/authSlice";
 const { Sider } = Layout;
 const { useBreakpoint } = Grid;
 
-function Sidebar() {
+function Sidebar({ mobileSiderOpen, setMobileSiderOpen }) {
+  const screens = useBreakpoint();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const user = useSelector((state) => state.auth.user);
@@ -66,12 +67,12 @@ function Sidebar() {
       onClick: () => navigate("/bookings/1"),
     },
 
-    {
-      key: "/settings",
-      icon: <SettingOutlined />,
-      label: "Settings",
-      onClick: () => navigate("/settings"),
-    },
+    // {
+    //   key: "/settings",
+    //   icon: <SettingOutlined />,
+    //   label: "Settings",
+    //   onClick: () => navigate("/settings"),
+    // },
 
     {
       key: "logout",

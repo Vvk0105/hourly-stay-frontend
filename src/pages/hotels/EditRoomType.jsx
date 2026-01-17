@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Form, Input, Switch, Button, Row, Col, Typography, InputNumber, message, Card, Divider, Modal, Spin } from "antd";
+import { Form, Input, Switch, Button, Row, Col, Typography, InputNumber, message, Card, Divider, Modal, Spin, Select } from "antd";
 import api from "../../api/axios";
 import PageHeader from "../../components/common/PageHeader";
 
@@ -14,10 +14,21 @@ function EditRoomType() {
     const [isHourly, setIsHourly] = useState(false);
     const [loading, setLoading] = useState(false);
     const [fetching, setFetching] = useState(true);
+    const [amenities, setAmenities] = useState([]);
 
     useEffect(() => {
         fetchDetails();
+        fetchAmenities();
     }, [typeId]);
+
+    const fetchAmenities = async () => {
+        try {
+            const res = await api.get("property/amenities/");
+            setAmenities(res.data);
+        } catch (err) {
+            console.error("Failed to load amenities", err);
+        }
+    };
 
     const fetchDetails = async () => {
         try {
@@ -31,7 +42,8 @@ function EditRoomType() {
                 max_children: data.max_children,
                 base_price_nightly: data.base_price_nightly,
                 description: data.description,
-                is_hourly_enabled: data.is_hourly_enabled
+                is_hourly_enabled: data.is_hourly_enabled,
+                amenity_ids: data.amenities?.map(a => a.id) || []
             });
 
             setIsHourly(data.is_hourly_enabled);
@@ -65,6 +77,7 @@ function EditRoomType() {
             base_price_nightly: values.base_price_nightly,
             description: values.description,
             is_hourly_enabled: values.is_hourly_enabled,
+            amenity_ids: values.amenity_ids || [],
         };
 
         if (values.is_hourly_enabled) {
@@ -143,6 +156,15 @@ function EditRoomType() {
                 */}
                                 <Col span={24}>
                                     <Form.Item label="Description" name="description"><TextArea rows={3} /></Form.Item>
+                                </Col>
+                                <Col span={24}>
+                                    <Form.Item label="Amenities" name="amenity_ids">
+                                        <Select
+                                            mode="multiple"
+                                            placeholder="Select amenities"
+                                            options={amenities.map(a => ({ label: a.name, value: a.id }))}
+                                        />
+                                    </Form.Item>
                                 </Col>
                             </Row>
                         </Card>

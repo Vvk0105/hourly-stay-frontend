@@ -50,6 +50,7 @@ function BookingManagement() {
     const startPolling = () => {
       if (!interval) {
         fetchBookings();
+        fetchRoomTypes();
         interval = setInterval(fetchBookings, 5000);
       }
     };

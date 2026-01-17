@@ -14,22 +14,14 @@ import { logout } from "../store/authSlice";
 const { Sider } = Layout;
 const { useBreakpoint } = Grid;
 
-function Sidebar({ mobileSiderOpen, setMobileSiderOpen }) {
+function Sidebar() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const user = useSelector((state) => state.auth.user);
-  const screens = useBreakpoint();
 
   const handleLogout = () => {
     dispatch(logout());
     navigate("/");
-  };
-
-  const handleMenuClick = (path) => {
-    navigate(path);
-    if (!screens.md && setMobileSiderOpen) {
-      setMobileSiderOpen(false);
-    }
   };
 
   const items = [
@@ -37,38 +29,50 @@ function Sidebar({ mobileSiderOpen, setMobileSiderOpen }) {
       key: "/dashboard",
       icon: <DashboardOutlined />,
       label: "Dashboard",
-      onClick: () => handleMenuClick("/dashboard"),
+      onClick: () => navigate("/dashboard"),
     },
+
     user?.role === "SUPER_ADMIN" && {
       key: "/users",
       icon: <UserOutlined />,
       label: "Users Management",
-      onClick: () => handleMenuClick("/users"),
+      onClick: () => navigate("/users"),
     },
+
     user?.role === "SUPER_ADMIN" && {
       key: "/assignandchange",
       icon: <UserOutlined />,
       label: "Assign and Change",
-      onClick: () => handleMenuClick("/assignandchange"),
+      onClick: () => navigate("/assignandchange"),
     },
     {
       key: "/hotels",
       icon: <HomeOutlined />,
       label: "Hotel Management",
-      onClick: () => handleMenuClick("/hotels"),
+      onClick: () => navigate("/hotels"),
     },
+
+    user?.role === "SUPER_ADMIN" && {
+      key: "/amenities",
+      icon: <SettingOutlined />,
+      label: "Amenities",
+      onClick: () => navigate("/amenities"),
+    },
+
     user?.role === "HOTEL_MANAGER" && {
       key: "bookings",
       icon: <UserOutlined />,
       label: "Bookings",
-      onClick: () => handleMenuClick("/bookings/1"),
+      onClick: () => navigate("/bookings/1"),
     },
+
     {
       key: "/settings",
       icon: <SettingOutlined />,
       label: "Settings",
-      onClick: () => handleMenuClick("/settings"),
+      onClick: () => navigate("/settings"),
     },
+
     {
       key: "logout",
       icon: <LogoutOutlined />,

@@ -209,23 +209,6 @@ function HotelDetails() {
                     {hotel.is_hourly_enabled ? "YES" : "NO"}</Tag>
                 </span>
               </div>
-              {hotel.is_hourly_enabled && (
-                <div className="hd-info-item">
-                  <span className="hd-label">Hourly Status</span>
-                  <span className="hd-value">
-                    <Button
-                      type="primary"
-                      danger={!hotel.is_hourly_enabled}
-                      style={hotel.is_hourly_enabled ? { backgroundColor: '#52c41a', borderColor: '#52c41a' } : {}}
-                      onClick={() => navigate(`/hotels/${id}/hourly-status`)}
-                      size="small"
-                    >
-                      {hotel.is_hourly_enabled ? "Hourly Active" : "Hourly Inactive"}
-                      <span style={{ marginLeft: 8 }}>Manage</span>
-                    </Button>
-                  </span>
-                </div>
-              )}
             </div>
 
             <div className="hd-info-item">

@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import {
   Table, Button, Tag, Tabs, Modal, Select, message,
-  Card, Popconfirm, Tooltip, Badge, Form, DatePicker, Input, Switch, Row, Col, Typography
+  Card, Popconfirm, Tooltip, Badge, Form, DatePicker, Input, Switch, Row, Col, Typography, Radio, Alert, Statistic
 } from "antd";
 import {
   LoginOutlined, LogoutOutlined, CloseCircleOutlined,
-  HomeOutlined, UserOutlined, PlusOutlined, ClockCircleOutlined, SearchOutlined, CalendarOutlined
+  HomeOutlined, UserOutlined, PlusOutlined, ClockCircleOutlined, SearchOutlined, CalendarOutlined, ThunderboltOutlined, PoweroffOutlined
 } from "@ant-design/icons";
 import { useParams } from "react-router-dom";
 import dayjs from "dayjs";
@@ -15,6 +15,7 @@ import PageHeader from "../../components/common/PageHeader";
 const { TabPane } = Tabs;
 const { Option } = Select;
 const { Title, Text } = Typography;
+const { RangePicker } = DatePicker;
 
 function BookingManagement() {
   const { id } = useParams();
@@ -24,14 +25,25 @@ function BookingManagement() {
   const [search, setSearch] = useState("");
 
   // Hourly Mode State
-  const [hourlyMode, setHourlyMode] = useState(false);
+  const [hourlyStatus, setHourlyStatus] = useState("INACTIVE");
+  const [currentWindow, setCurrentWindow] = useState(null);
   const [showHourlyConfigModal, setShowHourlyConfigModal] = useState(false);
-  const [hourlyConfigType, setHourlyConfigType] = useState('AUTO'); // 'AUTO' | 'CUSTOM'
+  const [hourlyConfigType, setHourlyConfigType] = useState('AUTO');
+  const [customRange, setCustomRange] = useState([]);
+  const [slotsData, setSlotsData] = useState(null);
+  const [slotsLoading, setSlotsLoading] = useState(false);
 
   // New Booking Modal State
   const [isNewBookingModalOpen, setIsNewBookingModalOpen] = useState(false);
-  const [bookingType, setBookingType] = useState('NIGHTLY'); // 'NIGHTLY' | 'HOURLY'
+  const [bookingType, setBookingType] = useState('NIGHTLY');
   const [newBookingForm] = Form.useForm();
+
+  // Check-in Modal State
+  const [isCheckInModalOpen, setIsCheckInModalOpen] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState(null);
+  const [availableRooms, setAvailableRooms] = useState([]);
+  const [selectedRoomId, setSelectedRoomId] = useState(null);
+  const [assignLoading, setAssignLoading] = useState(false);
 
   // Data State
   const [roomTypes, setRoomTypes] = useState([]);
@@ -41,7 +53,17 @@ function BookingManagement() {
     fetchBookings();
     fetchRoomTypes();
     fetchRooms();
-  }, [id]);
+    fetchHourlyStatus();
+
+    // Poll slots if hourly is active
+    const interval = setInterval(() => {
+      if (hourlyStatus === 'ACTIVE') {
+        fetchSlots();
+      }
+    }, 10000); // Poll every 10s
+
+    return () => clearInterval(interval);
+  }, [id, hourlyStatus]);
 
   /* ================= API CALLS ================= */
   const fetchBookings = async () => {
@@ -74,20 +96,76 @@ function BookingManagement() {
     }
   }
 
+  const fetchHourlyStatus = async () => {
+    try {
+      const res = await api.get(`property/hotels/${id}/hourly-operations/`);
+      setHourlyStatus(res.data.status);
+      if (res.data.status === 'ACTIVE' && res.data.window) {
+        setCurrentWindow(res.data.window);
+        fetchSlots();
+      }
+    } catch (err) {
+      console.error("Failed to fetch hourly status", err);
+    }
+  };
+
+  const fetchSlots = async () => {
+    setSlotsLoading(true);
+    try {
+      const res = await api.get(`property/hotels/${id}/hourly-slots/`);
+      setSlotsData(res.data);
+    } catch (e) {
+      console.error("Failed to fetch slots");
+    } finally {
+      setSlotsLoading(false);
+    }
+  };
+
   /* ================= HANDLERS ================= */
   const handleHourlySwitch = (checked) => {
     if (checked) {
       setShowHourlyConfigModal(true);
     } else {
-      setHourlyMode(false);
-      message.info("Hourly Booking Disabled");
+      handleStopHourly();
     }
   };
 
-  const confirmHourlyConfig = () => {
-    setHourlyMode(true);
-    setShowHourlyConfigModal(false);
-    message.success(`Hourly Booking Enabled (${hourlyConfigType === 'AUTO' ? 'Auto Mode' : 'Custom Schedule'})`);
+  const handleStartHourly = async () => {
+    try {
+      const payload = { mode: hourlyConfigType };
+
+      if (hourlyConfigType === 'CUSTOM') {
+        if (!customRange || customRange.length < 2) {
+          message.error("Please select a time range");
+          return;
+        }
+        payload.start_datetime = customRange[0].toISOString();
+        payload.end_datetime = customRange[1].toISOString();
+      }
+
+      const res = await api.post(`property/hotels/${id}/hourly-operations/`, payload);
+      setHourlyStatus("ACTIVE");
+      setCurrentWindow(res.data.window);
+      setShowHourlyConfigModal(false);
+      message.success(`Hourly Booking Enabled (${hourlyConfigType === 'AUTO' ? 'Auto Mode' : 'Custom Schedule'})`);
+      fetchSlots();
+    } catch (err) {
+      console.error(err);
+      message.error("Failed to start hourly operations");
+    }
+  };
+
+  const handleStopHourly = async () => {
+    try {
+      await api.delete(`property/hotels/${id}/hourly-operations/`);
+      setHourlyStatus("INACTIVE");
+      setCurrentWindow(null);
+      setSlotsData(null);
+      message.info("Hourly Booking Disabled");
+    } catch (err) {
+      console.error(err);
+      message.error("Failed to stop hourly operations");
+    }
   };
 
   const handleNewBooking = async (values) => {
@@ -107,7 +185,6 @@ function BookingManagement() {
       } else {
         // Hourly logic
         payload.check_in = values.check_in_date.format('YYYY-MM-DD') + 'T' + values.check_in_time.format('HH:mm:ss');
-        // Calculate checkout based on duration
         const duration = parseInt(values.duration);
         payload.check_out = dayjs(payload.check_in).add(duration, 'hour').toISOString();
       }
@@ -123,6 +200,57 @@ function BookingManagement() {
       } else {
         message.error("Booking failed");
       }
+    }
+  };
+
+  const openCheckInModal = async (booking) => {
+    setSelectedBooking(booking);
+    setIsCheckInModalOpen(true);
+    setAvailableRooms([]);
+    setSelectedRoomId(null);
+    setAssignLoading(true);
+
+    try {
+      const res = await api.get(`property/bookings/${booking.id}/available-rooms/`);
+      setAvailableRooms(res.data);
+    } catch {
+      message.error("Could not fetch available rooms");
+    } finally {
+      setAssignLoading(false);
+    }
+  };
+
+  const handleCheckIn = async () => {
+    if (!selectedRoomId) {
+      message.error("Please select a room number");
+      return;
+    }
+
+    try {
+      await api.post(`property/bookings/${selectedBooking.id}/action/`, {
+        action: "CHECK_IN",
+        room_id: selectedRoomId
+      });
+      message.success("Guest Checked In Successfully");
+      setIsCheckInModalOpen(false);
+      setSelectedRoomId(null);
+      setAvailableRooms([]);
+      fetchBookings();
+    } catch {
+      message.error("Check-in failed");
+    }
+  };
+
+  const handleBookingAction = async (bookingId, action) => {
+    try {
+      await api.post(`property/bookings/${bookingId}/action/`, { action });
+      message.success(`${action} successful`);
+      fetchBookings();
+      if (hourlyStatus === 'ACTIVE') {
+        fetchSlots(); // Refresh hourly visualization
+      }
+    } catch {
+      message.error(`${action} failed`);
     }
   };
 
@@ -172,7 +300,7 @@ function BookingManagement() {
       render: (status) => {
         let color = "default";
         if (status === "CONFIRMED") color = "success";
-        if (status === "CHECKED_IN") color = "warning"; // "Checked In" usually yellow/orange in designs
+        if (status === "CHECKED_IN") color = "warning";
         if (status === "CANCELLED") color = "error";
         return <Tag color={color} style={{ borderRadius: 12, padding: '0 10px' }}>{status}</Tag>;
       }
@@ -183,12 +311,18 @@ function BookingManagement() {
       render: (_, r) => (
         <div style={{ display: 'flex', gap: 8 }}>
           {r.status === 'CONFIRMED' && (
-            <Button type="primary" style={{ backgroundColor: '#333', borderColor: '#333' }} size="small" onClick={() => { }}>Check In</Button>
+            <Button type="primary" style={{ backgroundColor: '#333', borderColor: '#333' }} size="small" onClick={() => openCheckInModal(r)}>Check In</Button>
           )}
           {r.status === 'CHECKED_IN' && (
-            <Button type="primary" style={{ backgroundColor: '#333', borderColor: '#333' }} size="small" onClick={() => { }}>Check Out</Button>
+            <Popconfirm title="Confirm Check Out?" onConfirm={() => handleBookingAction(r.id, "CHECK_OUT")}>
+              <Button type="primary" style={{ backgroundColor: '#333', borderColor: '#333' }} size="small">Check Out</Button>
+            </Popconfirm>
           )}
-          <Button type="text" danger icon={<CloseCircleOutlined />} size="small" />
+          {r.status === 'CONFIRMED' && (
+            <Popconfirm title="Cancel Booking?" onConfirm={() => handleBookingAction(r.id, "CANCEL")}>
+              <Button type="text" danger icon={<CloseCircleOutlined />} size="small" />
+            </Popconfirm>
+          )}
         </div>
       )
     }
@@ -222,7 +356,6 @@ function BookingManagement() {
 
       {/* CONTROLS */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-        {/* TABS (Custom rendered to match design layout roughly) */}
         <div style={{ flex: 1 }}></div>
 
         <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
@@ -240,8 +373,8 @@ function BookingManagement() {
         <div style={{ flex: 1 }}></div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{ fontSize: 16, fontWeight: 500, color: '#555' }}>Hourly Booking</span>
-          <Switch checked={hourlyMode} onChange={handleHourlySwitch} />
-          <span style={{ color: '#888' }}>{hourlyMode ? 'Active' : 'Inactive'}</span>
+          <Switch checked={hourlyStatus === 'ACTIVE'} onChange={handleHourlySwitch} />
+          <span style={{ color: '#888' }}>{hourlyStatus === 'ACTIVE' ? 'Active' : 'Inactive'}</span>
         </div>
       </div>
 
@@ -267,7 +400,6 @@ function BookingManagement() {
               label: 'Available Rooms',
               children: (
                 <div style={{ padding: 20, textAlign: 'center', color: '#999' }}>
-                  {/* Placeholder for Grid View */}
                   <Row gutter={[16, 16]}>
                     {rooms.map(room => (
                       <Col xs={24} sm={12} md={8} lg={6} key={room.id}>
@@ -285,41 +417,80 @@ function BookingManagement() {
               label: 'Hourly Stay',
               children: (
                 <div>
-                  {hourlyMode && (
-                    <div style={{
-                      backgroundColor: '#FFFBE6',
-                      border: '1px solid #FFE58F',
-                      padding: '12px 16px',
-                      borderRadius: 8,
-                      marginBottom: 20,
-                      color: '#d48806'
-                    }}>
-                      Hourly Booking is enabled upto {dayjs().add(1, 'year').format('DD MMM YYYY, HH:mm')}
-                    </div>
+                  {hourlyStatus === 'ACTIVE' && currentWindow && (
+                    <Alert
+                      message={`Hourly Booking is enabled until ${dayjs(currentWindow.end_datetime).format('DD MMM YYYY, HH:mm')}`}
+                      type="warning"
+                      showIcon
+                      style={{ marginBottom: 20 }}
+                    />
                   )}
 
-                  {/* Mock Hourly Cards */}
-                  <Row gutter={[16, 16]}>
-                    {[101, 102, 103, 104].map(r => (
-                      <Col span={12} key={r}>
-                        <Card bordered={true} style={{ borderRadius: 8 }}>
-                          <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-                            <span style={{ fontWeight: 600 }}>Room. {r}</span>
-                            <Tag>standard</Tag>
-                          </div>
-                          <div style={{ display: 'flex', borderRadius: 6, overflow: 'hidden', height: 40 }}>
-                            <div style={{ flex: 1, background: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}></div>
-                            <div style={{ flex: 2, background: '#d9f7be', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#389e0d', fontWeight: 500 }}>Booked</div>
-                            <div style={{ flex: 3, background: '#f6ffed', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#555' }}>Free</div>
-                          </div>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8, fontSize: 12, color: '#888' }}>
-                            <span>9.00pm</span>
-                            <span>11.00pm</span>
-                          </div>
-                        </Card>
-                      </Col>
-                    ))}
-                  </Row>
+                  {hourlyStatus === 'ACTIVE' && slotsData?.rooms && (
+                    <Row gutter={[16, 16]}>
+                      {slotsData.rooms.map(room => (
+                        <Col span={12} key={room.id}>
+                          <Card bordered={true} style={{ borderRadius: 8 }}>
+                            <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+                              <span style={{ fontWeight: 600 }}>Room. {room.number}</span>
+                              <Tag>{room.type}</Tag>
+                              <Tag color={room.status === 'CLEAN' ? 'success' : room.status === 'DIRTY' ? 'warning' : 'error'}>
+                                {room.status}
+                              </Tag>
+                            </div>
+
+                            {/* Timeline Bar */}
+                            <div style={{ display: 'flex', height: 40, alignItems: 'center', backgroundColor: '#f0f0f0', borderRadius: 4, overflow: 'hidden', border: '1px solid #d9d9d9' }}>
+                              {room.slots.length === 0 ? (
+                                <div style={{ width: '100%', textAlign: 'center', color: '#888', padding: 8, fontSize: 12 }}>
+                                  No Availability Data
+                                </div>
+                              ) : (
+                                room.slots.map((slot, idx) => {
+                                  const start = dayjs(slot.start);
+                                  const end = dayjs(slot.end);
+                                  const durationMins = end.diff(start, 'minute');
+
+                                  return (
+                                    <Tooltip
+                                      key={idx}
+                                      title={`${slot.type === 'BOOKED' ? 'Booked' : 'Available'} (${start.format('HH:mm')} - ${end.format('HH:mm')})`}
+                                    >
+                                      <div style={{
+                                        flex: durationMins,
+                                        height: '100%',
+                                        backgroundColor: slot.type === 'BOOKED' ? '#ffccc7' : '#d9f7be',
+                                        borderRight: '1px solid #fff',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        fontSize: 11,
+                                        color: '#555',
+                                        cursor: 'pointer',
+                                        minWidth: 30,
+                                        whiteSpace: 'nowrap',
+                                        overflow: 'hidden'
+                                      }}>
+                                        {slot.type === 'BOOKED' ? 'Booked' : 'Free'}
+                                      </div>
+                                    </Tooltip>
+                                  );
+                                })
+                              )}
+                            </div>
+                          </Card>
+                        </Col>
+                      ))}
+                    </Row>
+                  )}
+
+                  {hourlyStatus === 'INACTIVE' && (
+                    <div style={{ textAlign: 'center', padding: 40, color: '#999' }}>
+                      <PoweroffOutlined style={{ fontSize: 48, marginBottom: 16 }} />
+                      <div>Hourly operations are currently inactive</div>
+                      <div style={{ marginTop: 8 }}>Toggle the switch above to start accepting hourly bookings</div>
+                    </div>
+                  )}
                 </div>
               )
             },
@@ -373,26 +544,13 @@ function BookingManagement() {
           </div>
         ) : (
           <div style={{ marginBottom: 24 }}>
-            <Row gutter={16}>
-              <Col span={12}>
-                <div style={{ marginBottom: 4, fontWeight: 500 }}>Start Date</div>
-                <DatePicker style={{ width: '100%' }} />
-              </Col>
-              <Col span={12}>
-                <div style={{ marginBottom: 4, fontWeight: 500 }}>End Date</div>
-                <DatePicker style={{ width: '100%' }} />
-              </Col>
-            </Row>
-            <Row gutter={16} style={{ marginTop: 16 }}>
-              <Col span={12}>
-                <div style={{ marginBottom: 4, fontWeight: 500 }}>Start Time</div>
-                <DatePicker picker="time" format="HH:mm" style={{ width: '100%' }} />
-              </Col>
-              <Col span={12}>
-                <div style={{ marginBottom: 4, fontWeight: 500 }}>End Time</div>
-                <DatePicker picker="time" format="HH:mm" style={{ width: '100%' }} />
-              </Col>
-            </Row>
+            <Text style={{ display: 'block', marginBottom: 8 }}>Select Time Range:</Text>
+            <RangePicker
+              showTime
+              format="YYYY-MM-DD HH:mm"
+              onChange={(dates) => setCustomRange(dates)}
+              style={{ width: '100%' }}
+            />
           </div>
         )}
 
@@ -400,7 +558,7 @@ function BookingManagement() {
           type="primary"
           block
           size="large"
-          onClick={confirmHourlyConfig}
+          onClick={handleStartHourly}
           style={{ backgroundColor: '#000', borderColor: '#000', borderRadius: 8 }}
         >
           Start Now
@@ -419,7 +577,7 @@ function BookingManagement() {
         <Form form={newBookingForm} layout="vertical" onFinish={handleNewBooking} initialValues={{ booking_type: 'NIGHTLY' }}>
 
           {/* TYPE TOGGLE */}
-          {hourlyMode && (
+          {hourlyStatus === 'ACTIVE' && (
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 24 }}>
               <div style={{ background: '#f5f5f5', display: 'inline-flex', padding: 4, borderRadius: 30 }}>
                 <Button
@@ -522,6 +680,29 @@ function BookingManagement() {
           </Button>
 
         </Form>
+      </Modal>
+
+      {/* CHECK-IN MODAL */}
+      <Modal
+        title={<><HomeOutlined /> Check In Guest</>}
+        open={isCheckInModalOpen}
+        onCancel={() => setIsCheckInModalOpen(false)}
+        onOk={handleCheckIn}
+        okText="Confirm & Check In"
+        confirmLoading={assignLoading}
+      >
+        <Select
+          style={{ width: "100%" }}
+          placeholder="Select room"
+          onChange={setSelectedRoomId}
+          loading={assignLoading}
+        >
+          {availableRooms.map(room => (
+            <Option key={room.id} value={room.id}>
+              Room {room.room_number}
+            </Option>
+          ))}
+        </Select>
       </Modal>
 
     </div>

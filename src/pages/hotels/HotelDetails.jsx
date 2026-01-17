@@ -171,12 +171,24 @@ function HotelDetails() {
                 <span className="hd-value">{hotel.city}</span>
               </div>
               <div className="hd-info-item">
+                <span className="hd-label">Country</span>
+                <span className="hd-value">{hotel.country || "N/A"}</span>
+              </div>
+              <div className="hd-info-item">
                 <span className="hd-label">ZIP Code</span>
                 <span className="hd-value">{hotel.zip_code || "N/A"}</span>
               </div>
               <div className="hd-info-item">
                 <span className="hd-label">Email ID</span>
                 <span className="hd-value">{hotel.email || "N/A"}</span>
+              </div>
+              <div className="hd-info-item">
+                <span className="hd-label">Tax Name</span>
+                <span className="hd-value">{hotel.tax_name || "N/A"}</span>
+              </div>
+              <div className="hd-info-item">
+                <span className="hd-label">Tax Percent</span>
+                <span className="hd-value">{hotel.tax_percent ? `${hotel.tax_percent}%` : "N/A"}</span>
               </div>
               <div className="hd-info-item">
                 <span className="hd-label">Phone Number</span>

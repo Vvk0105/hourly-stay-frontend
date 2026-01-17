@@ -38,7 +38,8 @@ function Login() {
         </div>
 
         <div className="login-form-wrapper">
-          <h2 className="login-title">LOGIN</h2>
+          <h2 className="login-title">Welcome back</h2>
+          <p className="login-subtitle">Please enter your details to sign in.</p>
 
           <Form
             name="login_form"

@@ -1,120 +1,174 @@
 .login-container {
     display: flex;
-    position: fixed;
-    /* Force full viewport coverage */
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    overflow: hidden;
-    /* Handle overflow locally */
+    min-height: 100vh;
+    width: 100%;
     font-family: 'Inter', sans-serif;
-    z-index: 1000;
-    /* Ensure it sits on top if needed */
-    background-color: white;
-    /* Prevent transparent background showing underlying content */
+    background-color: #ffffff;
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 
-@media (max-width: 768px) {
-    .login-container {
-        flex-direction: column;
-    }
-
-    .login-left {
-        display: none;
-        /* Hide image on mobile for simpler login */
-    }
-
-    .login-right {
-        width: 100%;
-        padding: 20px;
-    }
-}
-
-
+/* Left components - Image side */
 .login-left {
-    flex: 1;
+    flex: 1.2;
     background-image: url('https://images.unsplash.com/photo-1611892440504-42a792e24d32?q=80&w=2070&auto=format&fit=crop');
-    /* Hotel room placeholder */
     background-size: cover;
     background-position: center;
-    border-top-right-radius: 20px;
-    border-bottom-right-radius: 20px;
-    margin: 10px;
-    height: calc(100vh - 20px);
-    border-radius: 20px;
+    border-top-right-radius: 30px;
+    border-bottom-right-radius: 30px;
+    margin: 12px 12px 12px 0;
+    /* Gap on right, top, bottom */
+    position: relative;
+    box-shadow: 10px 0 30px rgba(0, 0, 0, 0.1);
 }
 
+/* Right components - Form side */
 .login-right {
     flex: 1;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    background-color: #fff;
     padding: 40px;
+    position: relative;
 }
 
+/* Branding */
 .brand-header {
+    position: absolute;
+    top: 40px;
+    left: 40px;
     display: flex;
     align-items: center;
-    margin-bottom: 60px;
-    /* Space between logo and form */
-    font-size: 24px;
-    font-weight: bold;
+    font-size: 20px;
+    font-weight: 700;
     color: #333;
+    gap: 10px;
 }
 
 .brand-icon {
-    margin-right: 10px;
-    color: #ffca28;
-    /* Yellowish color from mockup */
-    font-size: 28px;
+    font-size: 24px;
+    color: #ffd700;
+    /* Gold/Yellow */
 }
 
+/* Form Container */
 .login-form-wrapper {
     width: 100%;
-    max-width: 400px;
+    max-width: 380px;
+    animation: fadeIn 0.6s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .login-title {
     font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: #1a1a1a;
+    text-align: left;
+    /* Align title to left of form/inputs */
+}
+
+.login-subtitle {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 32px;
+    text-align: left;
+}
+
+/* Inputs */
+.login-form .ant-form-item-label>label {
     font-weight: 600;
-    margin-bottom: 40px;
-    text-align: center;
     color: #333;
 }
 
-.login-form .ant-form-item-label>label {
-    color: #666;
-    font-weight: 500;
-}
-
 .login-input {
-    height: 45px;
-    border-radius: 8px;
+    height: 48px;
+    border-radius: 12px;
+    border: 1px solid #e0e0e0;
+    background-color: #fcfcfc;
+    transition: all 0.3s;
 }
 
-.forgot-password {
-    float: right;
-    color: #666;
-    margin-bottom: 20px;
-    font-size: 14px;
-    cursor: pointer;
-}
-
-.login-button {
-    width: 100%;
-    height: 45px;
-    background-color: #1a1a1a;
+.login-input:hover,
+.login-input:focus {
+    background-color: #fff;
     border-color: #1a1a1a;
-    border-radius: 25px;
-    /* Rounded pill shape */
-    font-size: 16px;
+}
+
+/* Forgot Password */
+.forgot-password {
+    text-align: right;
+    color: #666;
+    font-size: 13px;
+    margin-bottom: 24px;
+    cursor: pointer;
     font-weight: 500;
+    transition: color 0.2s;
+}
+
+.forgot-password:hover {
+    color: #1a1a1a;
+    text-decoration: underline;
+}
+
+/* Button */
+.login-button {
+    height: 48px;
+    width: 100%;
+    background-color: #1a1a1a;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .login-button:hover {
     background-color: #333 !important;
-    border-color: #333 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+.login-button:active {
+    transform: translateY(0);
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    .login-left {
+        display: none;
+    }
+
+    .login-container {
+        justify-content: center;
+    }
+
+    .login-right {
+        flex: 1;
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .brand-header {
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    .login-title,
+    .login-subtitle {
+        text-align: center;
+    }
 }

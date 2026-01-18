@@ -2,8 +2,10 @@ import { Table, Button, Tag, Space } from "antd";
 import { EyeTwoTone, EditOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 
-function HotelTable({ data, loading, bookingMode = false }) {
+function HotelTable({ data, loading, bookingMode = false, pagination, onChange }) {
   const navigate = useNavigate();
+  const safeData = Array.isArray(data) ? data : [];
+
 
   // Common columns for both modes
   const commonColumns = [
@@ -78,9 +80,14 @@ function HotelTable({ data, loading, bookingMode = false }) {
     <Table
       rowKey="id"
       columns={columns}
-      dataSource={data}
+      dataSource={safeData}
       loading={loading}
-      pagination={{ pageSize: 10 }}
+      pagination={{
+        ...pagination,
+        placement: ["bottomCenter"],
+      }}
+      onChange={onChange}
+
     />
   );
 }

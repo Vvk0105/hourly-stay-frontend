@@ -11,6 +11,11 @@ function HotelManagement() {
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 5,
+    total: 0,
+  });
   const user = useSelector((state) => state.auth.user);
 
   // Role-based navigation: Hotel Managers auto-redirect to their hotel
@@ -23,18 +28,33 @@ function HotelManagement() {
     }
   }, [user, navigate]);
 
-  const fetchHotels = async () => {
+  const fetchHotels = async (page = 1) => {
     setLoading(true);
-    const res = await api.get("property/hotels/", { params: { search } });
-    setHotels(res.data);
-    setLoading(false)
+
+    const res = await api.get("property/hotels/", {
+      params: {
+        search,
+        page,
+        page_size: pagination.pageSize,
+      },
+    });
+
+    setHotels(res.data.results || []);
+    setPagination((prev) => ({
+      ...prev,
+      current: page,
+      total: res.data.count,
+    }));
+
+    setLoading(false);
   };
+
 
   useEffect(() => {
     // Only fetch hotels if user is not a Hotel Manager (they get redirected)
     if (user?.role !== "HOTEL_MANAGER") {
       const timer = setTimeout(() => {
-        fetchHotels();
+        fetchHotels(1);
       }, 300);
       return () => clearTimeout(timer);
     }
@@ -71,6 +91,8 @@ function HotelManagement() {
         data={hotels}
         loading={loading}
         bookingMode={false}
+        pagination={pagination}
+        onChange={(p) => fetchHotels(p.current)}
       />
     </>
   )

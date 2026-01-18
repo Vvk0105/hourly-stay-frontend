@@ -28,7 +28,7 @@ function BookingHotelList() {
         try {
             // Reusing the same endpoint as Hotel Management for now
             const res = await api.get("property/hotels/", { params: { search } });
-            setHotels(res.data);
+            setHotels(Array.isArray(res.data.results) ? res.data.results : []);
         } catch (e) {
             console.error("Failed to fetch hotels", e);
         } finally {

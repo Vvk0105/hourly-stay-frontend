@@ -1,8 +1,8 @@
 import axios from 'axios';
 
 const api = axios.create({
-    // baseURL: "http://localhost/api/v1",
-    baseURL: "https://hourlystay.com/api/v1",
+    baseURL: "http://localhost/api/v1",
+    // baseURL: "https://hourlystay.com/api/v1",
 })
 
 api.interceptors.request.use((config) => {

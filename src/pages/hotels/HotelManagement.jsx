@@ -4,12 +4,24 @@ import HotelTable from "./HotelTable";
 import { useEffect, useState } from "react";
 import { Button, Input } from "antd";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 function HotelManagement() {
   const [hotels, setHotels] = useState([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
+  const user = useSelector((state) => state.auth.user);
+
+  // Role-based navigation: Hotel Managers auto-redirect to their hotel
+  useEffect(() => {
+    if (user?.role === "HOTEL_MANAGER") {
+      const hotelId = user.hotels?.[0];
+      if (hotelId) {
+        navigate(`/hotels/${hotelId}`);
+      }
+    }
+  }, [user, navigate]);
 
   const fetchHotels = async () => {
     setLoading(true);
@@ -19,12 +31,19 @@ function HotelManagement() {
   };
 
   useEffect(() => {
-    // Debounce or just effect
-    const timer = setTimeout(() => {
-      fetchHotels();
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [search]);
+    // Only fetch hotels if user is not a Hotel Manager (they get redirected)
+    if (user?.role !== "HOTEL_MANAGER") {
+      const timer = setTimeout(() => {
+        fetchHotels();
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [search, user]);
+
+  // Don't render anything for Hotel Managers (they're being redirected)
+  if (user?.role === "HOTEL_MANAGER") {
+    return null;
+  }
 
   return (
     <>
@@ -51,6 +70,7 @@ function HotelManagement() {
       <HotelTable
         data={hotels}
         loading={loading}
+        bookingMode={false}
       />
     </>
   )

@@ -243,3 +243,35 @@
         gap: 12px;
     }
 }
+/* Amenities Section */
+.cd-amenities-header {
+    font-size: 20px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 16px;
+    margin-top: 24px;
+}
+
+.cd-amenities-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.cd-amenity-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background-color: #f9f9f9;
+    padding: 12px 20px;
+    border-radius: 30px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+    border: 1px solid #eee;
+}
+
+.cd-amenity-icon {
+    font-size: 18px;
+    color: #333;
+}

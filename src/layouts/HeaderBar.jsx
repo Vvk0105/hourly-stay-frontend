@@ -1,11 +1,13 @@
-import { Layout, Dropdown, Avatar } from "antd";
-import { BellOutlined, UserOutlined } from "@ant-design/icons";
+import { Layout, Dropdown, Avatar, Grid } from "antd";
+import { BellOutlined, UserOutlined, MenuOutlined } from "@ant-design/icons";
 import { useSelector } from "react-redux";
 
 const { Header } = Layout;
+const { useBreakpoint } = Grid;
 
-function HeaderBar() {
+function HeaderBar({ setMobileSiderOpen }) {
   const user = useSelector((state) => state.auth.user);
+  const screens = useBreakpoint();
 
   const menuItems = [
     {
@@ -15,16 +17,23 @@ function HeaderBar() {
   ];
 
   return (
-    <Header className="header">
-      <div className="header-left" />
+    <Header className="header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px', background: '#fff' }}>
+      <div className="header-left">
+        {!screens.md && (
+          <MenuOutlined
+            style={{ fontSize: 20, cursor: "pointer", marginRight: 16 }}
+            onClick={() => setMobileSiderOpen && setMobileSiderOpen(true)}
+          />
+        )}
+      </div>
 
-      <div className="header-right">
-        <BellOutlined className="icon" />
+      <div className="header-right" style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+        <BellOutlined className="icon" style={{ fontSize: 20 }} />
 
         <Dropdown menu={{ items: menuItems }}>
-          <div className="profile">
+          <div className="profile" style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', gap: 8 }}>
             <Avatar icon={<UserOutlined />} />
-            <span>{user?.name}</span>
+            {screens.md && <span>{user?.name}</span>}
           </div>
         </Dropdown>
       </div>

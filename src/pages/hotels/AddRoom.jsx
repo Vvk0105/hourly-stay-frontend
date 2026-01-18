@@ -171,7 +171,7 @@ function AddRoom() {
                         {/* Small Images Row */}
                         <Row gutter={16}>
                             {[1, 2, 3].map((i) => (
-                                <Col span={8} key={i}>
+                                <Col xs={8} key={i}>
                                     <div style={{
                                         backgroundColor: '#e6e6e6',
                                         borderRadius: 8,
@@ -190,7 +190,7 @@ function AddRoom() {
                     {/* RIGHT COLUMN: INPUT FIELDS */}
                     <Col xs={24} lg={15}>
                         <Row gutter={24}>
-                            <Col span={12}>
+                            <Col xs={24} sm={12}>
                                 <Form.Item label="Room Type" name="room_type" rules={[{ required: true }]}>
                                     <Select placeholder="Select Room Type" size="large">
                                         <Option value="single">Single Bedroom</Option>
@@ -199,7 +199,7 @@ function AddRoom() {
                                     </Select>
                                 </Form.Item>
                             </Col>
-                            <Col span={12}>
+                            <Col xs={24} sm={12}>
                                 <Form.Item label="Maximum Occupancy" name="max_occupancy">
                                     <Select placeholder="Select Occupancy" size="large">
                                         <Option value={1}>1 Person</Option>
@@ -209,18 +209,18 @@ function AddRoom() {
                                 </Form.Item>
                             </Col>
 
-                            <Col span={12}>
+                            <Col xs={24} sm={12}>
                                 <Form.Item label="Price" name="price" rules={[{ required: true }]}>
                                     <Input prefix="₹0/-" size="large" />
                                 </Form.Item>
                             </Col>
-                            <Col span={12}>
+                            <Col xs={24} sm={12}>
                                 <Form.Item label="Number Of Rooms" name="number_of_rooms">
                                     <InputNumber style={{ width: '100%' }} size="large" placeholder="08" />
                                 </Form.Item>
                             </Col>
 
-                            <Col span={12}>
+                            <Col xs={24} sm={12}>
                                 <Form.Item label="Bed" name="bed_count">
                                     <Select placeholder="1" size="large">
                                         <Option value={1}>1 Bed</Option>
@@ -228,13 +228,13 @@ function AddRoom() {
                                     </Select>
                                 </Form.Item>
                             </Col>
-                            <Col span={12}>
+                            <Col xs={24} sm={12}>
                                 <Form.Item label="Room Size" name="room_size">
                                     <Input suffix="sq.feet" size="large" placeholder="144" />
                                 </Form.Item>
                             </Col>
 
-                            <Col span={12}>
+                            <Col xs={24} sm={12}>
                                 <Form.Item label="Bathroom" name="bathroom_count">
                                     <Select placeholder="1" size="large">
                                         <Option value={1}>1</Option>
@@ -242,7 +242,7 @@ function AddRoom() {
                                     </Select>
                                 </Form.Item>
                             </Col>
-                            <Col span={12}>
+                            <Col xs={24} sm={12}>
                                 <Form.Item label="AC/Non AC" name="ac_type">
                                     <Radio.Group>
                                         <Radio value="ac">AC</Radio>

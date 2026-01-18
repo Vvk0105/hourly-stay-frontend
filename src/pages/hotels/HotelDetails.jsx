@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Breadcrumb, Button, Spin, Tag, message, Modal, Form, Input, InputNumber, Row, Col, Card, Divider, Typography, Switch } from "antd";
+import { Breadcrumb, Button, Spin, Tag, message, Modal, Form, Input, InputNumber, Row, Col, Card, Divider, Typography, Switch, Select } from "antd";
 import { HomeOutlined, EditOutlined, DeleteOutlined, RightOutlined, PlusOutlined } from "@ant-design/icons";
 import api from "../../api/axios";
 import "./HotelDetails.css";
 
 const { TextArea } = Input;
 const { Text } = Typography;
+const { Option } = Select;
 
 // Placeholder images for mockup feel
 const MAIN_IMAGE = "https://images.unsplash.com/photo-1611892440504-42a792e24d32?q=80&w=2070&auto=format&fit=crop";
@@ -18,6 +19,7 @@ function HotelDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [hotel, setHotel] = useState(null);
+  const [amenities, setAmenities] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // Modal States
@@ -38,8 +40,18 @@ function HotelDetails() {
     }
   };
 
+  const fetchAmenities = async () => {
+    try {
+      const res = await api.get("property/amenities/");
+      setAmenities(res.data);
+    } catch (err) {
+      console.error("Failed to load amenities", err);
+    }
+  };
+
   useEffect(() => {
     fetchHotel();
+    fetchAmenities();
   }, [id]);
 
 
@@ -63,6 +75,7 @@ function HotelDetails() {
       base_price_nightly: values.base_price_nightly,
       description: values.description,
       is_hourly_enabled: values.is_hourly_enabled,
+      amenity_ids: values.amenity_ids || [],
     };
 
     if (values.is_hourly_enabled) {
@@ -158,12 +171,24 @@ function HotelDetails() {
                 <span className="hd-value">{hotel.city}</span>
               </div>
               <div className="hd-info-item">
+                <span className="hd-label">Country</span>
+                <span className="hd-value">{hotel.country || "N/A"}</span>
+              </div>
+              <div className="hd-info-item">
                 <span className="hd-label">ZIP Code</span>
                 <span className="hd-value">{hotel.zip_code || "N/A"}</span>
               </div>
               <div className="hd-info-item">
                 <span className="hd-label">Email ID</span>
                 <span className="hd-value">{hotel.email || "N/A"}</span>
+              </div>
+              <div className="hd-info-item">
+                <span className="hd-label">Tax Name</span>
+                <span className="hd-value">{hotel.tax_name || "N/A"}</span>
+              </div>
+              <div className="hd-info-item">
+                <span className="hd-label">Tax Percent</span>
+                <span className="hd-value">{hotel.tax_percent ? `${hotel.tax_percent}%` : "N/A"}</span>
               </div>
               <div className="hd-info-item">
                 <span className="hd-label">Phone Number</span>
@@ -184,23 +209,6 @@ function HotelDetails() {
                     {hotel.is_hourly_enabled ? "YES" : "NO"}</Tag>
                 </span>
               </div>
-              {hotel.is_hourly_enabled && (
-                <div className="hd-info-item">
-                  <span className="hd-label">Hourly Status</span>
-                  <span className="hd-value">
-                    <Button
-                      type="primary"
-                      danger={!hotel.is_hourly_enabled}
-                      style={hotel.is_hourly_enabled ? { backgroundColor: '#52c41a', borderColor: '#52c41a' } : {}}
-                      onClick={() => navigate(`/hotels/${id}/hourly-status`)}
-                      size="small"
-                    >
-                      {hotel.is_hourly_enabled ? "Hourly Active" : "Hourly Inactive"}
-                      <span style={{ marginLeft: 8 }}>Manage</span>
-                    </Button>
-                  </span>
-                </div>
-              )}
             </div>
 
             <div className="hd-info-item">
@@ -284,7 +292,7 @@ function HotelDetails() {
                 </Col>
                 <Col span={12}>
                   <Form.Item label="Initial Inventory" name="total_inventory" rules={[{ required: true }]}>
-                    <InputNumber style={{ width: '100%', borderRadius: '8px' }} placeholder="0" />
+                    <InputNumber min={0} style={{ width: '100%', borderRadius: '8px' }} placeholder="0" />
                   </Form.Item>
                 </Col>
                 <Col span={8}>
@@ -297,6 +305,19 @@ function HotelDetails() {
                   <Form.Item label="Sq. Ft" name="size_sqft"><InputNumber style={{ width: '100%', borderRadius: '8px' }} /></Form.Item>
                 </Col>
                 <Col span={24}>
+                  <Form.Item label="Amenities" name="amenity_ids">
+                    <Select
+                      mode="multiple"
+                      placeholder="Select amenities"
+                      style={{ width: '100%', borderRadius: '8px' }}
+                    >
+                      {amenities.map(a => (
+                        <Option key={a.id} value={a.id}>{a.name}</Option>
+                      ))}
+                    </Select>
+                  </Form.Item>
+                </Col>
+                <Col span={24}>
                   <Form.Item label="Description" name="description"><TextArea rows={3} style={{ borderRadius: '8px' }} /></Form.Item>
                 </Col>
               </Row>
@@ -307,7 +328,7 @@ function HotelDetails() {
               <div style={{ backgroundColor: '#f9f9f9', padding: '16px', borderRadius: '12px' }}>
                 <Text strong>Pricing Rules</Text>
                 <Form.Item label="Nightly Rate (₹)" name="base_price_nightly" rules={[{ required: true }]} style={{ marginTop: 12 }}>
-                  <InputNumber style={{ width: '100%', borderRadius: '8px' }} prefix="₹" placeholder="2000" />
+                  <InputNumber min={0} style={{ width: '100%', borderRadius: '8px' }} prefix="₹" placeholder="2000" />
                 </Form.Item>
 
                 <Divider style={{ margin: '12px 0' }} />
@@ -325,13 +346,13 @@ function HotelDetails() {
                       <InputNumber min={1} style={{ width: '100%', borderRadius: '8px' }} />
                     </Form.Item>
                     <Form.Item label="Base Price (₹)" name="hourly_base_price" rules={[{ required: true }]} style={{ marginBottom: 12 }}>
-                      <InputNumber style={{ width: '100%', borderRadius: '8px' }} />
+                      <InputNumber min={0} style={{ width: '100%', borderRadius: '8px' }} />
                     </Form.Item>
                     <Form.Item label="Extra Hr Price (₹)" name="price_per_extra_hour" rules={[{ required: true }]} style={{ marginBottom: 12 }}>
-                      <InputNumber style={{ width: '100%', borderRadius: '8px' }} />
+                      <InputNumber min={0} style={{ width: '100%', borderRadius: '8px' }} />
                     </Form.Item>
                     <Form.Item label="Cleaning Gap (Mins)" name="cleaning_buffer_minutes" initialValue={30} style={{ marginBottom: 0 }}>
-                      <InputNumber step={15} style={{ width: '100%', borderRadius: '8px' }} />
+                      <InputNumber min={0} step={15} style={{ width: '100%', borderRadius: '8px' }} />
                     </Form.Item>
                   </div>
                 )}

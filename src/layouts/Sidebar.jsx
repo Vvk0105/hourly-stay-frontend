@@ -1,18 +1,21 @@
-import { Layout, Menu } from "antd";
+import { Layout, Menu, Drawer, Grid } from "antd";
 import {
   DashboardOutlined,
   UserOutlined,
   SettingOutlined,
   LogoutOutlined,
+  HomeOutlined,
+  ClockCircleFilled
 } from "@ant-design/icons";
-import { HomeOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../store/authSlice";
 
 const { Sider } = Layout;
+const { useBreakpoint } = Grid;
 
-function Sidebar() {
+function Sidebar({ mobileSiderOpen, setMobileSiderOpen }) {
+  const screens = useBreakpoint();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const user = useSelector((state) => state.auth.user);
@@ -57,19 +60,19 @@ function Sidebar() {
       onClick: () => navigate("/amenities"),
     },
 
-    user?.role === "HOTEL_MANAGER" && {
-      key: "bookings",
+    {
+      key: "/bookings",
       icon: <UserOutlined />,
       label: "Bookings",
-      onClick: () => navigate("/bookings/1"),
+      onClick: () => navigate("/bookings"),
     },
 
-    {
-      key: "/settings",
-      icon: <SettingOutlined />,
-      label: "Settings",
-      onClick: () => navigate("/settings"),
-    },
+    // {
+    //   key: "/settings",
+    //   icon: <SettingOutlined />,
+    //   label: "Settings",
+    //   onClick: () => navigate("/settings"),
+    // },
 
     {
       key: "logout",
@@ -79,12 +82,55 @@ function Sidebar() {
     },
   ].filter(Boolean);
 
+  const MenuComponent = (props) => (
+    <Menu
+      theme="light"
+      mode="inline"
+      items={items}
+      selectedKeys={[window.location.pathname]}
+      style={{ borderRight: 0 }}
+    />
+  );
+
+  const LogoContent = (
+    <div className="logo" style={{
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '24px 16px',
+      gap: '8px',
+      cursor: 'pointer'
+    }} onClick={() => navigate('/dashboard')}>
+      <ClockCircleFilled style={{ fontSize: '24px', color: '#FFD700' }} />
+      <span style={{ fontSize: '18px', fontWeight: 'bold', color: '#333' }}>HourlyStay.com</span>
+    </div>
+  );
+
+  if (!screens.md) {
+    return (
+      <Drawer
+        placement="left"
+        onClose={() => setMobileSiderOpen && setMobileSiderOpen(false)}
+        open={mobileSiderOpen}
+        bodyStyle={{ padding: 0 }}
+        width={240}
+        closable={false}
+      >
+        {LogoContent}
+        <MenuComponent />
+      </Drawer>
+    );
+  }
+
   return (
-    <Sider width={240} className="sidebar">
-      <div className="logo">HourlyStay</div>
-      <Menu mode="inline" items={items} />
+    <Sider width={250} className="sidebar" breakpoint="lg" collapsedWidth="0" theme="light" style={{
+      boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+      zIndex: 10
+    }}>
+      {LogoContent}
+      <MenuComponent />
     </Sider>
-  )
+  );
 }
 
-export default Sidebar
+export default Sidebar;

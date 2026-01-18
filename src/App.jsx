@@ -19,8 +19,8 @@ import AddPhysicalRoom from "./pages/hotels/AddPhysicalRoom";
 import EditHotel from "./pages/hotels/EditHotel";
 import BookingManagement from "./pages/hotels/BookingManagement";
 import CategoryDetails from "./pages/hotels/CategoryDetails";
-import HourlyStatus from "./pages/hotels/HourlyStatus";
 import AmenityManagement from "./pages/hotels/AmenityManagement";
+import BookingHotelList from "./pages/bookings/BookingHotelList";
 
 
 function App() {
@@ -80,9 +80,9 @@ function App() {
         <Route path="/hotels/:id/add-physical-room" element={<MainLayout><AddPhysicalRoom /></MainLayout>} />
         <Route path="/hotels/:id/edit" element={<MainLayout><EditHotel /></MainLayout>} />
         <Route path="/hotels/:id/categories/:categoryId" element={<MainLayout><CategoryDetails /></MainLayout>} />
-        <Route path="/hotels/:id/hourly-status" element={<MainLayout><HourlyStatus /></MainLayout>} />
         <Route path="/amenities" element={<MainLayout><AmenityManagement /></MainLayout>} />
         <Route path="/bookings/:id" element={<MainLayout><BookingManagement /></MainLayout>} />
+        <Route path="/bookings" element={<MainLayout><BookingHotelList /></MainLayout>} />
       </Routes>
     </BrowserRouter>
   )

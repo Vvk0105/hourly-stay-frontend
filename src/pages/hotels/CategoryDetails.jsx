@@ -1,12 +1,30 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Breadcrumb, Button, Spin, Modal, Form, Input, InputNumber, message, Select, Tag } from "antd";
-import { HomeOutlined, PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
+import { HomeOutlined, PlusOutlined, EditOutlined, DeleteOutlined, WifiOutlined, DesktopOutlined, RocketOutlined, ThunderboltOutlined, VideoCameraOutlined, CoffeeOutlined, StarOutlined } from "@ant-design/icons";
 import api from "../../api/axios";
 import "./CategoryDetails.css";
 
 const { Option } = Select;
 const CAT_IMAGE = "https://images.unsplash.com/photo-1590490360182-c33d57733427?q=80&w=1974&auto=format&fit=crop";
+
+const iconMap = {
+    wifi: <WifiOutlined />,
+    television: <DesktopOutlined />,
+    tv: <DesktopOutlined />,
+    pool: <RocketOutlined />,
+    "swimming pool": <RocketOutlined />,
+    fitness: <ThunderboltOutlined />,
+    gym: <ThunderboltOutlined />,
+    cctv: <VideoCameraOutlined />,
+    "minibar": <CoffeeOutlined />,
+    "mini bar": <CoffeeOutlined />
+};
+
+const getAmenityIcon = (name) => {
+    const key = name?.toLowerCase();
+    return iconMap[key] || null;
+};
 
 function CategoryDetails() {
     const { id, categoryId } = useParams(); // Hotel ID, Category ID
@@ -237,6 +255,28 @@ function CategoryDetails() {
                         </div>
                     </div>
                 </div>
+
+                {/* Amenities Section */}
+                {category.amenities && category.amenities.length > 0 && (
+                    <div className="cd-amenities-section">
+                        <h3 className="cd-amenities-header">Amenities</h3>
+                        <div className="cd-amenities-grid">
+                            {category.amenities.map(amenity => {
+                                const icon = getAmenityIcon(amenity.name);
+                                return (
+                                    <div key={amenity.id} className="cd-amenity-item">
+                                        {icon && (
+                                            <span className="cd-amenity-icon">
+                                                {icon}
+                                            </span>
+                                        )}
+                                        <span>{amenity.name}</span>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* Physical Rooms Section */}
@@ -302,7 +342,7 @@ function CategoryDetails() {
                         <Input placeholder="e.g. 101 or A-01" style={{ borderRadius: '8px' }} />
                     </Form.Item>
                     <Form.Item label="Floor Number" name="floor_number" initialValue={1}>
-                        <InputNumber style={{ width: '100%', borderRadius: '8px' }} />
+                        <InputNumber min={0} style={{ width: '100%', borderRadius: '8px' }} />
                     </Form.Item>
                 </Form>
             </Modal>
@@ -323,7 +363,7 @@ function CategoryDetails() {
                         <Input placeholder="e.g. 101 or A-01" style={{ borderRadius: '8px' }} />
                     </Form.Item>
                     <Form.Item label="Floor Number" name="floor_number" initialValue={1}>
-                        <InputNumber style={{ width: '100%', borderRadius: '8px' }} />
+                        <InputNumber min={0} style={{ width: '100%', borderRadius: '8px' }} />
                     </Form.Item>
                     {isEditModalVisible && (
                         <Form.Item label="Current Status" name="current_status" initialValue="CLEAN">

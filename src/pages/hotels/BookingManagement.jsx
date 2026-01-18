@@ -48,6 +48,7 @@ function BookingManagement() {
   // Data State
   const [roomTypes, setRoomTypes] = useState([]);
   const [rooms, setRooms] = useState([]);
+  const [selectedRoomType, setSelectedRoomType] = useState(null);
 
   useEffect(() => {
     fetchBookings();
@@ -397,17 +398,113 @@ function BookingManagement() {
             },
             {
               key: 'available_rooms',
-              label: 'Available Rooms',
+              label: 'Rooms',
               children: (
-                <div style={{ padding: 20, textAlign: 'center', color: '#999' }}>
+                <div>
+                  {/* Filter Section */}
+                  <div style={{ marginBottom: 24, display: 'flex', gap: 16, alignItems: 'center' }}>
+                    <Select
+                      placeholder="Filter by Room Type"
+                      allowClear
+                      style={{ width: 250 }}
+                      value={selectedRoomType}
+                      onChange={setSelectedRoomType}
+                    >
+                      <Option value="">All Room Types</Option>
+                      {roomTypes.map(rt => (
+                        <Option key={rt.id} value={rt.id}>{rt.name}</Option>
+                      ))}
+                    </Select>
+                    <Text type="secondary">
+                      Showing {rooms.filter(r => !selectedRoomType || r.room_type?.id === selectedRoomType).length} room{rooms.filter(r => !selectedRoomType || r.room_type?.id === selectedRoomType).length !== 1 ? 's' : ''}
+                    </Text>
+                  </div>
+
+                  {/* Rooms Grid */}
                   <Row gutter={[16, 16]}>
-                    {rooms.map(room => (
-                      <Col xs={24} sm={12} md={8} lg={6} key={room.id}>
-                        <Card hoverable cover={<div style={{ height: 120, background: '#eee', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><HomeOutlined style={{ fontSize: 32, color: '#ccc' }} /></div>}>
-                          <Card.Meta title={`Room ${room.room_number}`} description={room.room_type?.name || 'Standard'} />
-                        </Card>
+                    {rooms.length === 0 ? (
+                      <Col span={24}>
+                        <div style={{ textAlign: 'center', padding: 40, color: '#999' }}>
+                          <HomeOutlined style={{ fontSize: 48, marginBottom: 16 }} />
+                          <div>No rooms found</div>
+                        </div>
                       </Col>
-                    ))}
+                    ) : (
+                      rooms
+                        .filter(room => !selectedRoomType || room.room_type?.id === selectedRoomType)
+                        .map(room => {
+                          // Find if room is currently occupied
+                          const currentBooking = bookings.find(
+                            b => b.assigned_room?.id === room.id &&
+                              ['CONFIRMED', 'CHECKED_IN'].includes(b.status)
+                          );
+
+                          const isOccupied = !!currentBooking;
+                          const isDirty = room.current_status === 'DIRTY';
+                          const isMaintenance = room.current_status === 'MAINTENANCE';
+                          const isAvailable = !isOccupied && room.current_status === 'CLEAN';
+
+                          return (
+                            <Col xs={24} sm={12} md={8} lg={6} key={room.id}>
+                              <Card
+                                hoverable={isAvailable}
+                                style={{
+                                  borderColor: isAvailable ? '#52c41a' : isDirty ? '#faad14' : isMaintenance ? '#ff4d4f' : '#d9d9d9',
+                                  borderWidth: 2
+                                }}
+                              >
+                                {/* Room Image/Icon */}
+                                <div style={{
+                                  height: 120,
+                                  background: isAvailable ? '#f6ffed' : isDirty ? '#fffbe6' : isMaintenance ? '#fff1f0' : '#f0f0f0',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  marginBottom: 16,
+                                  borderRadius: 8
+                                }}>
+                                  <HomeOutlined style={{
+                                    fontSize: 48,
+                                    color: isAvailable ? '#52c41a' : isDirty ? '#faad14' : isMaintenance ? '#ff4d4f' : '#bfbfbf'
+                                  }} />
+                                </div>
+
+                                {/* Room Info */}
+                                <div style={{ marginBottom: 12 }}>
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                                    <Text strong style={{ fontSize: 16 }}>Room {room.room_number}</Text>
+                                    {isAvailable && <Tag color="success">AVAILABLE</Tag>}
+                                    {isOccupied && <Tag color="error">OCCUPIED</Tag>}
+                                    {isDirty && !isOccupied && <Tag color="warning">DIRTY</Tag>}
+                                    {isMaintenance && <Tag color="error">MAINTENANCE</Tag>}
+                                  </div>
+
+                                  <Text type="secondary" style={{ fontSize: 12 }}>
+                                    {room.room_type?.name || 'Standard'}
+                                  </Text>
+
+                                  {currentBooking && (
+                                    <div style={{ marginTop: 8, padding: 8, background: '#fff1f0', borderRadius: 4 }}>
+                                      <Text style={{ fontSize: 12, color: '#cf1322' }}>
+                                        <UserOutlined /> {currentBooking.guest_name || 'Guest'}<br />
+                                        Until: {dayjs(currentBooking.scheduled_check_out).format('DD MMM, HH:mm')}
+                                      </Text>
+                                    </div>
+                                  )}
+
+                                  {/* Room Details */}
+                                  <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid #f0f0f0' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
+                                      <Text type="secondary">Floor: {room.floor_number || 1}</Text>
+                                      <Text type="secondary">Status: {room.current_status}</Text>
+                                    </div>
+                                  </div>
+                                </div>
+                              </Card>
+                            </Col>
+                          );
+                        })
+                    )}
                   </Row>
                 </div>
               )

@@ -50,6 +50,10 @@ function BookingManagement() {
   const [rooms, setRooms] = useState([]);
   const [selectedRoomType, setSelectedRoomType] = useState(null);
 
+  const filteredRooms = rooms.filter(
+    r => !selectedRoomType || r.room_type === selectedRoomType
+  );
+
   useEffect(() => {
     fetchBookings();
     fetchRoomTypes();
@@ -425,7 +429,7 @@ function BookingManagement() {
                       ))}
                     </Select>
                     <Text type="secondary">
-                      Showing {rooms.filter(r => !selectedRoomType || r.room_type?.id === selectedRoomType).length} room{rooms.filter(r => !selectedRoomType || r.room_type?.id === selectedRoomType).length !== 1 ? 's' : ''}
+                      Showing {filteredRooms.length} room{filteredRooms.length !== 1 ? 's' : ''}
                     </Text>
                   </div>
 
@@ -440,7 +444,7 @@ function BookingManagement() {
                       </Col>
                     ) : (
                       rooms
-                        .filter(room => !selectedRoomType || room.room_type?.id === selectedRoomType)
+                        .filter(room => !selectedRoomType || room.room_type === selectedRoomType)
                         .map(room => {
                           // Find if room is currently occupied
                           const currentBooking = bookings.find(
@@ -489,7 +493,7 @@ function BookingManagement() {
                                   </div>
 
                                   <Text type="secondary" style={{ fontSize: 12 }}>
-                                    {room.room_type?.name || 'Standard'}
+                                    {roomTypes.find(rt => rt.id === room.room_type)?.name || '-'}
                                   </Text>
 
                                   {currentBooking && (

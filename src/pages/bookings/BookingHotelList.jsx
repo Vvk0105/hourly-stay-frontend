@@ -3,18 +3,32 @@ import HotelTable from "../hotels/HotelTable";
 import { useEffect, useState } from "react";
 import { Input } from "antd";
 import api from "../../api/axios";
+import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 function BookingHotelList() {
     const [hotels, setHotels] = useState([]);
     const [loading, setLoading] = useState(false);
     const [search, setSearch] = useState("");
+    const navigate = useNavigate();
+    const user = useSelector((state) => state.auth.user);
+
+    // Role-based navigation: Hotel Managers auto-redirect to their bookings
+    useEffect(() => {
+        if (user?.role === "HOTEL_MANAGER") {
+            const hotelId = user.hotels?.[0];
+            if (hotelId) {
+                navigate(`/bookings/${hotelId}`);
+            }
+        }
+    }, [user, navigate]);
 
     const fetchHotels = async () => {
         setLoading(true);
         try {
             // Reusing the same endpoint as Hotel Management for now
             const res = await api.get("property/hotels/", { params: { search } });
-            setHotels(res.data);
+            setHotels(Array.isArray(res.data.results) ? res.data.results : []);
         } catch (e) {
             console.error("Failed to fetch hotels", e);
         } finally {
@@ -23,11 +37,19 @@ function BookingHotelList() {
     };
 
     useEffect(() => {
-        const timer = setTimeout(() => {
-            fetchHotels();
-        }, 300);
-        return () => clearTimeout(timer);
-    }, [search]);
+        // Only fetch hotels if user is not a Hotel Manager (they get redirected)
+        if (user?.role !== "HOTEL_MANAGER") {
+            const timer = setTimeout(() => {
+                fetchHotels();
+            }, 300);
+            return () => clearTimeout(timer);
+        }
+    }, [search, user]);
+
+    // Don't render anything for Hotel Managers (they're being redirected)
+    if (user?.role === "HOTEL_MANAGER") {
+        return null;
+    }
 
     return (
         <>
@@ -47,7 +69,7 @@ function BookingHotelList() {
             <HotelTable
                 data={hotels}
                 loading={loading}
-                bookingMode={true} // Hint to Table to show/hide specific cols if needed
+                bookingMode={true}
             />
         </>
     )

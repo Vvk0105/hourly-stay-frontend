@@ -4,13 +4,13 @@ import { jwtDecode } from 'jwt-decode';
 
 export const loginUser = createAsyncThunk(
     'auth/loginUser',
-    async ({email, password}, { rejectWithValue }) => {
+    async ({ email, password }, { rejectWithValue }) => {
         try {
             const res = await api.post("users/auth/login/", {
                 email,
                 password
             })
-            const {access, refresh} = res.data;
+            const { access, refresh } = res.data;
 
             localStorage.setItem("access", access);
             localStorage.setItem("refresh", refresh);
@@ -24,6 +24,7 @@ export const loginUser = createAsyncThunk(
                     role: decode.role,
                     permissions: decode.permissions,
                     name: profileRes.data.username,
+                    hotels: profileRes.data.hotels || [],
                 }
             }
         } catch (error) {
@@ -34,7 +35,7 @@ export const loginUser = createAsyncThunk(
 
 export const checkAuth = createAsyncThunk(
     'auth/checkAuth',
-    async (_, {rejectWithValue}) => {
+    async (_, { rejectWithValue }) => {
         const token = localStorage.getItem("access")
         if (!token) return rejectWithValue("No token found")
 
@@ -48,9 +49,10 @@ export const checkAuth = createAsyncThunk(
                     role: decoded.role,
                     permissions: decoded.permissions,
                     name: profileRes.data.username,
+                    hotels: profileRes.data.hotels || [],
                 }
             }
-        }catch (error) {
+        } catch (error) {
             localStorage.clear();
             return rejectWithValue("Session expired");
         }
@@ -76,26 +78,26 @@ const authSlice = createSlice({
             state.loading = true
             state.error = null
         })
-        .addCase(loginUser.fulfilled, (state, action) => {
-            state.loading = false
-            state.user = action.payload.user
-            state.initialized = true
-        })
-        .addCase(loginUser.rejected, (state, action) => {
-            state.loading = false
-            state.error = action.payload
-        })
-        .addCase(checkAuth.pending, (state) => {
-        state.initialized = false;
-        })
-        .addCase(checkAuth.fulfilled, (state, action) => {
-            state.user = action.payload.user;
-            state.initialized = true;
-        })
-        .addCase(checkAuth.rejected, (state) => {
-            state.user = null;
-            state.initialized = true;
-        });
+            .addCase(loginUser.fulfilled, (state, action) => {
+                state.loading = false
+                state.user = action.payload.user
+                state.initialized = true
+            })
+            .addCase(loginUser.rejected, (state, action) => {
+                state.loading = false
+                state.error = action.payload
+            })
+            .addCase(checkAuth.pending, (state) => {
+                state.initialized = false;
+            })
+            .addCase(checkAuth.fulfilled, (state, action) => {
+                state.user = action.payload.user;
+                state.initialized = true;
+            })
+            .addCase(checkAuth.rejected, (state) => {
+                state.user = null;
+                state.initialized = true;
+            });
     }
 })
 

@@ -278,8 +278,12 @@ function BookingManagement() {
     },
     {
       title: "Category",
-      dataIndex: ["room_type", "name"],
-      render: (text) => text || "-"
+      dataIndex: "room_type",
+      render: (roomTypeId) => {
+        if (!roomTypeId) return "-";
+        const rt = roomTypes.find(rt => rt.id == roomTypeId);
+        return rt ? rt.name : `Type #${roomTypeId}`;
+      }
     },
     {
       title: "Dates",
@@ -293,7 +297,12 @@ function BookingManagement() {
     {
       title: "Rooms",
       dataIndex: "assigned_room",
-      render: (room) => room ? <Tag>{room.room_number}</Tag> : <span style={{ color: '#aaa' }}>-</span>
+      render: (roomId) => {
+        if (!roomId) return <span style={{ color: '#aaa' }}>-</span>;
+
+        const room = rooms.find(r => r.id === roomId);
+        return room ? <Tag>{room.room_number}</Tag> : <Tag>Room #{roomId}</Tag>;
+      }
     },
     {
       title: "Status",

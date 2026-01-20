@@ -50,6 +50,10 @@ function BookingManagement() {
   const [rooms, setRooms] = useState([]);
   const [selectedRoomType, setSelectedRoomType] = useState(null);
 
+  const filteredRooms = rooms.filter(
+    r => !selectedRoomType || r.room_type === selectedRoomType
+  );
+
   useEffect(() => {
     fetchBookings();
     fetchRoomTypes();
@@ -278,8 +282,12 @@ function BookingManagement() {
     },
     {
       title: "Category",
-      dataIndex: ["room_type", "name"],
-      render: (text) => text || "-"
+      dataIndex: "room_type",
+      render: (roomTypeId) => {
+        if (!roomTypeId) return "-";
+        const rt = roomTypes.find(rt => rt.id == roomTypeId);
+        return rt ? rt.name : `Type #${roomTypeId}`;
+      }
     },
     {
       title: "Dates",
@@ -293,7 +301,12 @@ function BookingManagement() {
     {
       title: "Rooms",
       dataIndex: "assigned_room",
-      render: (room) => room ? <Tag>{room.room_number}</Tag> : <span style={{ color: '#aaa' }}>-</span>
+      render: (roomId) => {
+        if (!roomId) return <span style={{ color: '#aaa' }}>-</span>;
+
+        const room = rooms.find(r => r.id === roomId);
+        return room ? <Tag>{room.room_number}</Tag> : <Tag>Room #{roomId}</Tag>;
+      }
     },
     {
       title: "Status",
@@ -416,7 +429,7 @@ function BookingManagement() {
                       ))}
                     </Select>
                     <Text type="secondary">
-                      Showing {rooms.filter(r => !selectedRoomType || r.room_type?.id === selectedRoomType).length} room{rooms.filter(r => !selectedRoomType || r.room_type?.id === selectedRoomType).length !== 1 ? 's' : ''}
+                      Showing {filteredRooms.length} room{filteredRooms.length !== 1 ? 's' : ''}
                     </Text>
                   </div>
 
@@ -431,7 +444,7 @@ function BookingManagement() {
                       </Col>
                     ) : (
                       rooms
-                        .filter(room => !selectedRoomType || room.room_type?.id === selectedRoomType)
+                        .filter(room => !selectedRoomType || room.room_type === selectedRoomType)
                         .map(room => {
                           // Find if room is currently occupied
                           const currentBooking = bookings.find(
@@ -480,7 +493,7 @@ function BookingManagement() {
                                   </div>
 
                                   <Text type="secondary" style={{ fontSize: 12 }}>
-                                    {room.room_type?.name || 'Standard'}
+                                    {roomTypes.find(rt => rt.id === room.room_type)?.name || '-'}
                                   </Text>
 
                                   {currentBooking && (

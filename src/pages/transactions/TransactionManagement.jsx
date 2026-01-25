@@ -137,8 +137,48 @@ const TransactionManagement = () => {
     };
 
     const handleExport = async () => {
-        message.info('Export functionality coming soon');
-        // TODO: Implement CSV export
+        try {
+            message.loading({ content: 'Generating Excel file...', key: 'export' });
+
+            // Build query params from current filters
+            const params = new URLSearchParams();
+            if (filters.hotel_id) params.append('hotel_id', filters.hotel_id);
+            if (filters.status) params.append('status', filters.status);
+            if (filters.booking_type) params.append('booking_type', filters.booking_type);
+            if (filters.date_from) params.append('date_from', filters.date_from);
+            if (filters.date_to) params.append('date_to', filters.date_to);
+            if (filters.search) params.append('search', filters.search);
+
+            const queryString = params.toString();
+            const url = `property/transactions/export/${queryString ? '?' + queryString : ''}`;
+
+            // Make the API call with responseType blob
+            const response = await api.get(url, {
+                responseType: 'blob'
+            });
+
+            // Create a blob URL and trigger download
+            const blob = new Blob([response.data], {
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            });
+            const downloadUrl = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = downloadUrl;
+
+            // Generate filename with current date
+            const filename = `transactions_${dayjs().format('YYYY-MM-DD_HHmmss')}.xlsx`;
+            link.setAttribute('download', filename);
+
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(downloadUrl);
+
+            message.success({ content: 'Export completed successfully!', key: 'export' });
+        } catch (error) {
+            console.error('Export error:', error);
+            message.error({ content: 'Failed to export transactions', key: 'export' });
+        }
     };
 
     const getStatusColor = (status) => {
@@ -402,7 +442,7 @@ const TransactionManagement = () => {
                                 icon={<DownloadOutlined />}
                                 onClick={handleExport}
                             >
-                                Export CSV
+                                Export Excel
                             </Button>
                         </Space>
                     </Col>

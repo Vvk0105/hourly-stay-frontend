@@ -13,7 +13,7 @@ const TransactionDetails = () => {
 
     const [loading, setLoading] = useState(false);
     const [transaction, setTransaction] = useState(null);
-
+    
     useEffect(() => {
         loadTransactionDetails();
     }, [bookingId]);

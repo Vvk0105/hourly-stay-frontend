@@ -5,7 +5,8 @@ import {
   SettingOutlined,
   LogoutOutlined,
   HomeOutlined,
-  ClockCircleFilled
+  ClockCircleFilled,
+  DollarOutlined
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -58,6 +59,13 @@ function Sidebar({ mobileSiderOpen, setMobileSiderOpen }) {
       icon: <SettingOutlined />,
       label: "Amenities",
       onClick: () => navigate("/amenities"),
+    },
+
+    user?.role === "SUPER_ADMIN" && {
+      key: "/transactions",
+      icon: <DollarOutlined />,
+      label: "Transactions",
+      onClick: () => navigate("/transactions"),
     },
 
     {

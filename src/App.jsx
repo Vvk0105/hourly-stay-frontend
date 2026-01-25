@@ -21,6 +21,8 @@ import BookingManagement from "./pages/hotels/BookingManagement";
 import CategoryDetails from "./pages/hotels/CategoryDetails";
 import AmenityManagement from "./pages/hotels/AmenityManagement";
 import BookingHotelList from "./pages/bookings/BookingHotelList";
+import TransactionManagement from "./pages/transactions/TransactionManagement";
+import TransactionDetails from "./pages/transactions/TransactionDetails";
 
 
 function App() {
@@ -83,6 +85,8 @@ function App() {
         <Route path="/amenities" element={<MainLayout><AmenityManagement /></MainLayout>} />
         <Route path="/bookings/:id" element={<MainLayout><BookingManagement /></MainLayout>} />
         <Route path="/bookings" element={<MainLayout><BookingHotelList /></MainLayout>} />
+        <Route path="/transactions" element={<MainLayout><TransactionManagement /></MainLayout>} />
+        <Route path="/transactions/:bookingId" element={<MainLayout><TransactionDetails /></MainLayout>} />
       </Routes>
     </BrowserRouter>
   )

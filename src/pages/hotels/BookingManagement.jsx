@@ -11,6 +11,8 @@ import { useParams } from "react-router-dom";
 import dayjs from "dayjs";
 import api from "../../api/axios";
 import PageHeader from "../../components/common/PageHeader";
+import utc from "dayjs/plugin/utc";
+dayjs.extend(utc);
 
 const { TabPane } = Tabs;
 const { Option } = Select;
@@ -32,6 +34,7 @@ function BookingManagement() {
   const [customRange, setCustomRange] = useState([]);
   const [slotsData, setSlotsData] = useState(null);
   const [slotsLoading, setSlotsLoading] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(dayjs());
 
   // New Booking Modal State
   const [isNewBookingModalOpen, setIsNewBookingModalOpen] = useState(false);
@@ -53,22 +56,21 @@ function BookingManagement() {
   const filteredRooms = rooms.filter(
     r => !selectedRoomType || r.room_type === selectedRoomType
   );
-
+    
   useEffect(() => {
     fetchBookings();
     fetchRoomTypes();
     fetchRooms();
     fetchHourlyStatus();
+    fetchSlots(); // Always fetch slots
 
-    // Poll slots if hourly is active
+    // Poll slots every 30s
     const interval = setInterval(() => {
-      if (hourlyStatus === 'ACTIVE') {
-        fetchSlots();
-      }
-    }, 10000); // Poll every 10s
+      fetchSlots();
+    }, 30000); // Poll every 30s
 
     return () => clearInterval(interval);
-  }, [id, hourlyStatus]);
+  }, [id, selectedDate]);
 
   /* ================= API CALLS ================= */
   const fetchBookings = async () => {
@@ -114,10 +116,11 @@ function BookingManagement() {
     }
   };
 
-  const fetchSlots = async () => {
+  const fetchSlots = async (date = null) => {
     setSlotsLoading(true);
     try {
-      const res = await api.get(`property/hotels/${id}/hourly-slots/`);
+      const dateStr = (date || selectedDate).format('YYYY-MM-DD');
+      const res = await api.get(`property/hotels/${id}/room-slots/?date=${dateStr}`);
       setSlotsData(res.data);
     } catch (e) {
       console.error("Failed to fetch slots");
@@ -293,8 +296,8 @@ function BookingManagement() {
       title: "Dates",
       render: (_, r) => (
         <div style={{ fontSize: '13px' }}>
-          <div>In: <span style={{ fontWeight: 500 }}>{dayjs(r.scheduled_check_in).format("DD MMM, HH:mm")}</span></div>
-          <div>Out: <span style={{ fontWeight: 500 }}>{dayjs(r.scheduled_check_out).format("DD MMM, HH:mm")}</span></div>
+          <div>In: <span style={{ fontWeight: 500 }}>{dayjs.utc(r.scheduled_check_in).format("DD MMM, HH:mm")}</span></div>
+          <div>Out: <span style={{ fontWeight: 500 }}>{dayjs.utc(r.scheduled_check_out).format("DD MMM, HH:mm")}</span></div>
         </div>
       )
     },
@@ -500,7 +503,7 @@ function BookingManagement() {
                                     <div style={{ marginTop: 8, padding: 8, background: '#fff1f0', borderRadius: 4 }}>
                                       <Text style={{ fontSize: 12, color: '#cf1322' }}>
                                         <UserOutlined /> {currentBooking.guest_name || 'Guest'}<br />
-                                        Until: {dayjs(currentBooking.scheduled_check_out).format('DD MMM, HH:mm')}
+                                        Until: {dayjs.utc(currentBooking.scheduled_check_out).format('DD MMM, HH:mm')}
                                       </Text>
                                     </div>
                                   )}
@@ -523,20 +526,62 @@ function BookingManagement() {
               )
             },
             {
-              key: 'hourly_stay',
-              label: 'Hourly Stay',
+              key: 'slots',
+              label: 'Slots',
               children: (
                 <div>
                   {hourlyStatus === 'ACTIVE' && currentWindow && (
                     <Alert
-                      message={`Hourly Booking is enabled until ${dayjs(currentWindow.end_datetime).format('DD MMM YYYY, HH:mm')}`}
+                      message={`Hourly Booking is enabled until ${dayjs.utc(currentWindow.end_datetime).format('DD MMM YYYY, HH:mm')}`}
                       type="warning"
                       showIcon
                       style={{ marginBottom: 20 }}
                     />
                   )}
 
-                  {hourlyStatus === 'ACTIVE' && slotsData?.rooms && (
+                  {/* Date Picker Controls */}
+                  <div style={{ marginBottom: 16, display: 'flex', gap: 16, alignItems: 'center' }}>
+                    <DatePicker
+                      value={selectedDate}
+                      onChange={(date) => {
+                        setSelectedDate(date);
+                        fetchSlots(date);
+                      }}
+                      format="DD MMM YYYY"
+                      style={{ width: 200 }}
+                    />
+                    <Button onClick={() => {
+                      setSelectedDate(dayjs());
+                      fetchSlots(dayjs());
+                    }}>
+                      Today
+                    </Button>
+                    <Button onClick={() => {
+                      const tomorrow = dayjs().add(1, 'day');
+                      setSelectedDate(tomorrow);
+                      fetchSlots(tomorrow);
+                    }}>
+                      Tomorrow
+                    </Button>
+                  </div>
+
+                  {/* Color Legend */}
+                  <div style={{ display: 'flex', gap: 16, marginBottom: 16, padding: 12, backgroundColor: '#fafafa', borderRadius: 8 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{ width: 20, height: 20, backgroundColor: '#ffccc7', borderRadius: 4, border: '1px solid #ddd' }} />
+                      <Text style={{ fontSize: 13 }}>Hourly Booking</Text>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{ width: 20, height: 20, backgroundColor: '#bae7ff', borderRadius: 4, border: '1px solid #ddd' }} />
+                      <Text style={{ fontSize: 13 }}>Nightly Booking</Text>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{ width: 20, height: 20, backgroundColor: '#d9f7be', borderRadius: 4, border: '1px solid #ddd' }} />
+                      <Text style={{ fontSize: 13 }}>Available</Text>
+                    </div>
+                  </div>
+
+                  {slotsData?.rooms && slotsData.rooms.length > 0 && (
                     <Row gutter={[16, 16]}>
                       {slotsData.rooms.map(room => (
                         <Col span={12} key={room.id}>
@@ -557,19 +602,30 @@ function BookingManagement() {
                                 </div>
                               ) : (
                                 room.slots.map((slot, idx) => {
-                                  const start = dayjs(slot.start);
-                                  const end = dayjs(slot.end);
-                                  const durationMins = end.diff(start, 'minute');
+                                  const start = dayjs.utc(slot.start);
+                                  const end = dayjs.utc(slot.end);
+                                  const crossesDay = !start.isSame(end, 'day');
+                                  const timeLabel = crossesDay
+                                    ? `${start.format('HH:mm')} - ${end.format('HH:mm')} (+1 day)`
+                                    : `${start.format('HH:mm')} - ${end.format('HH:mm')}`;
+                                  const safeEnd = end.isBefore(start) ? end.add(1, 'day') : end;
+                                  const durationMins = safeEnd.diff(start, 'minute');
 
                                   return (
                                     <Tooltip
                                       key={idx}
-                                      title={`${slot.type === 'BOOKED' ? 'Booked' : 'Available'} (${start.format('HH:mm')} - ${end.format('HH:mm')})`}
+                                      title={
+                                        slot.type === 'BOOKED'
+                                          ? `${slot.booking_type} | ${timeLabel}`
+                                          : `Available | ${timeLabel}`
+                                      }
                                     >
                                       <div style={{
                                         flex: durationMins,
                                         height: '100%',
-                                        backgroundColor: slot.type === 'BOOKED' ? '#ffccc7' : '#d9f7be',
+                                        backgroundColor: slot.type === 'BOOKED'
+                                          ? (slot.booking_type === 'HOURLY' ? '#ffccc7' : '#bae7ff')
+                                          : '#d9f7be',
                                         borderRight: '1px solid #fff',
                                         display: 'flex',
                                         alignItems: 'center',
@@ -594,11 +650,11 @@ function BookingManagement() {
                     </Row>
                   )}
 
-                  {hourlyStatus === 'INACTIVE' && (
+                  {(!slotsData || !slotsData.rooms || slotsData.rooms.length === 0) && (
                     <div style={{ textAlign: 'center', padding: 40, color: '#999' }}>
-                      <PoweroffOutlined style={{ fontSize: 48, marginBottom: 16 }} />
-                      <div>Hourly operations are currently inactive</div>
-                      <div style={{ marginTop: 8 }}>Toggle the switch above to start accepting hourly bookings</div>
+                      <CalendarOutlined style={{ fontSize: 48, marginBottom: 16 }} />
+                      <div>No rooms or slots data available</div>
+                      <div style={{ marginTop: 8 }}>Add rooms to see the occupancy timeline</div>
                     </div>
                   )}
                 </div>

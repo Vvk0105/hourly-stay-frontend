@@ -163,13 +163,43 @@ function HotelDetails() {
         <div className="hd-layout-row">
           {/* Left: Gallery */}
           <div className="hd-gallery">
-            <img src={hotel.images?.[0]?.url || MAIN_IMAGE} alt="Main" className="hd-main-image" />
-            <div className="hd-thumbnails">
-              <img src={hotel.images?.[1]?.url || THUMB_1} alt="Thumb 1" className="hd-thumb" />
-              <img src={hotel.images?.[2]?.url || THUMB_2} alt="Thumb 2" className="hd-thumb" />
-              <div className="hd-thumb more-overlay" style={{ backgroundImage: `url(${hotel.images?.[3]?.url || THUMB_3})`, backgroundSize: 'cover' }}>
+            {hotel.images && hotel.images.length > 0 ? (
+              <>
+                <img
+                  src={hotel.images[0].large || hotel.images[0].image}
+                  alt="Main"
+                  className="hd-main-image"
+                />
+                <div className="hd-thumbnails">
+                  {hotel.images.slice(1, 4).map((img, index) => (
+                    <img
+                      key={img.id}
+                      src={img.thumbnail || img.image}
+                      alt={`Thumb ${index + 1}`}
+                      className="hd-thumb"
+                    />
+                  ))}
+                  {hotel.images.length > 4 && (
+                    <div className="hd-thumb more-overlay" style={{
+                      backgroundImage: `url(${hotel.images[4].thumbnail || hotel.images[4].image})`,
+                      backgroundSize: 'cover',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '18px',
+                      color: 'white',
+                      fontWeight: 'bold'
+                    }}>
+                      +{hotel.images.length - 4}
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : (
+              <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f0f0f0', borderRadius: '12px' }}>
+                <Text type="secondary">No Images Available</Text>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Right: Details */}

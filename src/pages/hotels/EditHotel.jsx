@@ -11,16 +11,34 @@ import {
   message,
   Card,
   Select,
+  Upload,
+  Tooltip,
+  Image
 } from "antd";
+import { UploadOutlined, DeleteOutlined, StarOutlined, StarFilled } from '@ant-design/icons';
 import { useNavigate, useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import dayjs from "dayjs";
+import * as yup from 'yup';
 import api from "../../api/axios";
 import PageHeader from "../../components/common/PageHeader";
 import { Modal } from "antd";
 import AdvancedLocationPicker from "../../components/common/AdvancedLocationPicker";
 
 const { TextArea } = Input;
+
+const validationSchema = yup.object().shape({
+  name: yup.string().required("Hotel Name is required"),
+  address_line_1: yup.string().required("Address is required"),
+  city: yup.string().required("City is required"),
+  state: yup.string().required("State is required"),
+  zip_code: yup.string().required("Zip Code is required"),
+  check_in_time: yup.object().required("Check In Time is required"),
+  check_out_time: yup.object().required("Check Out Time is required"),
+  tax_percent: yup.number().min(0).max(100).required("Tax Percent is required"),
+  commission_percent: yup.number().min(0).max(100),
+  fixed_commission_amount: yup.number().min(0),
+});
 
 const EditHotel = () => {
   const { id } = useParams(); // hotel id from URL
@@ -29,6 +47,49 @@ const EditHotel = () => {
   const [loading, setLoading] = useState(false);
   const [isMapModalVisible, setIsMapModalVisible] = useState(false);
   const [mapPosition, setMapPosition] = useState(null);
+  const [images, setImages] = useState([]);
+  const [commissionType, setCommissionType] = useState('PERCENTAGE'); // Add this for existing logic
+  const { user } = useSelector((state) => state.auth);
+
+  // Handlers for Images
+  const handleUpload = async ({ file, onSuccess, onError }) => {
+    const formData = new FormData();
+    formData.append("image", file);
+
+    try {
+      const res = await api.post(`property/hotels/${id}/images/`, formData);
+      message.success("Image uploaded!");
+      setImages([...images, res.data]);
+      onSuccess("Ok");
+    } catch (err) {
+      message.error("Upload failed");
+      onError({ err });
+    }
+  };
+
+  const handleDeleteImage = async (imageId) => {
+    try {
+      await api.delete(`property/hotels/images/${imageId}/`);
+      message.success("Image deleted");
+      setImages(images.filter(img => img.id !== imageId));
+    } catch (err) {
+      message.error("Failed to delete image");
+    }
+  };
+
+  const handleSetPrimary = async (imageId) => {
+    try {
+      await api.patch(`property/hotels/images/${imageId}/primary/`);
+      message.success("Set as primary");
+      // Update local state to reflect change (only one primary)
+      setImages(images.map(img => ({
+        ...img,
+        is_primary: img.id === imageId
+      })));
+    } catch (err) {
+      message.error("Failed to set primary");
+    }
+  };
 
   const handleMapOk = () => {
     if (mapPosition) {
@@ -51,17 +112,24 @@ const EditHotel = () => {
           check_out_time: dayjs(res.data.check_out_time, "HH:mm"),
         });
         setCommissionType(res.data.commission_type || 'PERCENTAGE');
+        setImages(res.data.images || []);
       })
-      .catch(() => {
+      .catch((err) => {
+        console.error(err);
         message.error("Hotel not found");
         navigate("/hotels");
       });
   }, [id]);
 
+
+
   const onFinish = async (values) => {
     setLoading(true);
 
     try {
+      // Validate first
+      await validationSchema.validate(values, { abortEarly: false });
+
       const formData = new FormData();
 
       Object.entries(values).forEach(([key, value]) => {
@@ -79,7 +147,11 @@ const EditHotel = () => {
       message.success("Hotel updated successfully");
       navigate("/hotels");
     } catch (error) {
-      if (error.response?.data) {
+      if (error instanceof yup.ValidationError) {
+        error.inner.forEach(err => {
+          message.error(err.message);
+        });
+      } else if (error.response?.data) {
         Object.entries(error.response.data).forEach(([field, errors]) => {
           message.error(`${field}: ${errors.join(", ")}`);
         });
@@ -121,6 +193,46 @@ const EditHotel = () => {
                   </Form.Item>
                 </Col>
               </Row>
+            </Card>
+
+            <Card title="Hotel Images" style={{ marginTop: 24 }}>
+              <Upload
+                customRequest={handleUpload}
+                showUploadList={false}
+                accept="image/*"
+              >
+                <Button icon={<UploadOutlined />}>Upload Image</Button>
+              </Upload>
+
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, marginTop: 16 }}>
+                {images.map(img => (
+                  <div key={img.id} style={{ position: 'relative', width: 150, border: '1px solid #ddd', borderRadius: 8, overflow: 'hidden' }}>
+                    <Image
+                      src={img.thumbnail || img.image} // Use thumbnail if available
+                      alt="Hotel"
+                      style={{ width: '100%', height: 100, objectFit: 'cover' }}
+                      preview={{
+                        src: img.large || img.image, // Use large image for preview
+                      }}
+                    />
+                    <div style={{ padding: 8, display: 'flex', justifyContent: 'space-between', background: '#fff' }}>
+                      <Tooltip title={img.is_primary ? "Primary Image" : "Set as Primary"}>
+                        <Button
+                          type="text"
+                          icon={img.is_primary ? <StarFilled style={{ color: '#faad14' }} /> : <StarOutlined />}
+                          onClick={() => handleSetPrimary(img.id)}
+                        />
+                      </Tooltip>
+                      <Button
+                        type="text"
+                        danger
+                        icon={<DeleteOutlined />}
+                        onClick={() => handleDeleteImage(img.id)}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
             </Card>
 
             <Card title="Location" style={{ marginTop: 24 }}>

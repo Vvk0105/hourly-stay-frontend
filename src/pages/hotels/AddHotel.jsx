@@ -218,8 +218,8 @@ const AddHotel = () => {
 
             <Card title="Cover Image">
               <Form.Item name="images" valuePropName="fileList" getValueFromEvent={normFile}>
-                <Upload listType="picture-card" beforeUpload={() => false} maxCount={1}>
-                  <div><PlusOutlined /><div style={{ marginTop: 8 }}>Upload</div></div>
+                <Upload listType="picture-card" beforeUpload={() => false} multiple>
+                  <div><PlusOutlined /><div style={{ marginTop: 8 }}>Upload Images</div></div>
                 </Upload>
               </Form.Item>
             </Card>

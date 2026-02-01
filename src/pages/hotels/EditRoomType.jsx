@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Form, Input, Switch, Button, Row, Col, Typography, InputNumber, message, Card, Divider, Modal, Spin, Select } from "antd";
+import { Form, Input, Switch, Button, Row, Col, Typography, InputNumber, message, Card, Divider, Modal, Spin, Select, Upload, Image, Tooltip } from "antd";
+import { UploadOutlined, DeleteOutlined } from '@ant-design/icons';
 import api from "../../api/axios";
 import PageHeader from "../../components/common/PageHeader";
 
@@ -15,6 +16,31 @@ function EditRoomType() {
     const [loading, setLoading] = useState(false);
     const [fetching, setFetching] = useState(true);
     const [amenities, setAmenities] = useState([]);
+    const [images, setImages] = useState([]);
+
+    const handleUpload = async ({ file, onSuccess, onError }) => {
+        const formData = new FormData();
+        formData.append("image", file);
+        try {
+            const res = await api.post(`property/room-types/${typeId}/images/`, formData);
+            message.success("Image uploaded!");
+            setImages([...images, res.data]);
+            onSuccess("Ok");
+        } catch (err) {
+            message.error("Upload failed");
+            onError({ err });
+        }
+    };
+
+    const handleDeleteImage = async (imageId) => {
+        try {
+            await api.delete(`property/room-types/images/${imageId}/`);
+            message.success("Image deleted");
+            setImages(images.filter(img => img.id !== imageId));
+        } catch (err) {
+            message.error("Failed to delete image");
+        }
+    };
 
     useEffect(() => {
         fetchDetails();
@@ -45,6 +71,7 @@ function EditRoomType() {
                 is_hourly_enabled: data.is_hourly_enabled,
                 amenity_ids: data.amenities?.map(a => a.id) || []
             });
+            setImages(data.images || []);
 
             setIsHourly(data.is_hourly_enabled);
 
@@ -167,6 +194,23 @@ function EditRoomType() {
                                     </Form.Item>
                                 </Col>
                             </Row>
+
+                        </Card>
+
+                        <Card title="Room Images" style={{ marginTop: 24 }}>
+                            <Upload customRequest={handleUpload} showUploadList={false} accept="image/*">
+                                <Button icon={<UploadOutlined />}>Upload Room Image</Button>
+                            </Upload>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, marginTop: 16 }}>
+                                {images.map(img => (
+                                    <div key={img.id} style={{ position: 'relative', width: 120, border: '1px solid #ddd', borderRadius: 8, overflow: 'hidden' }}>
+                                        <Image src={img.thumbnail || img.image} style={{ width: '100%', height: 80, objectFit: 'cover' }} />
+                                        <div style={{ padding: 4, display: 'flex', justifyContent: 'center', background: '#fff' }}>
+                                            <Button type="text" danger icon={<DeleteOutlined />} onClick={() => handleDeleteImage(img.id)} />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         </Card>
                     </Col>
 
@@ -210,7 +254,7 @@ function EditRoomType() {
                     <Button type="primary" htmlType="submit" loading={loading}>Update Category</Button>
                 </div>
             </Form>
-        </div>
+        </div >
     );
 }
 

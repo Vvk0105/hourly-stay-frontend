@@ -178,6 +178,21 @@ const AddHotel = () => {
               <Form.Item label="Tax Percent (%)" name="tax_percent">
                 <InputNumber min={0} max={100} style={{ width: '100%' }} placeholder="18" />
               </Form.Item>
+
+              {/* Commission Fields - Only for SUPER_ADMIN */}
+              <div style={{ marginTop: 16, marginBottom: 8, fontWeight: 600, borderTop: '1px solid #f0f0f0', paddingTop: 16 }}>Platform Commission (Admin Only)</div>
+              <Form.Item label="Commission Type" name="commission_type" initialValue="PERCENTAGE">
+                <Select>
+                  <Option value="PERCENTAGE">Percentage</Option>
+                  <Option value="FIXED">Fixed Amount</Option>
+                </Select>
+              </Form.Item>
+              <Form.Item label="Commission (%)" name="commission_percent" initialValue={15}>
+                <InputNumber min={0} max={100} style={{ width: '100%' }} placeholder="15" />
+              </Form.Item>
+              <Form.Item label="Razorpay Account ID" name="razorpay_account_id" help="Optional: For split settlement">
+                <Input placeholder="acc_xxxxxxxxxxxxx" />
+              </Form.Item>
             </Card>
 
             <Card title="Operations" style={{ marginBottom: 24 }}>

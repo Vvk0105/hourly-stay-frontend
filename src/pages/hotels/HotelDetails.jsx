@@ -141,6 +141,23 @@ function HotelDetails() {
         </div>
       </div>
 
+      {/* Quick Navigation */}
+      <div style={{ marginBottom: 24, display: 'flex', gap: 12 }}>
+        <Button
+          type="primary"
+          onClick={() => navigate(`/bookings/${id}`)}
+          style={{ borderRadius: '8px' }}
+        >
+          View Bookings
+        </Button>
+        <Button
+          onClick={() => navigate(`/hotels/${id}/booking-calendar`)}
+          style={{ borderRadius: '8px' }}
+        >
+          📅 Booking Calendar
+        </Button>
+      </div>
+
       {/* Main Info Card */}
       <div className="hd-main-card">
         <div className="hd-layout-row">

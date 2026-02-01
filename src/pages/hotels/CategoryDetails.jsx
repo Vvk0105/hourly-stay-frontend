@@ -47,6 +47,9 @@ function CategoryDetails() {
     const [form] = Form.useForm();
     const [editForm] = Form.useForm();
 
+    // Quick Status Change State
+    const [roomStatusLoading, setRoomStatusLoading] = useState({});
+
     useEffect(() => {
         fetchDetails();
     }, [categoryId]);
@@ -168,6 +171,20 @@ function CategoryDetails() {
             message.error("Failed to update room");
         } finally {
             setEditLoading(false);
+        }
+    };
+
+    const handleQuickStatusChange = async (roomId, newStatus) => {
+        setRoomStatusLoading(prev => ({ ...prev, [roomId]: true }));
+        try {
+            await api.patch(`property/rooms/${roomId}/status/`, { status: newStatus });
+            message.success(`Room status updated to ${newStatus}`);
+            fetchDetails(); // Refresh list
+        } catch (error) {
+            console.error("Status change error:", error);
+            message.error("Failed to update status");
+        } finally {
+            setRoomStatusLoading(prev => ({ ...prev, [roomId]: false }));
         }
     };
 
@@ -311,10 +328,29 @@ function CategoryDetails() {
                             <div className="cd-room-header">
                                 <span className="cd-room-number">{room.room_number}</span>
                             </div>
-                            <span className={`cd-room-status status-${room.current_status?.toLowerCase() || 'clean'}`}>
-                                {room.current_status || 'CLEAN'}
-                            </span>
-                            <div style={{ fontSize: '12px', color: '#999', marginTop: 12 }}>
+
+                            {/* Quick Status Change Dropdown */}
+                            <div style={{ marginTop: 12, marginBottom: 8 }}>
+                                <Select
+                                    value={room.current_status || 'CLEAN'}
+                                    onChange={(newStatus) => handleQuickStatusChange(room.id, newStatus)}
+                                    loading={roomStatusLoading[room.id]}
+                                    style={{ width: '100%' }}
+                                    size="small"
+                                >
+                                    <Option value="CLEAN">
+                                        <Tag color="green" style={{ margin: 0 }}>CLEAN</Tag>
+                                    </Option>
+                                    <Option value="DIRTY">
+                                        <Tag color="orange" style={{ margin: 0 }}>DIRTY</Tag>
+                                    </Option>
+                                    <Option value="MAINTENANCE">
+                                        <Tag color="red" style={{ margin: 0 }}>MAINTENANCE</Tag>
+                                    </Option>
+                                </Select>
+                            </div>
+
+                            <div style={{ fontSize: '12px', color: '#999', marginTop: 8 }}>
                                 Floor: {room.floor_number}
                             </div>
                         </div>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import {
   Table, Button, Tag, Tabs, Modal, Select, message,
-  Card, Popconfirm, Tooltip, Badge, Form, DatePicker, Input, Switch, Row, Col, Typography, Radio, Alert, Statistic
+  Card, Popconfirm, Tooltip, Badge, Form, DatePicker, Input, Switch, Row, Col, Typography, Radio, Alert, Statistic, Calendar
 } from "antd";
 import {
   LoginOutlined, LogoutOutlined, CloseCircleOutlined,
@@ -39,6 +39,14 @@ function BookingManagement() {
   const [slotsData, setSlotsData] = useState(null);
   const [slotsLoading, setSlotsLoading] = useState(false);
   const [selectedDate, setSelectedDate] = useState(dayjs());
+
+  // Date Filter State
+  const [upcomingDateFilter, setUpcomingDateFilter] = useState(null);
+  const [historyDateFilter, setHistoryDateFilter] = useState(null);
+
+  // Calendar Modal State
+  const [isCalendarModalVisible, setIsCalendarModalVisible] = useState(false);
+  const [selectedCalendarDate, setSelectedCalendarDate] = useState(null);
 
   // New Booking Modal State
   const [isNewBookingModalOpen, setIsNewBookingModalOpen] = useState(false);
@@ -367,10 +375,33 @@ function BookingManagement() {
   ];
 
   /* ================= DATA FILTERING ================= */
+  const filterByDateRange = (bookingsList, dateRange) => {
+    if (!dateRange || !dateRange[0] || !dateRange[1]) return bookingsList;
+
+    const [startDate, endDate] = dateRange;
+    return bookingsList.filter(booking => {
+      const checkInDate = dayjs(booking.scheduled_check_in);
+      // Check if checkInDate is between startDate and endDate (inclusive)
+      return (checkInDate.isAfter(startDate, 'day') || checkInDate.isSame(startDate, 'day')) &&
+        (checkInDate.isBefore(endDate, 'day') || checkInDate.isSame(endDate, 'day'));
+    });
+  };
+
   const confirmed = bookings.filter(b => b.status === "CONFIRMED");
   const checkedIn = bookings.filter(b => b.status === "CHECKED_IN");
   const history = bookings.filter(b => ["CHECKED_OUT", "CANCELLED"].includes(b.status));
 
+  // Apply date filters
+  const filteredConfirmed = filterByDateRange(confirmed, upcomingDateFilter);
+  const filteredHistory = filterByDateRange(history, historyDateFilter);
+
+  const calendarDayBookings = selectedCalendarDate
+    ? bookings.filter(b =>
+        dayjs(b.scheduled_check_in).format('YYYY-MM-DD') ===
+        selectedCalendarDate.format('YYYY-MM-DD')
+      )
+    : [];
+    
   return (
     <div style={{ padding: '24px', backgroundColor: '#F4F7FC', minHeight: '100vh' }}>
 
@@ -426,7 +457,28 @@ function BookingManagement() {
             {
               key: 'upcoming',
               label: `Upcoming(${confirmed.length})`,
-              children: <Table columns={columns} dataSource={confirmed} rowKey="id" pagination={{ pageSize: 5 }} />
+              children: (
+                <div>
+                  <div style={{ marginBottom: 16, display: 'flex', gap: 8, alignItems: 'center' }}>
+                    <DatePicker.RangePicker
+                      value={upcomingDateFilter}
+                      onChange={setUpcomingDateFilter}
+                      format="DD MMM YYYY"
+                      placeholder={['Start Date', 'End Date']}
+                      style={{ width: 300 }}
+                    />
+                    {upcomingDateFilter && (
+                      <Button onClick={() => setUpcomingDateFilter(null)} size="small">
+                        Clear Filter
+                      </Button>
+                    )}
+                    <span style={{ color: '#888', fontSize: 12 }}>
+                      Showing {filteredConfirmed.length} of {confirmed.length} bookings
+                    </span>
+                  </div>
+                  <Table columns={columns} dataSource={filteredConfirmed} rowKey="id" pagination={{ pageSize: 5 }} />
+                </div>
+              )
             },
             {
               key: 'checked_in',
@@ -701,11 +753,129 @@ function BookingManagement() {
             {
               key: 'history',
               label: 'History',
-              children: <Table columns={columns} dataSource={history} rowKey="id" />
+              children: (
+                <div>
+                  <div style={{ marginBottom: 16, display: 'flex', gap: 8, alignItems: 'center' }}>
+                    <DatePicker.RangePicker
+                      value={historyDateFilter}
+                      onChange={setHistoryDateFilter}
+                      format="DD MMM YYYY"
+                      placeholder={['Start Date', 'End Date']}
+                      style={{ width: 300 }}
+                    />
+                    {historyDateFilter && (
+                      <Button onClick={() => setHistoryDateFilter(null)} size="small">
+                        Clear Filter
+                      </Button>
+                    )}
+                    <span style={{ color: '#888', fontSize: 12 }}>
+                      Showing {filteredHistory.length} of {history.length} bookings
+                    </span>
+                  </div>
+                  <Table columns={columns} dataSource={filteredHistory} rowKey="id" />
+                </div>
+              )
+            },
+            {
+              key: 'calendar',
+              label: '📅 Calendar',
+              children: (
+                <div>
+                  <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
+                    <Col span={6}>
+                      <Card>
+                        <Statistic
+                          title="Total Bookings"
+                          value={bookings.length}
+                          prefix={<CalendarOutlined />}
+                        />
+                      </Card>
+                    </Col>
+                    <Col span={6}>
+                      <Card>
+                        <Statistic
+                          title="Confirmed"
+                          value={confirmed.length}
+                          valueStyle={{ color: '#52c41a' }}
+                        />
+                      </Card>
+                    </Col>
+                    <Col span={6}>
+                      <Card>
+                        <Statistic
+                          title="Hourly Bookings"
+                          value={bookings.filter(b => b.booking_type === 'HOURLY').length}
+                          valueStyle={{ color: '#722ed1' }}
+                        />
+                      </Card>
+                    </Col>
+                    <Col span={6}>
+                      <Card>
+                        <Statistic
+                          title="Nightly Bookings"
+                          value={bookings.filter(b => b.booking_type === 'NIGHTLY').length}
+                          valueStyle={{ color: '#1890ff' }}
+                        />
+                      </Card>
+                    </Col>
+                  </Row>
+                  <Calendar
+                    dateCellRender={(value) => {
+                      const dateStr = value.format('YYYY-MM-DD');
+                      const dayBookings = bookings.filter(b => {
+                        const checkIn = dayjs(b.scheduled_check_in).format('YYYY-MM-DD');
+                        return checkIn === dateStr;
+                      });
+                      if (dayBookings.length === 0) return null;
+
+                      let badgeColor = 'green';
+                      if (dayBookings.length >= 10) badgeColor = 'red';
+                      else if (dayBookings.length >= 5) badgeColor = 'orange';
+
+                      return (
+                        <div style={{ textAlign: 'center' }}>
+                          <Badge count={dayBookings.length} style={{ backgroundColor: badgeColor }} />
+                        </div>
+                      );
+                    }}
+                    onSelect={(date) => {
+                      const dateStr = date.format('YYYY-MM-DD');
+                      const dayBookings = bookings.filter(b => {
+                        const checkIn = dayjs(b.scheduled_check_in).format('YYYY-MM-DD');
+                        return checkIn === dateStr;
+                      });
+                      if (dayBookings.length > 0) {
+                        setSelectedCalendarDate(date);
+                        setIsCalendarModalVisible(true);
+                      }
+                    }}
+                  />
+                </div>
+              )
             }
           ]}
         />
       </Card>
+          {/* CALENDAR BOOKINGS MODAL */}
+<Modal
+  title={
+    <>
+      <CalendarOutlined /> Bookings on{" "}
+      {selectedCalendarDate?.format("DD MMM YYYY")}
+    </>
+  }
+  open={isCalendarModalVisible}
+  onCancel={() => setIsCalendarModalVisible(false)}
+  footer={null}
+  width={900}
+>
+  <Table
+    columns={columns}
+    dataSource={calendarDayBookings}
+    rowKey="id"
+    pagination={{ pageSize: 10 }}
+  />
+</Modal>
 
       {/* ================= MODALS ================= */}
 

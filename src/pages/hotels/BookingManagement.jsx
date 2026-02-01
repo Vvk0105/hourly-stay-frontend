@@ -11,8 +11,12 @@ import { useParams } from "react-router-dom";
 import dayjs from "dayjs";
 import api from "../../api/axios";
 import PageHeader from "../../components/common/PageHeader";
+import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 dayjs.extend(utc);
+dayjs.extend(timezone);
+const HOTEL_TZ = "Asia/Kolkata";
+
 
 const { TabPane } = Tabs;
 const { Option } = Select;
@@ -20,7 +24,7 @@ const { Title, Text } = Typography;
 const { RangePicker } = DatePicker;
 
 function BookingManagement() {
-  const { id } = useParams();
+  const { id } = useParams(); // Only hotel ID needed
 
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -52,11 +56,28 @@ function BookingManagement() {
   const [roomTypes, setRoomTypes] = useState([]);
   const [rooms, setRooms] = useState([]);
   const [selectedRoomType, setSelectedRoomType] = useState(null);
+  const [roomStatusLoading, setRoomStatusLoading] = useState({});
+
 
   const filteredRooms = rooms.filter(
     r => !selectedRoomType || r.room_type === selectedRoomType
   );
-    
+
+  /* ================= ROOM STATUS CHANGE HANDLER ================= */
+  const handleQuickStatusChange = async (roomId, newStatus) => {
+    setRoomStatusLoading(prev => ({ ...prev, [roomId]: true }));
+    try {
+      await api.patch(`property/rooms/${roomId}/status/`, { status: newStatus });
+      message.success(`Room status updated to ${newStatus}`);
+      fetchRooms(); // Refresh rooms list
+    } catch (error) {
+      console.error("Status change error:", error);
+      message.error("Failed to update status");
+    } finally {
+      setRoomStatusLoading(prev => ({ ...prev, [roomId]: false }));
+    }
+  };
+
   useEffect(() => {
     fetchBookings();
     fetchRoomTypes();
@@ -516,6 +537,23 @@ function BookingManagement() {
                                     </div>
                                   </div>
                                 </div>
+                                <Select
+                                  value={room.current_status || 'CLEAN'}
+                                  onChange={(newStatus) => handleQuickStatusChange(room.id, newStatus)}
+                                  loading={roomStatusLoading[room.id]}
+                                  style={{ width: '100%' }}
+                                  size="small"
+                                >
+                                  <Option value="CLEAN">
+                                    <Tag color="green" style={{ margin: 0 }}>CLEAN</Tag>
+                                  </Option>
+                                  <Option value="DIRTY">
+                                    <Tag color="orange" style={{ margin: 0 }}>DIRTY</Tag>
+                                  </Option>
+                                  <Option value="MAINTENANCE">
+                                    <Tag color="red" style={{ margin: 0 }}>MAINTENANCE</Tag>
+                                  </Option>
+                                </Select>
                               </Card>
                             </Col>
                           );
@@ -602,8 +640,8 @@ function BookingManagement() {
                                 </div>
                               ) : (
                                 room.slots.map((slot, idx) => {
-                                  const start = dayjs.utc(slot.start);
-                                  const end = dayjs.utc(slot.end);
+                                  const start = dayjs.utc(slot.start).tz(HOTEL_TZ);
+                                  const end = dayjs.utc(slot.end).tz(HOTEL_TZ);
                                   const crossesDay = !start.isSame(end, 'day');
                                   const timeLabel = crossesDay
                                     ? `${start.format('HH:mm')} - ${end.format('HH:mm')} (+1 day)`

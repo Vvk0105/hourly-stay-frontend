@@ -21,6 +21,10 @@ function BookingManagement() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  /* ================= DATE FILTER STATE ================= */
+  const [upcomingDateFilter, setUpcomingDateFilter] = useState(null);
+  const [historyDateFilter, setHistoryDateFilter] = useState(null);
+
   /* ================= WALK-IN STATE ================= */
   const [isWalkInModalOpen, setIsWalkInModalOpen] = useState(false);
   const [roomTypes, setRoomTypes] = useState([]);
@@ -287,11 +291,26 @@ function BookingManagement() {
     }
   ];
 
+  /* ================= FILTERING LOGIC ================= */
+  const filterByDateRange = (bookingsList, dateRange) => {
+    if (!dateRange || !dateRange[0] || !dateRange[1]) return bookingsList;
+
+    const [startDate, endDate] = dateRange;
+    return bookingsList.filter(booking => {
+      const checkInDate = dayjs(booking.scheduled_check_in);
+      return checkInDate.isSameOrAfter(startDate, 'day') && checkInDate.isSameOrBefore(endDate, 'day');
+    });
+  };
+
   const confirmed = bookings.filter(b => b.status === "CONFIRMED");
   const checkedIn = bookings.filter(b => b.status === "CHECKED_IN");
   const history = bookings.filter(b =>
     ["CHECKED_OUT", "CANCELLED"].includes(b.status)
   );
+
+  // Apply date filters
+  const filteredConfirmed = filterByDateRange(confirmed, upcomingDateFilter);
+  const filteredHistory = filterByDateRange(history, historyDateFilter);
 
   return (
     <div style={{ padding: 24 }}>
@@ -311,7 +330,24 @@ function BookingManagement() {
       <Card bordered={false}>
         <Tabs defaultActiveKey="1">
           <TabPane tab={`Upcoming (${confirmed.length})`} key="1">
-            <Table columns={columns} dataSource={confirmed} rowKey="id" />
+            <div style={{ marginBottom: 16, display: 'flex', gap: 8, alignItems: 'center' }}>
+              <DatePicker.RangePicker
+                value={upcomingDateFilter}
+                onChange={setUpcomingDateFilter}
+                format="DD MMM YYYY"
+                placeholder={['Start Date', 'End Date']}
+                style={{ width: 300 }}
+              />
+              {upcomingDateFilter && (
+                <Button onClick={() => setUpcomingDateFilter(null)} size="small">
+                  Clear Filter
+                </Button>
+              )}
+              <span style={{ color: '#888', fontSize: 12 }}>
+                Showing {filteredConfirmed.length} of {confirmed.length} bookings
+              </span>
+            </div>
+            <Table columns={columns} dataSource={filteredConfirmed} rowKey="id" />
           </TabPane>
 
           <TabPane tab={`Checked In (${checkedIn.length})`} key="2">
@@ -319,7 +355,24 @@ function BookingManagement() {
           </TabPane>
 
           <TabPane tab="History" key="3">
-            <Table columns={columns} dataSource={history} rowKey="id" />
+            <div style={{ marginBottom: 16, display: 'flex', gap: 8, alignItems: 'center' }}>
+              <DatePicker.RangePicker
+                value={historyDateFilter}
+                onChange={setHistoryDateFilter}
+                format="DD MMM YYYY"
+                placeholder={['Start Date', 'End Date']}
+                style={{ width: 300 }}
+              />
+              {historyDateFilter && (
+                <Button onClick={() => setHistoryDateFilter(null)} size="small">
+                  Clear Filter
+                </Button>
+              )}
+              <span style={{ color: '#888', fontSize: 12 }}>
+                Showing {filteredHistory.length} of {history.length} bookings
+              </span>
+            </div>
+            <Table columns={columns} dataSource={filteredHistory} rowKey="id" />
           </TabPane>
         </Tabs>
       </Card>

@@ -13,7 +13,8 @@ import {
   Select,
   Upload,
   Tooltip,
-  Image
+  Image,
+  Radio
 } from "antd";
 import { UploadOutlined, DeleteOutlined, StarOutlined, StarFilled } from '@ant-design/icons';
 import { useNavigate, useParams } from "react-router-dom";
@@ -50,6 +51,7 @@ const EditHotel = () => {
   const [images, setImages] = useState([]);
   const [commissionType, setCommissionType] = useState('PERCENTAGE'); // Add this for existing logic
   const { user } = useSelector((state) => state.auth);
+  const [refundPolicyType, setRefundPolicyType] = useState('DEFAULT');
 
   // Handlers for Images
   const handleUpload = async ({ file, onSuccess, onError }) => {
@@ -111,6 +113,26 @@ const EditHotel = () => {
           check_in_time: dayjs(res.data.check_in_time, "HH:mm"),
           check_out_time: dayjs(res.data.check_out_time, "HH:mm"),
         });
+
+        // Handle Refund Policy population
+        if (res.data.refund_policy) {
+          setRefundPolicyType('CUSTOM');
+          form.setFieldsValue({
+            refund_policy_type: 'CUSTOM',
+            full_refund_window_hours: res.data.refund_policy.full_refund_window_hours,
+            no_refund_window_hours: res.data.refund_policy.no_refund_window_hours,
+            partial_refund_percentage: res.data.refund_policy.partial_refund_percentage,
+          });
+        } else {
+          setRefundPolicyType('DEFAULT');
+          form.setFieldsValue({
+            refund_policy_type: 'DEFAULT',
+            full_refund_window_hours: 48, // defaults for display
+            no_refund_window_hours: 24,
+            partial_refund_percentage: 50
+          });
+        }
+
         setCommissionType(res.data.commission_type || 'PERCENTAGE');
         setImages(res.data.images || []);
       })
@@ -133,7 +155,9 @@ const EditHotel = () => {
       const formData = new FormData();
 
       Object.entries(values).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
+        if (value !== undefined && value !== null && key !== 'refund_policy_type' &&
+          key !== 'full_refund_window_hours' && key !== 'no_refund_window_hours' &&
+          key !== 'partial_refund_percentage') {
           if (dayjs.isDayjs(value)) {
             formData.append(key, value.format("HH:mm"));
           } else {
@@ -143,6 +167,27 @@ const EditHotel = () => {
       });
 
       await api.patch(`property/hotels/${id}/`, formData);
+
+      // Handle Refund Policy Update
+      if (refundPolicyType === 'DEFAULT') {
+        // If User switched to DEFAULT, delete any custom policy
+        try {
+          await api.delete(`property/hotels/${id}/refund-policy/`);
+        } catch (e) {
+          console.log("Deletion ignored or not needed", e);
+        }
+      } else {
+        // Upsert Custom Policy
+        try {
+          await api.post(`property/hotels/${id}/refund-policy/`, {
+            full_refund_window_hours: values.full_refund_window_hours,
+            no_refund_window_hours: values.no_refund_window_hours,
+            partial_refund_percentage: values.partial_refund_percentage
+          });
+        } catch (e) {
+          message.error("Failed to update refund policy");
+        }
+      }
 
       message.success("Hotel updated successfully");
       navigate("/hotels");
@@ -363,6 +408,34 @@ const EditHotel = () => {
               >
                 <Switch />
               </Form.Item>
+            </Card>
+
+            <Card title="Refund Policy" style={{ marginTop: 24 }}>
+              <Form.Item name="refund_policy_type" label="Select Policy">
+                <Radio.Group onChange={(e) => setRefundPolicyType(e.target.value)}>
+                  <Radio value="DEFAULT" style={{ display: 'block', marginBottom: 8 }}>
+                    Default Policy
+                    <div style={{ fontSize: '12px', color: '#888', marginLeft: 24 }}>
+                      Full refund &gt; 48h, 50% refund &gt; 24h
+                    </div>
+                  </Radio>
+                  <Radio value="CUSTOM" style={{ display: 'block' }}>Custom Policy</Radio>
+                </Radio.Group>
+              </Form.Item>
+
+              {refundPolicyType === 'CUSTOM' && (
+                <div style={{ borderLeft: '3px solid #1890ff', paddingLeft: 12 }}>
+                  <Form.Item label="Full Refund Until (Hours before check-in)" name="full_refund_window_hours" rules={[{ required: true }]}>
+                    <InputNumber min={0} style={{ width: '100%' }} />
+                  </Form.Item>
+                  <Form.Item label="No Refund Within (Hours before check-in)" name="no_refund_window_hours" rules={[{ required: true }]}>
+                    <InputNumber min={0} style={{ width: '100%' }} />
+                  </Form.Item>
+                  <Form.Item label="Partial Refund % (During window)" name="partial_refund_percentage" rules={[{ required: true }]}>
+                    <InputNumber min={0} max={100} style={{ width: '100%' }} />
+                  </Form.Item>
+                </div>
+              )}
             </Card>
           </Col>
         </Row>

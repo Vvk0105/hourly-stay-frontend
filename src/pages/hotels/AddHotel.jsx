@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Form, Input, Select, Button, Upload, Row, Col, TimePicker, Switch, InputNumber, message, Card } from "antd";
+import { Form, Input, Select, Button, Upload, Row, Col, TimePicker, Switch, InputNumber, message, Card, Radio } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/axios";
@@ -16,6 +16,7 @@ const AddHotel = () => {
   const [loading, setLoading] = useState(false);
   const [isMapModalVisible, setIsMapModalVisible] = useState(false);
   const [mapPosition, setMapPosition] = useState(null);
+  const [refundPolicyType, setRefundPolicyType] = useState('DEFAULT');
 
   const handleMapOk = () => {
     if (mapPosition) {
@@ -40,7 +41,10 @@ const AddHotel = () => {
 
       // Append standard fields
       Object.keys(values).forEach(key => {
-        if (key !== 'images' && key !== 'check_in_time' && key !== 'check_out_time' && values[key] !== undefined) {
+        if (key !== 'images' && key !== 'check_in_time' && key !== 'check_out_time' &&
+          key !== 'refund_policy_type' && key !== 'full_refund_window_hours' &&
+          key !== 'no_refund_window_hours' && key !== 'partial_refund_percentage' &&
+          values[key] !== undefined) {
           formData.append(key, values[key]);
         }
       });
@@ -56,9 +60,27 @@ const AddHotel = () => {
         });
       }
 
-      await api.post("property/hotels/create/", formData, {
+      // 1. Create Hotel
+      const res = await api.post("property/hotels/create/", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
+
+      const hotelId = res.data.id;
+
+      // 2. Handle Custom Refund Policy
+      if (refundPolicyType === 'CUSTOM') {
+        try {
+          await api.post(`property/hotels/${hotelId}/refund-policy/`, {
+            full_refund_window_hours: values.full_refund_window_hours,
+            no_refund_window_hours: values.no_refund_window_hours,
+            partial_refund_percentage: values.partial_refund_percentage
+          });
+          message.success("Custom refund policy set!");
+        } catch (policyErr) {
+          console.error("Failed to set refund policy", policyErr);
+          message.warning("Hotel created, but failed to set refund policy.");
+        }
+      }
 
       message.success("Hotel created successfully!");
       navigate("/hotels");
@@ -73,7 +95,13 @@ const AddHotel = () => {
   return (
     <div style={{ padding: 24 }}>
       <PageHeader title="Add New Hotel" />
-      <Form form={form} layout="vertical" onFinish={onFinish} initialValues={{ is_hourly_enabled: false }}>
+      <Form form={form} layout="vertical" onFinish={onFinish} initialValues={{
+        is_hourly_enabled: false,
+        refund_policy_type: 'DEFAULT',
+        full_refund_window_hours: 48,
+        no_refund_window_hours: 24,
+        partial_refund_percentage: 50
+      }}>
 
         <Row gutter={24}>
           <Col span={16}>
@@ -214,6 +242,34 @@ const AddHotel = () => {
                   <Switch />
                 </Form.Item>
               </div>
+            </Card>
+
+            <Card title="Refund Policy" style={{ marginBottom: 24 }}>
+              <Form.Item name="refund_policy_type" label="Select Policy">
+                <Radio.Group onChange={(e) => setRefundPolicyType(e.target.value)}>
+                  <Radio value="DEFAULT" style={{ display: 'block', marginBottom: 8 }}>
+                    Default Policy
+                    <div style={{ fontSize: '12px', color: '#888', marginLeft: 24 }}>
+                      Full refund &gt; 48h, 50% refund &gt; 24h
+                    </div>
+                  </Radio>
+                  <Radio value="CUSTOM" style={{ display: 'block' }}>Custom Policy</Radio>
+                </Radio.Group>
+              </Form.Item>
+
+              {refundPolicyType === 'CUSTOM' && (
+                <div style={{ borderLeft: '3px solid #1890ff', paddingLeft: 12 }}>
+                  <Form.Item label="Full Refund Until (Hours before check-in)" name="full_refund_window_hours" rules={[{ required: true }]}>
+                    <InputNumber min={0} style={{ width: '100%' }} />
+                  </Form.Item>
+                  <Form.Item label="No Refund Within (Hours before check-in)" name="no_refund_window_hours" rules={[{ required: true }]}>
+                    <InputNumber min={0} style={{ width: '100%' }} />
+                  </Form.Item>
+                  <Form.Item label="Partial Refund % (During window)" name="partial_refund_percentage" rules={[{ required: true }]}>
+                    <InputNumber min={0} max={100} style={{ width: '100%' }} />
+                  </Form.Item>
+                </div>
+              )}
             </Card>
 
             <Card title="Cover Image">

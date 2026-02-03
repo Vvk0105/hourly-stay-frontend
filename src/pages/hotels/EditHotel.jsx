@@ -210,7 +210,9 @@ const EditHotel = () => {
                     <Image
                       src={img.thumbnail || img.image} // Use thumbnail if available
                       alt="Hotel"
-                      style={{ width: '100%', height: 100, objectFit: 'cover' }}
+                      width="100%"
+                      height={100}
+                      style={{ objectFit: 'cover' }}
                       preview={{
                         src: img.large || img.image, // Use large image for preview
                       }}

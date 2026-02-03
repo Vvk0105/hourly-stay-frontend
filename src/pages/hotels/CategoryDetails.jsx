@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Breadcrumb, Button, Spin, Modal, Form, Input, InputNumber, message, Select, Tag } from "antd";
+import { Breadcrumb, Button, Spin, Modal, Form, Input, InputNumber, message, Select, Tag, Image } from "antd";
 import { HomeOutlined, PlusOutlined, EditOutlined, DeleteOutlined, WifiOutlined, DesktopOutlined, RocketOutlined, ThunderboltOutlined, VideoCameraOutlined, CoffeeOutlined, StarOutlined } from "@ant-design/icons";
 import api from "../../api/axios";
 import "./CategoryDetails.css";
@@ -230,7 +230,33 @@ function CategoryDetails() {
                 <div className="cd-layout-row">
                     {/* Left: Image */}
                     <div className="cd-gallery">
-                        <img src={category.image || CAT_IMAGE} alt={category.name} className="cd-main-image" />
+                        <Image.PreviewGroup>
+                            {category.images && category.images.length > 0 ? (
+                                <>
+                                    <Image
+                                        src={category.images[0].large || category.images[0].image}
+                                        alt={category.name}
+                                        className="cd-main-image"
+                                        style={{ width: '100%', borderRadius: '12px', objectFit: 'cover' }}
+                                    />
+                                    <div className="cd-thumbnails" style={{ display: 'flex', gap: '8px', marginTop: '12px', overflowX: 'auto' }}>
+                                        {category.images.slice(1).map((img, idx) => (
+                                            <div key={img.id} style={{ flexShrink: 0 }}>
+                                                <Image
+                                                    src={img.thumbnail || img.image}
+                                                    preview={{ src: img.large || img.image }}
+                                                    alt={`Thumbnail ${idx + 1}`}
+                                                    className="cd-thumb"
+                                                    style={{ width: '80px', height: '60px', objectFit: 'cover', borderRadius: '6px', cursor: 'pointer' }}
+                                                />
+                                            </div>
+                                        ))}
+                                    </div>
+                                </>
+                            ) : (
+                                <img src={CAT_IMAGE} alt={category.name} className="cd-main-image" />
+                            )}
+                        </Image.PreviewGroup>
                     </div>
 
                     {/* Right: Details */}

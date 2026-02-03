@@ -24,7 +24,7 @@ function EditRoomType() {
         try {
             const res = await api.post(`property/room-types/${typeId}/images/`, formData);
             message.success("Image uploaded!");
-            setImages([...images, res.data]);
+            setImages(prev => [...prev, res.data]);
             onSuccess("Ok");
         } catch (err) {
             message.error("Upload failed");
@@ -198,18 +198,26 @@ function EditRoomType() {
                         </Card>
 
                         <Card title="Room Images" style={{ marginTop: 24 }}>
-                            <Upload customRequest={handleUpload} showUploadList={false} accept="image/*">
-                                <Button icon={<UploadOutlined />}>Upload Room Image</Button>
+                            <Upload customRequest={handleUpload} showUploadList={false} accept="image/*" multiple>
+                                <Button icon={<UploadOutlined />}>Upload Room Images</Button>
                             </Upload>
                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, marginTop: 16 }}>
-                                {images.map(img => (
-                                    <div key={img.id} style={{ position: 'relative', width: 120, border: '1px solid #ddd', borderRadius: 8, overflow: 'hidden' }}>
-                                        <Image src={img.thumbnail || img.image} style={{ width: '100%', height: 80, objectFit: 'cover' }} />
-                                        <div style={{ padding: 4, display: 'flex', justifyContent: 'center', background: '#fff' }}>
-                                            <Button type="text" danger icon={<DeleteOutlined />} onClick={() => handleDeleteImage(img.id)} />
+                                <Image.PreviewGroup>
+                                    {images.map(img => (
+                                        <div key={img.id} style={{ position: 'relative', width: 120, border: '1px solid #ddd', borderRadius: 8, overflow: 'hidden' }}>
+                                            <Image
+                                                src={img.thumbnail || img.image}
+                                                preview={{ src: img.large || img.image }}
+                                                width="100%"
+                                                height={80}
+                                                style={{ objectFit: 'cover' }}
+                                            />
+                                            <div style={{ padding: 4, display: 'flex', justifyContent: 'center', background: '#fff' }}>
+                                                <Button type="text" danger icon={<DeleteOutlined />} onClick={() => handleDeleteImage(img.id)} />
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    ))}
+                                </Image.PreviewGroup>
                             </div>
                         </Card>
                     </Col>

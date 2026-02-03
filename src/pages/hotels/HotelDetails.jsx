@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Breadcrumb, Button, Spin, Tag, message, Modal, Form, Input, InputNumber, Row, Col, Card, Divider, Typography, Switch, Select } from "antd";
+import { Breadcrumb, Button, Spin, Tag, message, Modal, Form, Input, InputNumber, Row, Col, Card, Divider, Typography, Switch, Select, Image } from "antd";
 import { HomeOutlined, EditOutlined, DeleteOutlined, RightOutlined, PlusOutlined } from "@ant-design/icons";
 import api from "../../api/axios";
 import "./HotelDetails.css";
@@ -163,43 +163,35 @@ function HotelDetails() {
         <div className="hd-layout-row">
           {/* Left: Gallery */}
           <div className="hd-gallery">
-            {hotel.images && hotel.images.length > 0 ? (
-              <>
-                <img
-                  src={hotel.images[0].large || hotel.images[0].image}
-                  alt="Main"
-                  className="hd-main-image"
-                />
-                <div className="hd-thumbnails">
-                  {hotel.images.slice(1, 4).map((img, index) => (
-                    <img
-                      key={img.id}
-                      src={img.thumbnail || img.image}
-                      alt={`Thumb ${index + 1}`}
-                      className="hd-thumb"
-                    />
-                  ))}
-                  {hotel.images.length > 4 && (
-                    <div className="hd-thumb more-overlay" style={{
-                      backgroundImage: `url(${hotel.images[4].thumbnail || hotel.images[4].image})`,
-                      backgroundSize: 'cover',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '18px',
-                      color: 'white',
-                      fontWeight: 'bold'
-                    }}>
-                      +{hotel.images.length - 4}
-                    </div>
-                  )}
+            <Image.PreviewGroup>
+              {hotel.images && hotel.images.length > 0 ? (
+                <>
+                  <Image
+                    src={hotel.images[0].large || hotel.images[0].image}
+                    alt="Main"
+                    className="hd-main-image"
+                    style={{ width: '100%', borderRadius: '12px', objectFit: 'cover' }}
+                  />
+                  <div className="hd-thumbnails">
+                    {hotel.images.slice(1).map((img, index) => (
+                      <div key={img.id} style={{ display: index < 4 ? 'block' : 'none' }}>
+                        <Image
+                          src={img.thumbnail || img.image}
+                          preview={{ src: img.large || img.image }}
+                          alt={`Thumb ${index + 1}`}
+                          className="hd-thumb"
+                          style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f0f0f0', borderRadius: '12px' }}>
+                  <Text type="secondary">No Images Available</Text>
                 </div>
-              </>
-            ) : (
-              <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f0f0f0', borderRadius: '12px' }}>
-                <Text type="secondary">No Images Available</Text>
-              </div>
-            )}
+              )}
+            </Image.PreviewGroup>
           </div>
 
           {/* Right: Details */}
@@ -290,7 +282,7 @@ function HotelDetails() {
             >
               {/* Use first image if available or placeholder */}
               <img
-                src={THUMB_1}
+                src={type.images && type.images.length > 0 ? (type.images[0].thumbnail || type.images[0].image) : THUMB_1}
                 alt={type.name}
                 className="hd-cat-image"
               />

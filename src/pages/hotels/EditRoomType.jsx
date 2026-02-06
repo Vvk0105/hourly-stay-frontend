@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Form, Input, Switch, Button, Row, Col, Typography, InputNumber, message, Card, Divider, Modal, Spin, Select, Upload, Image, Tooltip } from "antd";
 import { UploadOutlined, DeleteOutlined } from '@ant-design/icons';
 import api from "../../api/axios";
+import { getImageUrl } from "../../utils/imageUtils";
 import PageHeader from "../../components/common/PageHeader";
 
 const { TextArea } = Input;
@@ -206,7 +207,7 @@ function EditRoomType() {
                                     {images.map(img => (
                                         <div key={img.id} style={{ position: 'relative', width: 120, border: '1px solid #ddd', borderRadius: 8, overflow: 'hidden' }}>
                                             <Image
-                                                src={img.thumbnail || img.image}
+                                                src={getImageUrl(img.thumbnail || img.image)}
                                                 preview={{ src: img.large || img.image }}
                                                 width="100%"
                                                 height={80}

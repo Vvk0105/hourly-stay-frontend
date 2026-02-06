@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Breadcrumb, Button, Spin, Modal, Form, Input, InputNumber, message, Select, Tag, Image } from "antd";
 import { HomeOutlined, PlusOutlined, EditOutlined, DeleteOutlined, WifiOutlined, DesktopOutlined, RocketOutlined, ThunderboltOutlined, VideoCameraOutlined, CoffeeOutlined, StarOutlined } from "@ant-design/icons";
 import api from "../../api/axios";
+import { getImageUrl } from "../../utils/imageUtils";
 import "./CategoryDetails.css";
 
 const { Option } = Select;
@@ -234,8 +235,9 @@ function CategoryDetails() {
                             {category.images && category.images.length > 0 ? (
                                 <>
                                     <Image
-                                        src={category.images[0].large || category.images[0].image}
+                                        src={getImageUrl(category.images[0].large || category.images[0].image)}
                                         alt={category.name}
+
                                         className="cd-main-image"
                                         style={{ width: '100%', borderRadius: '12px', objectFit: 'cover' }}
                                     />
@@ -243,8 +245,8 @@ function CategoryDetails() {
                                         {category.images.slice(1).map((img, idx) => (
                                             <div key={img.id} style={{ flexShrink: 0 }}>
                                                 <Image
-                                                    src={img.thumbnail || img.image}
-                                                    preview={{ src: img.large || img.image }}
+                                                    src={getImageUrl(img.thumbnail || img.image)}
+                                                    preview={{ src: getImageUrl(img.large || img.image) }}
                                                     alt={`Thumbnail ${idx + 1}`}
                                                     className="cd-thumb"
                                                     style={{ width: '80px', height: '60px', objectFit: 'cover', borderRadius: '6px', cursor: 'pointer' }}

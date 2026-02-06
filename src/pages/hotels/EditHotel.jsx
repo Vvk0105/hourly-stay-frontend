@@ -22,6 +22,7 @@ import { useSelector } from "react-redux";
 import dayjs from "dayjs";
 import * as yup from 'yup';
 import api from "../../api/axios";
+import { getImageUrl } from "../../utils/imageUtils";
 import PageHeader from "../../components/common/PageHeader";
 import { Modal } from "antd";
 import AdvancedLocationPicker from "../../components/common/AdvancedLocationPicker";
@@ -253,7 +254,7 @@ const EditHotel = () => {
                 {images.map(img => (
                   <div key={img.id} style={{ position: 'relative', width: 150, border: '1px solid #ddd', borderRadius: 8, overflow: 'hidden' }}>
                     <Image
-                      src={img.thumbnail || img.image} // Use thumbnail if available
+                      src={getImageUrl(img.thumbnail || img.image)} // Use thumbnail if available
                       alt="Hotel"
                       width="100%"
                       height={100}

@@ -15,13 +15,16 @@ function Login() {
   const navigate = useNavigate();
   const { loading, error } = useSelector((state) => state.auth);
 
-  const onFinish = (values) => {
-    dispatch(loginUser(values)).then((result) => {
-      if (result.payload) {
-        message.success("Login Successful");
-        navigate("/dashboard");
-      }
-    });
+  const onFinish = async (values) => {    
+    try{
+      await dispatch(loginUser(values)).unwrap();
+      message.success("Login Successful");
+      navigate("/dashboard")
+    } catch(err) {
+      message.error(
+        err?.error || "Invalid email or password"
+      )
+    }
   };
 
   return (

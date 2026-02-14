@@ -68,6 +68,13 @@ function Sidebar({ mobileSiderOpen, setMobileSiderOpen }) {
       onClick: () => navigate("/transactions"),
     },
 
+    user?.role === "HOTEL_MANAGER" && {
+      key: "/hotel-manager/transactions",
+      icon: <DollarOutlined />,
+      label: "Transactions",
+      onClick: () => navigate("/hotel-manager/transactions"),
+    },
+
     {
       key: "/bookings",
       icon: <UserOutlined />,

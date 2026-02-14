@@ -17,11 +17,10 @@ function AddUserModal({ open, onClose, role }) {
   useEffect(() => {
     if (open) {
       api.get("property/hotels/").then((res) => {
-        setHotels(res.data);
+        setHotels(res.data.results);
       });
     }
   }, [open]);
-  console.log('test hotels', hotels);
 
   const isMultiHotel = role === "GROUP_ADMIN";
 

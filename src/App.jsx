@@ -24,6 +24,7 @@ import BookingCalendar from "./pages/hotels/BookingCalendar";
 import BookingHotelList from "./pages/bookings/BookingHotelList";
 import TransactionManagement from "./pages/transactions/TransactionManagement";
 import TransactionDetails from "./pages/transactions/TransactionDetails";
+import HotelManagerTransactionManagement from "./pages/hotel-manager/HotelManagerTransactionManagement";
 
 
 function App() {
@@ -89,6 +90,7 @@ function App() {
         <Route path="/bookings" element={<MainLayout><BookingHotelList /></MainLayout>} />
         <Route path="/transactions" element={<MainLayout><TransactionManagement /></MainLayout>} />
         <Route path="/transactions/:bookingId" element={<MainLayout><TransactionDetails /></MainLayout>} />
+        <Route path="/hotel-manager/transactions" element={<MainLayout><HotelManagerTransactionManagement /></MainLayout>} />
       </Routes>
     </BrowserRouter>
   )

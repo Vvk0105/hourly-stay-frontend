@@ -48,3 +48,33 @@ export const exportTransactions = async (params = {}) => {
     const transactions = await fetchTransactions({ ...params, page_size: 1000 });
     return transactions;
 };
+
+// Hotel Manager Transaction APIs
+export const fetchHotelManagerTransactions = async (params = {}) => {
+    const queryParams = new URLSearchParams();
+
+    if (params.status) queryParams.append('status', params.status);
+    if (params.booking_type) queryParams.append('booking_type', params.booking_type);
+    if (params.date_from) queryParams.append('date_from', params.date_from);
+    if (params.date_to) queryParams.append('date_to', params.date_to);
+    if (params.search) queryParams.append('search', params.search);
+    if (params.page) queryParams.append('page', params.page);
+
+    const response = await api.get(`/property/hotel-manager/transactions/?${queryParams.toString()}`);
+    return response.data;
+};
+
+export const fetchHotelManagerTransactionDetails = async (bookingId) => {
+    const response = await api.get(`/property/hotel-manager/transactions/${bookingId}/`);
+    return response.data;
+};
+
+export const fetchHotelManagerTransactionStats = async (params = {}) => {
+    const queryParams = new URLSearchParams();
+
+    if (params.date_from) queryParams.append('date_from', params.date_from);
+    if (params.date_to) queryParams.append('date_to', params.date_to);
+
+    const response = await api.get(`/property/hotel-manager/transactions/stats/?${queryParams.toString()}`);
+    return response.data;
+};

@@ -279,7 +279,7 @@ const HotelManagerTransactionManagement = () => {
             {/* Statistics Cards */}
             <Spin spinning={statsLoading}>
                 <Row gutter={16} style={{ marginBottom: '24px' }}>
-                    <Col xs={24} sm={12} lg={8}>
+                    <Col xs={24} sm={12} lg={6}>
                         <Card>
                             <Statistic
                                 title="Total Revenue"
@@ -290,22 +290,56 @@ const HotelManagerTransactionManagement = () => {
                             />
                         </Card>
                     </Col>
-                    <Col xs={24} sm={12} lg={8}>
+                    <Col xs={24} sm={12} lg={6}>
                         <Card>
                             <Statistic
-                                title="Total Transactions"
+                                title="Platform Commission"
+                                value={stats?.total_commission || 0}
+                                prefix="₹"
+                                precision={2}
+                                valueStyle={{ color: '#1890ff' }}
+                            />
+                        </Card>
+                    </Col>
+                    <Col xs={24} sm={12} lg={6}>
+                        <Card>
+                            <Statistic
+                                title="Net Payout"
+                                value={stats?.total_payout || 0}
+                                prefix="₹"
+                                precision={2}
+                                valueStyle={{ color: '#52c41a' }}
+                            />
+                        </Card>
+                    </Col>
+                    <Col xs={24} sm={12} lg={6}>
+                        <Card>
+                            <Statistic
+                                title="Total Bookings"
                                 value={stats?.total_bookings || 0}
                                 prefix={<TransactionOutlined />}
                             />
                         </Card>
                     </Col>
-                    <Col xs={24} sm={12} lg={8}>
+                </Row>
+                <Row gutter={16} style={{ marginBottom: '24px' }}>
+                    <Col xs={24} sm={12}>
                         <Card>
                             <Statistic
                                 title="Hourly Bookings"
                                 value={stats?.bookings_by_type?.HOURLY || 0}
                                 prefix={<DollarOutlined />}
                                 valueStyle={{ color: '#722ed1' }}
+                            />
+                        </Card>
+                    </Col>
+                    <Col xs={24} sm={12}>
+                        <Card>
+                            <Statistic
+                                title="Nightly Bookings"
+                                value={stats?.bookings_by_type?.NIGHTLY || 0}
+                                prefix={<DollarOutlined />}
+                                valueStyle={{ color: '#1890ff' }}
                             />
                         </Card>
                     </Col>

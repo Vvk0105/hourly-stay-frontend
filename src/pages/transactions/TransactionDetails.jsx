@@ -1,19 +1,21 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import {
     Card, Row, Col, Descriptions, Tag, Button, Spin, message, Breadcrumb, Divider
 } from 'antd';
 import { ArrowLeftOutlined, HomeOutlined, TransactionOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
-import { fetchTransactionDetails } from '../../api/transactionApi';
+import { fetchTransactionDetails, fetchHotelManagerTransactionDetails } from '../../api/transactionApi';
 
 const TransactionDetails = () => {
     const { bookingId } = useParams();
     const navigate = useNavigate();
+    const { user } = useSelector((state) => state.auth);
 
     const [loading, setLoading] = useState(false);
     const [transaction, setTransaction] = useState(null);
-    
+
     useEffect(() => {
         loadTransactionDetails();
     }, [bookingId]);
@@ -21,7 +23,10 @@ const TransactionDetails = () => {
     const loadTransactionDetails = async () => {
         setLoading(true);
         try {
-            const data = await fetchTransactionDetails(bookingId);
+            // Use hotel manager endpoint if user is hotel manager
+            const data = user?.role === 'HOTEL_MANAGER'
+                ? await fetchHotelManagerTransactionDetails(bookingId)
+                : await fetchTransactionDetails(bookingId);
             setTransaction(data);
         } catch (error) {
             message.error('Failed to load transaction details');
@@ -62,7 +67,7 @@ const TransactionDetails = () => {
                 <Breadcrumb.Item href="/dashboard">
                     <HomeOutlined />
                 </Breadcrumb.Item>
-                <Breadcrumb.Item href="/transactions">
+                <Breadcrumb.Item href={user?.role === 'HOTEL_MANAGER' ? '/hotel-manager/transactions' : '/transactions'}>
                     <TransactionOutlined />
                     <span>Transactions</span>
                 </Breadcrumb.Item>
@@ -74,7 +79,7 @@ const TransactionDetails = () => {
                 <div>
                     <Button
                         icon={<ArrowLeftOutlined />}
-                        onClick={() => navigate('/transactions')}
+                        onClick={() => navigate(user?.role === 'HOTEL_MANAGER' ? '/hotel-manager/transactions' : '/transactions')}
                         style={{ marginRight: '16px' }}
                     >
                         Back

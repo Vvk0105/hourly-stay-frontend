@@ -19,6 +19,7 @@ import {
     StopOutlined
 } from "@ant-design/icons";
 import api from "../../api/axios";
+import { getImageUrl } from "../../utils/imageUtils";
 
 const { Title, Text, Paragraph } = Typography;
 const { Option } = Select;
@@ -177,7 +178,7 @@ function RoomDetails() {
                 <Col xs={24} lg={10}>
                     <div style={{ borderRadius: 12, overflow: 'hidden', marginBottom: 16, height: 300 }}>
                         <Image
-                            src={room.images[0]}
+                            src={getImageUrl(room.images[0])}
                             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                             height={300}
                             width="100%"
@@ -252,8 +253,8 @@ function RoomDetails() {
                 </div>
             )}
 
-            <RoomEditModal 
-                open={isEditModalOpen} 
+            <RoomEditModal
+                open={isEditModalOpen}
                 onCancel={() => setIsEditModalOpen(false)}
                 room={room}
                 onSuccess={() => {

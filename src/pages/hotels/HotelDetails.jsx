@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Breadcrumb, Button, Spin, Tag, message, Modal, Form, Input, InputNumber, Row, Col, Card, Divider, Typography, Switch, Select, Image } from "antd";
 import { HomeOutlined, EditOutlined, DeleteOutlined, RightOutlined, PlusOutlined } from "@ant-design/icons";
 import api from "../../api/axios";
+import { getImageUrl } from "../../utils/imageUtils";
 import "./HotelDetails.css";
 
 const { TextArea } = Input;
@@ -167,7 +168,7 @@ function HotelDetails() {
               {hotel.images && hotel.images.length > 0 ? (
                 <>
                   <Image
-                    src={hotel.images[0].large || hotel.images[0].image}
+                    src={getImageUrl(hotel.images[0].large || hotel.images[0].image)}
                     alt="Main"
                     className="hd-main-image"
                     style={{ width: '100%', borderRadius: '12px', objectFit: 'cover' }}
@@ -176,7 +177,7 @@ function HotelDetails() {
                     {hotel.images.slice(1).map((img, index) => (
                       <div key={img.id} style={{ display: index < 4 ? 'block' : 'none' }}>
                         <Image
-                          src={img.thumbnail || img.image}
+                          src={getImageUrl(img.thumbnail || img.image)}
                           preview={{ src: img.large || img.image }}
                           alt={`Thumb ${index + 1}`}
                           className="hd-thumb"
@@ -282,7 +283,7 @@ function HotelDetails() {
             >
               {/* Use first image if available or placeholder */}
               <img
-                src={type.images && type.images.length > 0 ? (type.images[0].thumbnail || type.images[0].image) : THUMB_1}
+                src={type.images && type.images.length > 0 ? getImageUrl(type.images[0].thumbnail || type.images[0].image) : THUMB_1}
                 alt={type.name}
                 className="hd-cat-image"
               />

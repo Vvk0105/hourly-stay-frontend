@@ -213,10 +213,22 @@ function BookingManagement() {
         user_uuid: "00000000-0000-0000-0000-000000000000", // Default/Guest UUID
         booking_type: bookingType,
         is_walk_in: true,
-        guest_name: values.guest_name
+
+        // Guest details
+        guest_name: values.guest_name,
+        guest_email: values.guest_email,
+        guest_phone: values.guest_phone,
+        guest_id_type: values.guest_id_type || null,
+        guest_id_number: values.guest_id_number || null
       };
 
       if (bookingType === 'NIGHTLY') {
+        // Validate same-day check-in/out for nightly bookings
+        if (values.check_in_date.isSame(values.check_out_date, 'day')) {
+          message.error('For nightly bookings, check-out must be on a different date than check-in');
+          return;
+        }
+
         payload.check_in = values.check_in_date.format('YYYY-MM-DD') + 'T' + values.check_in_time.format('HH:mm:ss');
         payload.check_out = values.check_out_date.format('YYYY-MM-DD') + 'T' + values.check_out_time.format('HH:mm:ss');
       } else {
@@ -227,15 +239,26 @@ function BookingManagement() {
       }
 
       await api.post(`property/bookings/create/`, payload);
-      message.success("Booking Created Successfully!");
+      message.success("Walk-in Booking Created Successfully!");
       setIsNewBookingModalOpen(false);
       newBookingForm.resetFields();
       fetchBookings();
     } catch (err) {
-      if (err.response?.status === 409) {
-        message.error("No rooms available!");
+      console.error("Booking error:", err);
+
+      // Handle validation errors from backend
+      if (err.response?.data) {
+        const errors = err.response.data;
+
+        // Display field-specific errors
+        Object.keys(errors).forEach(field => {
+          const errorMsg = Array.isArray(errors[field]) ? errors[field][0] : errors[field];
+          message.error(`${field.replace(/_/g, ' ')}: ${errorMsg}`);
+        });
+      } else if (err.response?.status === 409) {
+        message.error("No rooms available for the selected dates!");
       } else {
-        message.error("Booking failed");
+        message.error("Booking failed. Please try again.");
       }
     }
   };
@@ -397,11 +420,11 @@ function BookingManagement() {
 
   const calendarDayBookings = selectedCalendarDate
     ? bookings.filter(b =>
-        dayjs(b.scheduled_check_in).format('YYYY-MM-DD') ===
-        selectedCalendarDate.format('YYYY-MM-DD')
-      )
+      dayjs(b.scheduled_check_in).format('YYYY-MM-DD') ===
+      selectedCalendarDate.format('YYYY-MM-DD')
+    )
     : [];
-    
+
   return (
     <div style={{ padding: '24px', backgroundColor: '#F4F7FC', minHeight: '100vh' }}>
 
@@ -856,26 +879,26 @@ function BookingManagement() {
           ]}
         />
       </Card>
-          {/* CALENDAR BOOKINGS MODAL */}
-<Modal
-  title={
-    <>
-      <CalendarOutlined /> Bookings on{" "}
-      {selectedCalendarDate?.format("DD MMM YYYY")}
-    </>
-  }
-  open={isCalendarModalVisible}
-  onCancel={() => setIsCalendarModalVisible(false)}
-  footer={null}
-  width={900}
->
-  <Table
-    columns={columns}
-    dataSource={calendarDayBookings}
-    rowKey="id"
-    pagination={{ pageSize: 10 }}
-  />
-</Modal>
+      {/* CALENDAR BOOKINGS MODAL */}
+      <Modal
+        title={
+          <>
+            <CalendarOutlined /> Bookings on{" "}
+            {selectedCalendarDate?.format("DD MMM YYYY")}
+          </>
+        }
+        open={isCalendarModalVisible}
+        onCancel={() => setIsCalendarModalVisible(false)}
+        footer={null}
+        width={900}
+      >
+        <Table
+          columns={columns}
+          dataSource={calendarDayBookings}
+          rowKey="id"
+          pagination={{ pageSize: 10 }}
+        />
+      </Modal>
 
       {/* ================= MODALS ================= */}
 
@@ -982,9 +1005,56 @@ function BookingManagement() {
 
           <Form.Item name="booking_type" hidden><Input /></Form.Item>
 
-          <Form.Item label="Guest Name / Ref" name="guest_name" rules={[{ required: true }]}>
-            <Input placeholder="Name" style={{ borderRadius: 6 }} />
+          <Form.Item
+            label="Guest Name"
+            name="guest_name"
+            rules={[{ required: true, message: 'Guest name is required' }]}
+          >
+            <Input placeholder="Enter guest full name" style={{ borderRadius: 6 }} />
           </Form.Item>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                label="Guest Email"
+                name="guest_email"
+                rules={[
+                  { required: true, message: 'Email is required' },
+                  { type: 'email', message: 'Please enter a valid email' }
+                ]}
+              >
+                <Input placeholder="guest@example.com" style={{ borderRadius: 6 }} />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                label="Guest Phone"
+                name="guest_phone"
+                rules={[{ required: true, message: 'Phone is required' }]}
+              >
+                <Input placeholder="+91 9876543210" style={{ borderRadius: 6 }} />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item label="ID Type (Optional)" name="guest_id_type">
+                <Select placeholder="Select ID type" allowClear style={{ borderRadius: 6 }}>
+                  <Option value="AADHAAR">Aadhaar Card</Option>
+                  <Option value="PAN">PAN Card</Option>
+                  <Option value="PASSPORT">Passport</Option>
+                  <Option value="DRIVING_LICENSE">Driving License</Option>
+                  <Option value="VOTER_ID">Voter ID</Option>
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item label="ID Number (Optional)" name="guest_id_number">
+                <Input placeholder="Enter ID number" style={{ borderRadius: 6 }} />
+              </Form.Item>
+            </Col>
+          </Row>
 
           <Row gutter={16}>
             <Col span={bookingType === 'HOURLY' ? 12 : 12}>

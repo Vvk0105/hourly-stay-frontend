@@ -108,10 +108,9 @@ function BookingManagement() {
     fetchHotelDetails();
     fetchSlots();
 
-    // Poll slots every 30s
     const interval = setInterval(() => {
       fetchSlots();
-    }, 30000); // Poll every 30s
+    }, 2000);
 
     return () => clearInterval(interval);
   }, [id, selectedDate]);

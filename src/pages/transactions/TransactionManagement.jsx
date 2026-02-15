@@ -289,6 +289,24 @@ const TransactionManagement = () => {
             )
         },
         {
+            title: 'Refund',
+            key: 'refund',
+            width: 140,
+            render: (_, record) => {
+                if (!record.refund_request) return '-';
+                const { refund_amount, status } = record.refund_request;
+                const color = status === 'COMPLETED' ? 'green' : status === 'FAILED' ? 'red' : 'orange';
+                return (
+                    <div>
+                        <div style={{ fontWeight: 500, color: status === 'COMPLETED' ? 'green' : undefined }}>
+                            ₹{refund_amount}
+                        </div>
+                        <Tag color={color} style={{ fontSize: 10 }}>{status}</Tag>
+                    </div>
+                );
+            }
+        },
+        {
             title: 'Status',
             dataIndex: 'status',
             key: 'status',

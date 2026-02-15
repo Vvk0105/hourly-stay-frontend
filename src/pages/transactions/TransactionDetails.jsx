@@ -153,6 +153,39 @@ const TransactionDetails = () => {
                             )}
                         </Descriptions>
                     </Card>
+
+
+                    {/* Refund Information */}
+                    {transaction.refund_request && (
+                        <Card title="Refund Information" bordered style={{ marginTop: '16px' }}>
+                            <Descriptions column={1} bordered size="small">
+                                <Descriptions.Item label="Status">
+                                    <Tag color={transaction.refund_request.status === 'COMPLETED' ? 'green' : 'red'}>
+                                        {transaction.refund_request.status}
+                                    </Tag>
+                                </Descriptions.Item>
+                                <Descriptions.Item label="Refund Amount">
+                                    <span style={{ fontWeight: 'bold', color: 'green' }}>
+                                        ₹{transaction.refund_request.refund_amount}
+                                    </span>
+                                    <span style={{ fontSize: '12px', color: '#888', marginLeft: '8px' }}>
+                                        ({transaction.refund_request.refund_percentage}%)
+                                    </span>
+                                </Descriptions.Item>
+                                <Descriptions.Item label="Reason">
+                                    {transaction.refund_request.reason}
+                                </Descriptions.Item>
+                                <Descriptions.Item label="Processed At">
+                                    {transaction.refund_request.processed_at ? dayjs(transaction.refund_request.processed_at).format('DD MMM YYYY, HH:mm') : '-'}
+                                </Descriptions.Item>
+                                {transaction.refund_request.failure_reason && (
+                                    <Descriptions.Item label="Failure Reason">
+                                        <span style={{ color: 'red' }}>{transaction.refund_request.failure_reason}</span>
+                                    </Descriptions.Item>
+                                )}
+                            </Descriptions>
+                        </Card>
+                    )}
                 </Col>
 
                 {/* Payment Information */}
@@ -164,6 +197,21 @@ const TransactionDetails = () => {
                                     {transaction.payment_status || 'N/A'}
                                 </Tag>
                             </Descriptions.Item>
+
+                            {transaction.payment_details ? (
+                                <>
+                                    <Descriptions.Item label="Method">
+                                        {transaction.payment_details.method ? transaction.payment_details.method.toUpperCase() : 'N/A'}
+                                    </Descriptions.Item>
+                                    <Descriptions.Item label="Gateway Fee">
+                                        ₹{((transaction.payment_details.fee || 0) / 100).toFixed(2)}
+                                    </Descriptions.Item>
+                                    <Descriptions.Item label="Gateway Tax">
+                                        ₹{((transaction.payment_details.tax || 0) / 100).toFixed(2)}
+                                    </Descriptions.Item>
+                                </>
+                            ) : null}
+
                             <Descriptions.Item label="Razorpay Order ID">
                                 <code style={{ fontSize: '11px' }}>
                                     {transaction.razorpay_order_id || 'N/A'}
@@ -263,7 +311,7 @@ const TransactionDetails = () => {
                     </Col>
                 )}
             </Row>
-        </div>
+        </div >
     );
 };
 

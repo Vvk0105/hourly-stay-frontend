@@ -5,7 +5,7 @@ import {
 } from "antd";
 import {
   LoginOutlined, LogoutOutlined, CloseCircleOutlined,
-  HomeOutlined, UserOutlined, PlusOutlined
+  HomeOutlined, UserOutlined, PlusOutlined, ExclamationCircleOutlined
 } from "@ant-design/icons";
 import { useParams } from "react-router-dom";
 import dayjs from "dayjs";
@@ -35,7 +35,16 @@ function BookingManagement() {
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [availableRooms, setAvailableRooms] = useState([]);
   const [selectedRoomId, setSelectedRoomId] = useState(null);
+
   const [assignLoading, setAssignLoading] = useState(false);
+
+  /* ================= CANCELLATION STATE ================= */
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [cancelBooking, setCancelBooking] = useState(null);
+  const [refundPreview, setRefundPreview] = useState(null);
+  const [refundLoading, setRefundLoading] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
+  const [cancelSubmitLoading, setCancelSubmitLoading] = useState(false);
 
   // useEffect(() => {
   //   fetchBookings();
@@ -194,6 +203,47 @@ function BookingManagement() {
     }
   };
 
+  /* ================= CANCELLATION LOGIC ================= */
+  const openCancelModal = async (booking) => {
+    setCancelBooking(booking);
+    setIsCancelModalOpen(true);
+    setRefundPreview(null);
+    setCancelReason("");
+    setRefundLoading(true);
+
+    try {
+      // Updated endpoint to match backend: /bookings/{id}/refund-preview/
+      const res = await api.get(`property/bookings/${booking.id}/refund-preview/`);
+      setRefundPreview(res.data);
+    } catch {
+      message.error("Could not fetch refund preview");
+    } finally {
+      setRefundLoading(false);
+    }
+  };
+
+  const handleCancelSubmit = async () => {
+    if (!cancelReason) {
+      message.error("Cancellation reason is required");
+      return;
+    }
+
+    setCancelSubmitLoading(true);
+    try {
+      await api.post(
+        `property/bookings/${cancelBooking.id}/action/`,
+        { action: "CANCEL", reason: cancelReason }
+      );
+      message.success("Booking Cancelled Successfully");
+      setIsCancelModalOpen(false);
+      fetchBookings();
+    } catch (err) {
+      message.error(err.response?.data?.error || "Cancellation failed");
+    } finally {
+      setCancelSubmitLoading(false);
+    }
+  };
+
   /* ================= TABLE COLUMNS ================= */
 
   const columns = [
@@ -279,12 +329,12 @@ function BookingManagement() {
           )}
 
           {r.status === "CONFIRMED" && (
-            <Popconfirm
-              title="Cancel Booking?"
-              onConfirm={() => handleAction(r.id, "CANCEL")}
-            >
-              <Button danger size="small" icon={<CloseCircleOutlined />} />
-            </Popconfirm>
+            <Button
+              danger
+              size="small"
+              icon={<CloseCircleOutlined />}
+              onClick={() => openCancelModal(r)}
+            />
           )}
         </div>
       )
@@ -436,6 +486,42 @@ function BookingManagement() {
             </Option>
           ))}
         </Select>
+      </Modal>
+
+      {/* ================= CANCELLATION MODAL ================= */}
+      <Modal
+        title={<><ExclamationCircleOutlined style={{ color: "red" }} /> Cancel Booking</>}
+        open={isCancelModalOpen}
+        onCancel={() => setIsCancelModalOpen(false)}
+        onOk={handleCancelSubmit}
+        okText="Confirm Cancellation"
+        okButtonProps={{ danger: true, loading: cancelSubmitLoading }}
+        confirmLoading={cancelSubmitLoading}
+      >
+        <p>Are you sure you want to cancel this booking?</p>
+
+        {refundLoading ? (
+          <p>Loading refund details...</p>
+        ) : refundPreview ? (
+          <Card size="small" style={{ background: "#fff1f0", borderColor: "#ffa39e", marginBottom: 16 }}>
+            <p><strong>Total Amount:</strong> ₹{refundPreview.total_amount}</p>
+            <p><strong>Refund Amount:</strong> <span style={{ color: "green", fontSize: 16, fontWeight: "bold" }}>₹{refundPreview.refund_amount}</span> ({refundPreview.refund_percentage}%)</p>
+            <Tag color={refundPreview.refund_percentage > 0 ? "green" : "red"}>{refundPreview.refund_label}</Tag>
+          </Card>
+        ) : (
+          <p style={{ color: 'red' }}>Could not load refund details.</p>
+        )}
+
+        <Form layout="vertical">
+          <Form.Item label="Cancellation Reason" required>
+            <Input.TextArea
+              rows={3}
+              value={cancelReason}
+              onChange={e => setCancelReason(e.target.value)}
+              placeholder="Why is the guest cancelling?"
+            />
+          </Form.Item>
+        </Form>
       </Modal>
     </div>
   );

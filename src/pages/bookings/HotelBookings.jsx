@@ -5,18 +5,22 @@ import {
 } from "antd";
 import {
   LoginOutlined, LogoutOutlined, CloseCircleOutlined,
-  HomeOutlined, UserOutlined, PlusOutlined, ExclamationCircleOutlined
+  HomeOutlined, UserOutlined, PlusOutlined, ExclamationCircleOutlined,
+  EyeOutlined, InfoCircleOutlined
 } from "@ant-design/icons";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
 import api from "../../api/axios";
 import PageHeader from "../../components/common/PageHeader";
+
 
 const { TabPane } = Tabs;
 const { Option } = Select;
 
 function BookingManagement() {
   const { id } = useParams();
+  const navigate = useNavigate();
+
 
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -295,13 +299,39 @@ function BookingManagement() {
       title: "Status",
       dataIndex: "status",
       render: (status) => {
-        let color = "default";
-        if (status === "CONFIRMED") color = "green";
-        if (status === "CHECKED_IN") color = "gold";
-        if (status === "CANCELLED") color = "red";
-        return <Tag color={color}>{status}</Tag>;
+        const statusConfigs = {
+          'CONFIRMED': { color: 'green', label: 'Confirmed' },
+          'CHECKED_IN': { color: 'gold', label: 'Checked In' },
+          'CHECKED_OUT': { color: 'blue', label: 'Checked Out' },
+          'CANCELLED': { color: 'red', label: 'Cancelled' },
+          'PENDING_PAYMENT': { color: 'orange', label: 'Pending' },
+          'FAILED': { color: 'volcano', label: 'Failed' },
+        };
+        const config = statusConfigs[status] || { color: 'default', label: status };
+        return <Tag color={config.color}>{config.label}</Tag>;
       }
     },
+    {
+      title: "Refund",
+      key: "refund",
+      render: (_, r) => {
+        if (!r.refund_request) return null;
+        const { refund_amount, status } = r.refund_request;
+        return (
+          <Tooltip title={`Reason: ${r.refund_request.reason}`}>
+            <div style={{ lineHeight: '1.2' }}>
+              <div style={{ fontWeight: 500, color: status === 'COMPLETED' ? '#52c41a' : '#faad14' }}>
+                ₹{refund_amount}
+              </div>
+              <Tag color={status === 'COMPLETED' ? 'green' : 'orange'} style={{ fontSize: '10px', margin: 0 }}>
+                {status}
+              </Tag>
+            </div>
+          </Tooltip>
+        );
+      }
+    },
+
     {
       title: "Action",
       render: (_, r) => (
@@ -336,10 +366,17 @@ function BookingManagement() {
               onClick={() => openCancelModal(r)}
             />
           )}
+
+          <Button
+            size="small"
+            icon={<EyeOutlined />}
+            onClick={() => navigate(`/bookings/${r.id}`)}
+          />
         </div>
       )
     }
   ];
+
 
   /* ================= FILTERING LOGIC ================= */
   const filterByDateRange = (bookingsList, dateRange) => {

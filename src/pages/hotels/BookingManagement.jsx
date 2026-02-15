@@ -15,7 +15,6 @@ import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 dayjs.extend(utc);
 dayjs.extend(timezone);
-const HOTEL_TZ = "Asia/Kolkata";
 
 
 const { TabPane } = Tabs;
@@ -71,6 +70,16 @@ function BookingManagement() {
   const [selectedRoomType, setSelectedRoomType] = useState(null);
   const [roomStatusLoading, setRoomStatusLoading] = useState({});
 
+  const [hotelTimezone, setHotelTimezone] = useState("UTC");
+
+  const fetchHotelDetails = async () => {
+    try {
+      const res = await api.get(`property/hotels/${id}/`);
+      setHotelTimezone(res.data.timezone || "UTC");
+    } catch (err) {
+      console.error("Failed to fetch hotel timezone");
+    }
+  };
 
   const filteredRooms = rooms.filter(
     r => !selectedRoomType || r.room_type === selectedRoomType
@@ -96,7 +105,8 @@ function BookingManagement() {
     fetchRoomTypes();
     fetchRooms();
     fetchHourlyStatus();
-    fetchSlots(); // Always fetch slots
+    fetchHotelDetails();
+    fetchSlots();
 
     // Poll slots every 30s
     const interval = setInterval(() => {
@@ -217,6 +227,8 @@ function BookingManagement() {
       }
 
       const res = await api.post(`property/hotels/${id}/hourly-operations/`, payload);
+      console.log('hourly opertaion', res);
+      
       setHourlyStatus("ACTIVE");
       setCurrentWindow(res.data.window);
       setShowHourlyConfigModal(false);
@@ -407,8 +419,8 @@ function BookingManagement() {
       title: "Dates",
       render: (_, r) => (
         <div style={{ fontSize: '13px' }}>
-          <div>In: <span style={{ fontWeight: 500 }}>{dayjs.utc(r.scheduled_check_in).format("DD MMM, HH:mm")}</span></div>
-          <div>Out: <span style={{ fontWeight: 500 }}>{dayjs.utc(r.scheduled_check_out).format("DD MMM, HH:mm")}</span></div>
+          <div>In: <span style={{ fontWeight: 500 }}>{dayjs.utc(r.scheduled_check_in).tz(hotelTimezone).format("DD MMM, HH:mm")}</span></div>
+          <div>Out: <span style={{ fontWeight: 500 }}>{dayjs.utc(r.scheduled_check_out).tz(hotelTimezone).format("DD MMM, HH:mm")}</span></div>
         </div>
       )
     },
@@ -658,7 +670,9 @@ function BookingManagement() {
                                     <div style={{ marginTop: 8, padding: 8, background: '#fff1f0', borderRadius: 4 }}>
                                       <Text style={{ fontSize: 12, color: '#cf1322' }}>
                                         <UserOutlined /> {currentBooking.guest_name || 'Guest'}<br />
-                                        Until: {dayjs.utc(currentBooking.scheduled_check_out).format('DD MMM, HH:mm')}
+                                        Until: {dayjs.utc(currentBooking.scheduled_check_out)
+                                        .tz(hotelTimezone || "UTC")
+                                        .format('DD MMM, HH:mm')}
                                       </Text>
                                     </div>
                                   )}
@@ -704,7 +718,7 @@ function BookingManagement() {
                 <div>
                   {hourlyStatus === 'ACTIVE' && currentWindow && (
                     <Alert
-                      message={`Hourly Booking is enabled until ${dayjs.utc(currentWindow.end_datetime).format('DD MMM YYYY, HH:mm')}`}
+                      message={`Hourly Booking is enabled until ${dayjs.utc(currentWindow.start_datetime).tz(hotelTimezone).format('DD MMM YYYY, HH:mm')} to ${dayjs.utc(currentWindow.end_datetime).tz(hotelTimezone).format('DD MMM YYYY, HH:mm')}`}
                       type="warning"
                       showIcon
                       style={{ marginBottom: 20 }}
@@ -774,8 +788,8 @@ function BookingManagement() {
                                 </div>
                               ) : (
                                 room.slots.map((slot, idx) => {
-                                  const start = dayjs.utc(slot.start).tz(HOTEL_TZ);
-                                  const end = dayjs.utc(slot.end).tz(HOTEL_TZ);
+                                  const start = dayjs.utc(slot.start).tz(hotelTimezone);
+                                  const end = dayjs.utc(slot.end).tz(hotelTimezone);
                                   const crossesDay = !start.isSame(end, 'day');
                                   const timeLabel = crossesDay
                                     ? `${start.format('HH:mm')} - ${end.format('HH:mm')} (+1 day)`
@@ -1214,8 +1228,8 @@ function BookingManagement() {
 
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                 {availableSlots.map((slot, idx) => {
-                  const start = dayjs(slot.start);
-                  const end = dayjs(slot.end);
+                  const start = dayjs.utc(slot.start).tz(hotelTimezone);
+                  const end = dayjs.utc(slot.end).tz(hotelTimezone);
                   const duration = end.diff(start, 'hour', true);
 
                   return (

@@ -1,6 +1,22 @@
-import { Form, Input, Button, TimePicker, notification } from "antd";
+import { Form, Input, Button, TimePicker, Select, notification } from "antd";
 import api from "../../api/axios";
 import dayjs from "dayjs";
+
+const { Option } = Select;
+
+// Common timezones
+const TIMEZONES = [
+  { value: 'Asia/Kolkata', label: 'Asia/Kolkata (India - UTC+05:30)' },
+  { value: 'Asia/Dubai', label: 'Asia/Dubai (UAE - UTC+04:00)' },
+  { value: 'Asia/Singapore', label: 'Asia/Singapore (UTC+08:00)' },
+  { value: 'Asia/Bangkok', label: 'Asia/Bangkok (Thailand - UTC+07:00)' },
+  { value: 'Asia/Hong_Kong', label: 'Asia/Hong Kong (UTC+08:00)' },
+  { value: 'Europe/London', label: 'Europe/London (UTC+00:00)' },
+  { value: 'Europe/Paris', label: 'Europe/Paris (UTC+01:00)' },
+  { value: 'America/New_York', label: 'America/New York (UTC-05:00)' },
+  { value: 'America/Los_Angeles', label: 'America/Los Angeles (UTC-08:00)' },
+  { value: 'Australia/Sydney', label: 'Australia/Sydney (UTC+11:00)' },
+];
 
 function HotelForm({ onCancel, onSuccess }) {
   const [form] = Form.useForm();
@@ -33,6 +49,9 @@ function HotelForm({ onCancel, onSuccess }) {
       form={form}
       onFinish={handleSubmit}
       style={{ maxWidth: 900 }}
+      initialValues={{
+        timezone: 'Asia/Kolkata' // Default timezone
+      }}
     >
       <Form.Item
         label="Hotel Name"
@@ -59,6 +78,25 @@ function HotelForm({ onCancel, onSuccess }) {
           <Input />
         </Form.Item>
       </div>
+
+      <Form.Item
+        label="Hotel Timezone"
+        name="timezone"
+        rules={[{ required: true, message: 'Please select hotel timezone' }]}
+        tooltip="All booking times will be displayed in this timezone"
+      >
+        <Select
+          placeholder="Select hotel timezone"
+          showSearch
+          filterOption={(input, option) =>
+            option.children.toLowerCase().includes(input.toLowerCase())
+          }
+        >
+          {TIMEZONES.map(tz => (
+            <Option key={tz.value} value={tz.value}>{tz.label}</Option>
+          ))}
+        </Select>
+      </Form.Item>
 
       <div style={{ display: "flex", gap: 16 }}>
         <Form.Item label="Phone Number" name="phone_number">

@@ -17,7 +17,6 @@ import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 dayjs.extend(utc);
 dayjs.extend(timezone);
-const HOTEL_TZ = "Asia/Kolkata";
 
 
 const { TabPane } = Tabs;
@@ -57,6 +56,11 @@ function BookingManagement() {
   const [bookingType, setBookingType] = useState('NIGHTLY');
   const [newBookingForm] = Form.useForm();
 
+  // Walk-in Hourly Slots State
+  const [availableSlots, setAvailableSlots] = useState([]);
+  const [slotsError, setSlotsError] = useState(null);
+  const [selectedRoomTypeForSlots, setSelectedRoomTypeForSlots] = useState(null);
+
   // Check-in Modal State
   const [isCheckInModalOpen, setIsCheckInModalOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
@@ -70,6 +74,16 @@ function BookingManagement() {
   const [selectedRoomType, setSelectedRoomType] = useState(null);
   const [roomStatusLoading, setRoomStatusLoading] = useState({});
 
+  const [hotelTimezone, setHotelTimezone] = useState("UTC");
+
+  const fetchHotelDetails = async () => {
+    try {
+      const res = await api.get(`property/hotels/${id}/`);
+      setHotelTimezone(res.data.timezone || "UTC");
+    } catch (err) {
+      console.error("Failed to fetch hotel timezone");
+    }
+  };
 
   const filteredRooms = rooms.filter(
     r => !selectedRoomType || r.room_type === selectedRoomType
@@ -95,12 +109,12 @@ function BookingManagement() {
     fetchRoomTypes();
     fetchRooms();
     fetchHourlyStatus();
-    fetchSlots(); // Always fetch slots
+    fetchHotelDetails();
+    fetchSlots();
 
-    // Poll slots every 30s
     const interval = setInterval(() => {
       fetchSlots();
-    }, 30000); // Poll every 30s
+    }, 2000);
 
     return () => clearInterval(interval);
   }, [id, selectedDate]);
@@ -162,6 +176,37 @@ function BookingManagement() {
     }
   };
 
+  const fetchWalkinSlots = async (roomTypeId) => {
+    if (!roomTypeId || bookingType !== 'HOURLY') {
+      setAvailableSlots([]);
+      return;
+    }
+
+    try {
+      setSlotsError(null);
+      const dateStr = dayjs().format('YYYY-MM-DD');
+      const res = await api.get(`property/public/hotels/${id}/available-slots/?room_type_id=${roomTypeId}&date=${dateStr}`);
+
+      if (res.data.success && res.data.available_slots) {
+        setAvailableSlots(res.data.available_slots);
+
+        // Store config for min duration display
+        if (res.data.config) {
+          setSelectedRoomTypeForSlots({
+            min_duration: res.data.config.min_duration_hours
+          });
+        }
+      } else {
+        setAvailableSlots([]);
+        setSlotsError(res.data.message || 'No slots available');
+      }
+    } catch (err) {
+      console.error("Failed to fetch walk-in slots", err);
+      setSlotsError('Failed to load available slots');
+      setAvailableSlots([]);
+    }
+  };
+
   /* ================= HANDLERS ================= */
   const handleHourlySwitch = (checked) => {
     if (checked) {
@@ -185,6 +230,8 @@ function BookingManagement() {
       }
 
       const res = await api.post(`property/hotels/${id}/hourly-operations/`, payload);
+      console.log('hourly opertaion', res);
+      
       setHourlyStatus("ACTIVE");
       setCurrentWindow(res.data.window);
       setShowHourlyConfigModal(false);
@@ -217,29 +264,75 @@ function BookingManagement() {
         user_uuid: "00000000-0000-0000-0000-000000000000", // Default/Guest UUID
         booking_type: bookingType,
         is_walk_in: true,
-        guest_name: values.guest_name
+
+        // Guest details
+        guest_name: values.guest_name,
+        guest_email: values.guest_email,
+        guest_phone: values.guest_phone,
+        guest_id_type: values.guest_id_type || null,
+        guest_id_number: values.guest_id_number || null
       };
 
       if (bookingType === 'NIGHTLY') {
+        // Validate same-day check-in/out for nightly bookings
+        if (values.check_in_date.isSame(values.check_out_date, 'day')) {
+          message.error('For nightly bookings, check-out must be on a different date than check-in');
+          return;
+        }
+
         payload.check_in = values.check_in_date.format('YYYY-MM-DD') + 'T' + values.check_in_time.format('HH:mm:ss');
         payload.check_out = values.check_out_date.format('YYYY-MM-DD') + 'T' + values.check_out_time.format('HH:mm:ss');
       } else {
-        // Hourly logic
-        payload.check_in = values.check_in_date.format('YYYY-MM-DD') + 'T' + values.check_in_time.format('HH:mm:ss');
-        const duration = parseInt(values.duration);
-        payload.check_out = dayjs(payload.check_in).add(duration, 'hour').toISOString();
+      // HOURLY logic
+
+      if (!values.check_in_date || !values.start_time || !values.end_time) {
+        message.error("Please select date, start time and end time");
+        return;
       }
 
+      // Combine date + start time
+      const localCheckIn = dayjs(
+        values.check_in_date.format('YYYY-MM-DD') + 'T' +
+        values.start_time.format('HH:mm:ss')
+      );
+
+      // Combine date + end time
+      let localCheckOut = dayjs(
+        values.check_in_date.format('YYYY-MM-DD') + 'T' +
+        values.end_time.format('HH:mm:ss')
+      );
+
+      // If end time is next day (like 11PM → 2AM)
+      if (localCheckOut.isBefore(localCheckIn)) {
+        localCheckOut = localCheckOut.add(1, 'day');
+      }
+
+      // Convert to UTC ISO format
+      payload.check_in = localCheckIn.utc().toISOString();
+      payload.check_out = localCheckOut.utc().toISOString();
+    }
+
       await api.post(`property/bookings/create/`, payload);
-      message.success("Booking Created Successfully!");
+      message.success("Walk-in Booking Created Successfully!");
       setIsNewBookingModalOpen(false);
       newBookingForm.resetFields();
       fetchBookings();
     } catch (err) {
-      if (err.response?.status === 409) {
-        message.error("No rooms available!");
+      console.error("Booking error:", err);
+
+      // Handle validation errors from backend
+      if (err.response?.data) {
+        const errors = err.response.data;
+
+        // Display field-specific errors
+        Object.keys(errors).forEach(field => {
+          const errorMsg = Array.isArray(errors[field]) ? errors[field][0] : errors[field];
+          message.error(`${field.replace(/_/g, ' ')}: ${errorMsg}`);
+        });
+      } else if (err.response?.status === 409) {
+        message.error("No rooms available for the selected dates!");
       } else {
-        message.error("Booking failed");
+        message.error("Booking failed. Please try again.");
       }
     }
   };
@@ -329,8 +422,8 @@ function BookingManagement() {
       title: "Dates",
       render: (_, r) => (
         <div style={{ fontSize: '13px' }}>
-          <div>In: <span style={{ fontWeight: 500 }}>{dayjs.utc(r.scheduled_check_in).format("DD MMM, HH:mm")}</span></div>
-          <div>Out: <span style={{ fontWeight: 500 }}>{dayjs.utc(r.scheduled_check_out).format("DD MMM, HH:mm")}</span></div>
+          <div>In: <span style={{ fontWeight: 500 }}>{dayjs.utc(r.scheduled_check_in).tz(hotelTimezone).format("DD MMM, HH:mm")}</span></div>
+          <div>Out: <span style={{ fontWeight: 500 }}>{dayjs.utc(r.scheduled_check_out).tz(hotelTimezone).format("DD MMM, HH:mm")}</span></div>
         </div>
       )
     },
@@ -612,7 +705,9 @@ function BookingManagement() {
                                     <div style={{ marginTop: 8, padding: 8, background: '#fff1f0', borderRadius: 4 }}>
                                       <Text style={{ fontSize: 12, color: '#cf1322' }}>
                                         <UserOutlined /> {currentBooking.guest_name || 'Guest'}<br />
-                                        Until: {dayjs.utc(currentBooking.scheduled_check_out).format('DD MMM, HH:mm')}
+                                        Until: {dayjs.utc(currentBooking.scheduled_check_out)
+                                        .tz(hotelTimezone || "UTC")
+                                        .format('DD MMM, HH:mm')}
                                       </Text>
                                     </div>
                                   )}
@@ -658,7 +753,7 @@ function BookingManagement() {
                 <div>
                   {hourlyStatus === 'ACTIVE' && currentWindow && (
                     <Alert
-                      message={`Hourly Booking is enabled until ${dayjs.utc(currentWindow.end_datetime).format('DD MMM YYYY, HH:mm')}`}
+                      message={`Hourly Booking is enabled until ${dayjs.utc(currentWindow.start_datetime).tz(hotelTimezone).format('DD MMM YYYY, HH:mm')} to ${dayjs.utc(currentWindow.end_datetime).tz(hotelTimezone).format('DD MMM YYYY, HH:mm')}`}
                       type="warning"
                       showIcon
                       style={{ marginBottom: 20 }}
@@ -728,8 +823,8 @@ function BookingManagement() {
                                 </div>
                               ) : (
                                 room.slots.map((slot, idx) => {
-                                  const start = dayjs.utc(slot.start).tz(HOTEL_TZ);
-                                  const end = dayjs.utc(slot.end).tz(HOTEL_TZ);
+                                  const start = dayjs.utc(slot.start).tz(hotelTimezone);
+                                  const end = dayjs.utc(slot.end).tz(hotelTimezone);
                                   const crossesDay = !start.isSame(end, 'day');
                                   const timeLabel = crossesDay
                                     ? `${start.format('HH:mm')} - ${end.format('HH:mm')} (+1 day)`
@@ -1018,21 +1113,81 @@ function BookingManagement() {
 
           <Form.Item name="booking_type" hidden><Input /></Form.Item>
 
-          <Form.Item label="Guest Name / Ref" name="guest_name" rules={[{ required: true }]}>
-            <Input placeholder="Name" style={{ borderRadius: 6 }} />
+          <Form.Item
+            label="Guest Name"
+            name="guest_name"
+            rules={[{ required: true, message: 'Guest name is required' }]}
+          >
+            <Input placeholder="Enter guest full name" style={{ borderRadius: 6 }} />
           </Form.Item>
 
           <Row gutter={16}>
-            <Col span={bookingType === 'HOURLY' ? 12 : 12}>
-              <Form.Item label="Check In Date" name="check_in_date" rules={[{ required: true }]}>
-                <DatePicker style={{ width: '100%', borderRadius: 6 }} />
+            <Col span={12}>
+              <Form.Item
+                label="Guest Email"
+                name="guest_email"
+                rules={[
+                  { required: true, message: 'Email is required' },
+                  { type: 'email', message: 'Please enter a valid email' }
+                ]}
+              >
+                <Input placeholder="guest@example.com" style={{ borderRadius: 6 }} />
               </Form.Item>
             </Col>
             <Col span={12}>
-              <Form.Item label="Time" name="check_in_time" rules={[{ required: true }]}>
-                <DatePicker picker="time" format="HH:mm" style={{ width: '100%', borderRadius: 6 }} />
+              <Form.Item
+                label="Guest Phone"
+                name="guest_phone"
+                rules={[{ required: true, message: 'Phone is required' }]}
+              >
+                <Input placeholder="+91 9876543210" style={{ borderRadius: 6 }} />
               </Form.Item>
             </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item label="ID Type (Optional)" name="guest_id_type">
+                <Select placeholder="Select ID type" allowClear style={{ borderRadius: 6 }}>
+                  <Option value="AADHAAR">Aadhaar Card</Option>
+                  <Option value="PAN">PAN Card</Option>
+                  <Option value="PASSPORT">Passport</Option>
+                  <Option value="DRIVING_LICENSE">Driving License</Option>
+                  <Option value="VOTER_ID">Voter ID</Option>
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item label="ID Number (Optional)" name="guest_id_number">
+                <Input placeholder="Enter ID number" style={{ borderRadius: 6 }} />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item label="Check In Date" name="check_in_date" rules={[{ required: true }]}>
+                <DatePicker
+                  style={{ width: '100%', borderRadius: 6 }}
+                  onChange={(date) => {
+                    // Fetch slots when date changes for HOURLY booking
+                    if (bookingType === 'HOURLY') {
+                      const roomTypeId = newBookingForm.getFieldValue('room_type_id');
+                      if (roomTypeId && date) {
+                        fetchWalkinSlots(roomTypeId, date);
+                      }
+                    }
+                  }}
+                />
+              </Form.Item>
+            </Col>
+            {bookingType === 'NIGHTLY' && (
+              <Col span={12}>
+                <Form.Item label="Check In Time" name="check_in_time" rules={[{ required: true }]}>
+                  <DatePicker picker="time" format="HH:mm" style={{ width: '100%', borderRadius: 6 }} />
+                </Form.Item>
+              </Col>
+            )}
           </Row>
 
           {bookingType === 'NIGHTLY' && (
@@ -1043,27 +1198,42 @@ function BookingManagement() {
                 </Form.Item>
               </Col>
               <Col span={12}>
-                <Form.Item label="Time" name="check_out_time" rules={[{ required: true }]}>
+                <Form.Item label="Check Out Time" name="check_out_time" rules={[{ required: true }]}>
                   <DatePicker picker="time" format="HH:mm" style={{ width: '100%', borderRadius: 6 }} />
                 </Form.Item>
               </Col>
             </Row>
           )}
 
+          {/* HOURLY TIME SELECTION - After date, before slots display */}
           {bookingType === 'HOURLY' && (
-            <Form.Item label="Duration" name="duration" rules={[{ required: true }]}>
-              <Select style={{ width: '100%', borderRadius: 6 }} placeholder="Select Hours">
-                {[3, 4, 6, 12].map(h => (
-                  <Option key={h} value={h}>{h} Hours</Option>
-                ))}
-              </Select>
-            </Form.Item>
+            <Row gutter={16}>
+              <Col span={12}>
+                <Form.Item label="Start Time" name="start_time" rules={[{ required: true }]}>
+                  <DatePicker picker="time" format="HH:mm" style={{ width: '100%', borderRadius: 6 }} />
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item label="End Time" name="end_time" rules={[{ required: true }]}>
+                  <DatePicker picker="time" format="HH:mm" style={{ width: '100%', borderRadius: 6 }} />
+                </Form.Item>
+              </Col>
+            </Row>
           )}
 
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item label="Category" name="room_type_id" rules={[{ required: true }]}>
-                <Select placeholder="Select" style={{ borderRadius: 6 }}>
+                <Select
+                  placeholder="Select"
+                  style={{ borderRadius: 6 }}
+                  onChange={(value) => {
+                    // Fetch available slots when room type changes and booking type is HOURLY
+                    if (bookingType === 'HOURLY') {
+                      fetchWalkinSlots(value);
+                    }
+                  }}
+                >
                   {roomTypes.map(rt => <Option key={rt.id} value={rt.id}>{rt.name}</Option>)}
                 </Select>
               </Form.Item>
@@ -1078,6 +1248,69 @@ function BookingManagement() {
               </Form.Item>
             </Col>
           </Row>
+
+          {/* HOURLY SLOTS DISPLAY */}
+          {bookingType === 'HOURLY' && availableSlots.length > 0 && (
+            <div style={{ marginBottom: 16, padding: 12, background: '#f0f9ff', borderRadius: 8, border: '1px solid #91d5ff' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                <Text strong style={{ color: '#0050b3' }}>
+                  <ClockCircleOutlined /> Available Time Slots (Today)
+                </Text>
+                {selectedRoomTypeForSlots?.min_duration && (
+                  <Tag color="blue">Min: {selectedRoomTypeForSlots.min_duration}h</Tag>
+                )}
+              </div>
+
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                {availableSlots.map((slot, idx) => {
+                  const start = dayjs.utc(slot.start).tz(hotelTimezone);
+                  const end = dayjs.utc(slot.end).tz(hotelTimezone);
+                  const duration = end.diff(start, 'hour', true);
+
+                  return (
+                    <div
+                      key={idx}
+                      style={{
+                        padding: '6px 12px',
+                        background: '#fff',
+                        border: '1px solid #91d5ff',
+                        borderRadius: 6,
+                        fontSize: 12
+                      }}
+                    >
+                      <div style={{ fontWeight: 500, color: '#0050b3' }}>
+                        {start.format('HH:mm')} - {end.format('HH:mm')}
+                      </div>
+                      <div style={{ color: '#888', fontSize: 11 }}>
+                        {duration.toFixed(1)}h
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* SLOTS ERROR */}
+          {bookingType === 'HOURLY' && slotsError && (
+            <Alert
+              message={slotsError}
+              type="warning"
+              showIcon
+              style={{ marginBottom: 16 }}
+            />
+          )}
+
+          {/* NO SLOTS MESSAGE */}
+          {bookingType === 'HOURLY' && newBookingForm.getFieldValue('room_type_id') && availableSlots.length === 0 && !slotsError && (
+            <Alert
+              message="No available slots for selected room type today"
+              description="Please select a different room type or date"
+              type="info"
+              showIcon
+              style={{ marginBottom: 16 }}
+            />
+          )}
 
           <Button
             type="primary"

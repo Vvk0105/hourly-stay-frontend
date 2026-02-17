@@ -110,7 +110,7 @@ function BookingManagement() {
 
     const interval = setInterval(() => {
       fetchSlots();
-    }, 20000);
+    }, 10000);
 
     return () => clearInterval(interval);
   }, [id, selectedDate]);

@@ -5,12 +5,14 @@ import {
 } from "antd";
 import {
   LoginOutlined, LogoutOutlined, CloseCircleOutlined,
-  HomeOutlined, UserOutlined, PlusOutlined, ClockCircleOutlined, SearchOutlined, CalendarOutlined, ThunderboltOutlined, PoweroffOutlined
+  HomeOutlined, UserOutlined, PlusOutlined, ClockCircleOutlined, SearchOutlined, CalendarOutlined, ThunderboltOutlined, PoweroffOutlined,
+  EyeOutlined, InfoCircleOutlined
 } from "@ant-design/icons";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
 import api from "../../api/axios";
 import PageHeader from "../../components/common/PageHeader";
+
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 dayjs.extend(utc);
@@ -24,6 +26,8 @@ const { RangePicker } = DatePicker;
 
 function BookingManagement() {
   const { id } = useParams(); // Only hotel ID needed
+  const navigate = useNavigate();
+
 
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -437,13 +441,39 @@ function BookingManagement() {
       title: "Status",
       dataIndex: "status",
       render: (status) => {
-        let color = "default";
-        if (status === "CONFIRMED") color = "success";
-        if (status === "CHECKED_IN") color = "warning";
-        if (status === "CANCELLED") color = "error";
-        return <Tag color={color} style={{ borderRadius: 12, padding: '0 10px' }}>{status}</Tag>;
+        const statusConfigs = {
+          'CONFIRMED': { color: 'green', label: 'Confirmed' },
+          'CHECKED_IN': { color: 'gold', label: 'Checked In' },
+          'CHECKED_OUT': { color: 'blue', label: 'Checked Out' },
+          'CANCELLED': { color: 'red', label: 'Cancelled' },
+          'PENDING_PAYMENT': { color: 'orange', label: 'Pending' },
+          'FAILED': { color: 'volcano', label: 'Failed' },
+        };
+        const config = statusConfigs[status] || { color: 'default', label: status };
+        return <Tag color={config.color} style={{ borderRadius: 12, padding: '0 10px' }}>{config.label}</Tag>;
       }
     },
+    {
+      title: "Refund",
+      key: "refund",
+      render: (_, r) => {
+        if (!r.refund_request) return null;
+        const { refund_amount, status } = r.refund_request;
+        return (
+          <Tooltip title={`Reason: ${r.refund_request.reason}`}>
+            <div style={{ lineHeight: '1.2' }}>
+              <div style={{ fontWeight: 500, color: status === 'COMPLETED' ? '#52c41a' : '#faad14' }}>
+                ₹{refund_amount}
+              </div>
+              <Tag color={status === 'COMPLETED' ? 'green' : 'orange'} style={{ fontSize: '10px', margin: 0 }}>
+                {status}
+              </Tag>
+            </div>
+          </Tooltip>
+        );
+      }
+    },
+
     {
       title: "Action",
       key: "action",
@@ -462,10 +492,16 @@ function BookingManagement() {
               <Button type="text" danger icon={<CloseCircleOutlined />} size="small" />
             </Popconfirm>
           )}
+          <Button
+            size="small"
+            icon={<EyeOutlined />}
+            onClick={() => navigate(`/booking-details/${r.id}`)}
+          />
         </div>
       )
     }
   ];
+
 
   /* ================= DATA FILTERING ================= */
   const filterByDateRange = (bookingsList, dateRange) => {

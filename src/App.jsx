@@ -26,6 +26,7 @@ import TransactionManagement from "./pages/transactions/TransactionManagement";
 import TransactionDetails from "./pages/transactions/TransactionDetails";
 import HotelManagerTransactionManagement from "./pages/hotel-manager/HotelManagerTransactionManagement";
 import BookingDetails from "./pages/bookings/BookingDetails";
+import NotificationsPage from "./pages/NotificationsPage";
 
 
 
@@ -95,6 +96,8 @@ function App() {
         <Route path="/transactions" element={<MainLayout><TransactionManagement /></MainLayout>} />
         <Route path="/transactions/:bookingId" element={<MainLayout><TransactionDetails /></MainLayout>} />
         <Route path="/hotel-manager/transactions" element={<MainLayout><HotelManagerTransactionManagement /></MainLayout>} />
+
+        <Route path="/notifications" element={<MainLayout><NotificationsPage /></MainLayout>} />
       </Routes>
     </BrowserRouter>
   )

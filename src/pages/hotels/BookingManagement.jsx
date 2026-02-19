@@ -114,7 +114,7 @@ function BookingManagement() {
 
     const interval = setInterval(() => {
       fetchSlots();
-    }, 2000);
+    }, 10000);
 
     return () => clearInterval(interval);
   }, [id, selectedDate]);

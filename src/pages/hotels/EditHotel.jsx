@@ -42,6 +42,20 @@ const TIMEZONES = [
   { value: 'Australia/Sydney', label: 'Australia/Sydney (UTC+11:00)' },
 ];
 
+const CURRENCIES = [
+  { value: 'INR', label: 'INR - Indian Rupee (₹)' },
+  { value: 'AED', label: 'AED - UAE Dirham (د.إ)' },
+  { value: 'LKR', label: 'LKR - Sri Lankan Rupee (Rs)' },
+  { value: 'USD', label: 'USD - US Dollar ($)' },
+  { value: 'EUR', label: 'EUR - Euro (€)' },
+  { value: 'GBP', label: 'GBP - British Pound (£)' },
+  { value: 'SGD', label: 'SGD - Singapore Dollar (S$)' },
+  { value: 'MYR', label: 'MYR - Malaysian Ringgit (RM)' },
+  { value: 'THB', label: 'THB - Thai Baht (฿)' },
+  { value: 'SAR', label: 'SAR - Saudi Riyal (﷼)' },
+  { value: 'QAR', label: 'QAR - Qatari Riyal (﷼)' },
+];
+
 const validationSchema = yup.object().shape({
   name: yup.string().required("Hotel Name is required"),
   address_line_1: yup.string().required("Address is required"),
@@ -391,6 +405,24 @@ const EditHotel = () => {
 
           <Col xs={24} lg={8}>
             <Card title="Financial Details" style={{ marginTop: 24 }}>
+              <Form.Item
+                label="Hotel Currency"
+                name="currency_code"
+                rules={[{ required: true, message: 'Please select hotel currency' }]}
+                tooltip="All room prices will be stored and displayed in this currency"
+              >
+                <Select
+                  placeholder="Select hotel currency"
+                  showSearch
+                  filterOption={(input, option) =>
+                    option.children.toLowerCase().includes(input.toLowerCase())
+                  }
+                >
+                  {CURRENCIES.map(c => (
+                    <Select.Option key={c.value} value={c.value}>{c.label}</Select.Option>
+                  ))}
+                </Select>
+              </Form.Item>
               <Form.Item label="Tax Name" name="tax_name" help="e.g. GST, VAT">
                 <Input placeholder="GST" />
               </Form.Item>

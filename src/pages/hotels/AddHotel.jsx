@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Form, Input, Select, Button, Upload, Row, Col, TimePicker, Switch, InputNumber, message, Card, Radio } from "antd";
+import { Form, Input, Select, Button, Upload, Row, Col, TimePicker, Switch, InputNumber, message, Card, Radio, Checkbox } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/axios";
@@ -44,6 +44,7 @@ const AddHotel = () => {
   const [isMapModalVisible, setIsMapModalVisible] = useState(false);
   const [mapPosition, setMapPosition] = useState(null);
   const [refundPolicyType, setRefundPolicyType] = useState('DEFAULT');
+  const [isGstRegistered, setIsGstRegistered] = useState(false);
 
   const handleMapOk = () => {
     if (mapPosition) {
@@ -287,6 +288,55 @@ const AddHotel = () => {
               <Form.Item label="Razorpay Account ID" name="razorpay_account_id" help="Optional: For split settlement">
                 <Input placeholder="acc_xxxxxxxxxxxxx" />
               </Form.Item>
+            </Card>
+
+            <Card title="Payout & Banking" style={{ marginBottom: 24 }}>
+              <Form.Item name="is_gst_registered" valuePropName="checked">
+                <Checkbox onChange={(e) => setIsGstRegistered(e.target.checked)}>
+                  Hotel is GST Registered
+                </Checkbox>
+              </Form.Item>
+
+              {isGstRegistered && (
+                <Form.Item
+                  label="GSTIN"
+                  name="gstin"
+                  rules={[{ required: true, message: 'Please enter GSTIN' }]}
+                >
+                  <Input placeholder="22AAAAA0000A1Z5" />
+                </Form.Item>
+              )}
+
+              <Form.Item
+                label="Bank Account Number"
+                name="bank_account_number"
+                rules={[{ required: true, message: 'Please enter bank account number' }]}
+              >
+                <Input placeholder="Enter account number" />
+              </Form.Item>
+
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item
+                    label="IFSC Code"
+                    name="bank_ifsc"
+                    help="For domestic (Indian) banks"
+                  >
+                    <Input placeholder="SBIN0001234" />
+                  </Form.Item>
+                </Col>
+                {form.getFieldValue('country') !== 'IN' && (
+                  <Col span={12}>
+                    <Form.Item
+                      label="SWIFT/BIC Code"
+                      name="bank_swift_code"
+                      help="For international banks"
+                    >
+                      <Input placeholder="ABCDEF123" />
+                    </Form.Item>
+                  </Col>
+                )}
+              </Row>
             </Card>
 
             <Card title="Operations" style={{ marginBottom: 24 }}>

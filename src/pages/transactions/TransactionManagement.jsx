@@ -46,6 +46,7 @@ const TransactionManagement = () => {
         booking_type: null,
         date_from: null,
         date_to: null,
+        payout_status: null,
         search: ''
     });
 
@@ -188,8 +189,19 @@ const TransactionManagement = () => {
             'CHECKED_OUT': 'green',
             'CANCELLED': 'red',
             'PENDING_PAYMENT': 'orange',
+            'NO_SHOW': 'volcano',
+            'FAILED': 'red'
+        };
+        return colorMap[status] || 'default';
+    };
+
+    const getPayoutStatusColor = (status) => {
+        const colorMap = {
+            'PENDING': 'orange',
+            'PROCESSING': 'blue',
+            'COMPLETED': 'green',
             'FAILED': 'red',
-            'NO_SHOW': 'volcano'
+            'NA': 'default'
         };
         return colorMap[status] || 'default';
     };
@@ -268,25 +280,49 @@ const TransactionManagement = () => {
                     <div style={{ fontWeight: 500, color: '#1890ff' }}>
                         ₹{record.commission_amount?.toFixed(2) || '0.00'}
                     </div>
-                    {record.commission_percent_applied > 0 && (
+                    {record.hotel_details?.commission_type === 'PERCENTAGE' && (
                         <div style={{ fontSize: '12px', color: '#888' }}>
-                            ({record.commission_percent_applied}%)
+                            ({record.hotel_details?.commission_percent}%)
+                        </div>
+                    )}
+                    {record.payout?.commission_gst > 0 && (
+                        <div style={{ fontSize: '11px', color: '#888' }}>
+                            +GST: ₹{record.payout.commission_gst}
                         </div>
                     )}
                 </div>
             )
         },
         {
-            title: 'Net Payout',
-            dataIndex: 'net_payout',
-            key: 'net_payout',
+            title: 'Tax Collected',
+            dataIndex: ['payout', 'tax_collected'],
+            key: 'tax_collected',
+            width: 120,
+            align: 'right',
+            render: (tax) => tax ? `₹${parseFloat(tax).toFixed(2)}` : '-'
+        },
+        {
+            title: 'Hotel Share',
+            dataIndex: ['payout', 'hotel_share'],
+            key: 'hotel_share',
             width: 120,
             align: 'right',
             render: (payout) => (
                 <div style={{ fontWeight: 500, color: '#52c41a' }}>
-                    ₹{payout?.toFixed(2) || '0.00'}
+                    ₹{parseFloat(payout || 0).toFixed(2)}
                 </div>
             )
+        },
+        {
+            title: 'Payout Status',
+            dataIndex: ['payout', 'status'],
+            key: 'payout_status',
+            width: 130,
+            render: (status) => status ? (
+                <Tag color={getPayoutStatusColor(status)}>
+                    {status}
+                </Tag>
+            ) : '-'
         },
         {
             title: 'Refund',
@@ -420,6 +456,20 @@ const TransactionManagement = () => {
                             <Option value="CANCELLED">Cancelled</Option>
                             <Option value="PENDING_PAYMENT">Pending Payment</Option>
                             <Option value="FAILED">Failed</Option>
+                        </Select>
+                    </Col>
+                    <Col xs={24} sm={12} md={6}>
+                        <Select
+                            placeholder="Payout Status"
+                            allowClear
+                            style={{ width: '100%' }}
+                            onChange={(value) => handleFilterChange('payout_status', value)}
+                        >
+                            <Option value="PENDING">Pending</Option>
+                            <Option value="PROCESSING">Processing</Option>
+                            <Option value="COMPLETED">Completed</Option>
+                            <Option value="FAILED">Failed</Option>
+                            <Option value="NA">N/A</Option>
                         </Select>
                     </Col>
                     <Col xs={24} sm={12} md={6}>

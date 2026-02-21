@@ -174,8 +174,18 @@ const HotelManagerTransactionManagement = () => {
             'CHECKED_OUT': 'green',
             'CANCELLED': 'red',
             'PENDING_PAYMENT': 'orange',
-            'FAILED': 'red',
             'NO_SHOW': 'volcano'
+        };
+        return colorMap[status] || 'default';
+    };
+
+    const getPayoutStatusColor = (status) => {
+        const colorMap = {
+            'PENDING': 'orange',
+            'PROCESSING': 'blue',
+            'COMPLETED': 'green',
+            'FAILED': 'red',
+            'NA': 'default'
         };
         return colorMap[status] || 'default';
     };
@@ -237,12 +247,27 @@ const HotelManagerTransactionManagement = () => {
             render: (uuid, record) => record.is_walk_in ? 'Walk-in' : `${uuid.substring(0, 8)}...`
         },
         {
-            title: 'Amount',
-            dataIndex: 'total_amount',
-            key: 'total_amount',
-            width: 100,
+            title: 'Your Earnings',
+            dataIndex: ['payout', 'hotel_share'],
+            key: 'hotel_share',
+            width: 120,
             align: 'right',
-            render: (amount) => `₹${parseFloat(amount).toFixed(2)}`
+            render: (share) => (
+                <div style={{ fontWeight: 500, color: '#52c41a' }}>
+                    ₹{parseFloat(share || 0).toFixed(2)}
+                </div>
+            )
+        },
+        {
+            title: 'Payout Status',
+            dataIndex: ['payout', 'status'],
+            key: 'payout_status',
+            width: 130,
+            render: (status) => status ? (
+                <Tag color={getPayoutStatusColor(status)}>
+                    {status}
+                </Tag>
+            ) : '-'
         },
         {
             title: 'Status',
@@ -304,7 +329,7 @@ const HotelManagerTransactionManagement = () => {
                     <Col xs={24} sm={12} lg={6}>
                         <Card>
                             <Statistic
-                                title="Net Payout"
+                                title="Net Earnings"
                                 value={stats?.total_payout || 0}
                                 prefix="₹"
                                 precision={2}

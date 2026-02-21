@@ -176,7 +176,7 @@ function BookingManagement() {
     }
   };
 
-  const fetchWalkinSlots = async (roomTypeId) => {
+  const fetchWalkinSlots = async (roomTypeId, date = null) => {
     if (!roomTypeId || bookingType !== 'HOURLY') {
       setAvailableSlots([]);
       return;
@@ -184,7 +184,9 @@ function BookingManagement() {
 
     try {
       setSlotsError(null);
-      const dateStr = dayjs().format('YYYY-MM-DD');
+      // Use provided date or fallback to check_in_date from form, or finally today
+      const selectedDate = date || newBookingForm.getFieldValue('check_in_date') || dayjs();
+      const dateStr = selectedDate.format('YYYY-MM-DD');
       const res = await api.get(`property/public/hotels/${id}/available-slots/?room_type_id=${roomTypeId}&date=${dateStr}`);
 
       if (res.data.success && res.data.available_slots) {
@@ -231,7 +233,7 @@ function BookingManagement() {
 
       const res = await api.post(`property/hotels/${id}/hourly-operations/`, payload);
       console.log('hourly opertaion', res);
-      
+
       setHourlyStatus("ACTIVE");
       setCurrentWindow(res.data.window);
       setShowHourlyConfigModal(false);
@@ -261,7 +263,7 @@ function BookingManagement() {
       const payload = {
         hotel_id: id,
         room_type_id: values.room_type_id,
-        user_uuid: "00000000-0000-0000-0000-000000000000", // Default/Guest UUID
+        user_uuid: "00000000-0000-0000-0000-000000000000",
         booking_type: bookingType,
         is_walk_in: true,
 
@@ -283,34 +285,34 @@ function BookingManagement() {
         payload.check_in = values.check_in_date.format('YYYY-MM-DD') + 'T' + values.check_in_time.format('HH:mm:ss');
         payload.check_out = values.check_out_date.format('YYYY-MM-DD') + 'T' + values.check_out_time.format('HH:mm:ss');
       } else {
-      // HOURLY logic
+        // HOURLY logic
 
-      if (!values.check_in_date || !values.start_time || !values.end_time) {
-        message.error("Please select date, start time and end time");
-        return;
+        if (!values.check_in_date || !values.start_time || !values.end_time) {
+          message.error("Please select date, start time and end time");
+          return;
+        }
+
+        // Combine date + start time
+        const localCheckIn = dayjs(
+          values.check_in_date.format('YYYY-MM-DD') + 'T' +
+          values.start_time.format('HH:mm:ss')
+        );
+
+        // Combine date + end time
+        let localCheckOut = dayjs(
+          values.check_in_date.format('YYYY-MM-DD') + 'T' +
+          values.end_time.format('HH:mm:ss')
+        );
+
+        // If end time is next day (like 11PM → 2AM)
+        if (localCheckOut.isBefore(localCheckIn)) {
+          localCheckOut = localCheckOut.add(1, 'day');
+        }
+
+        // Convert to UTC ISO format
+        payload.check_in = localCheckIn.utc().toISOString();
+        payload.check_out = localCheckOut.utc().toISOString();
       }
-
-      // Combine date + start time
-      const localCheckIn = dayjs(
-        values.check_in_date.format('YYYY-MM-DD') + 'T' +
-        values.start_time.format('HH:mm:ss')
-      );
-
-      // Combine date + end time
-      let localCheckOut = dayjs(
-        values.check_in_date.format('YYYY-MM-DD') + 'T' +
-        values.end_time.format('HH:mm:ss')
-      );
-
-      // If end time is next day (like 11PM → 2AM)
-      if (localCheckOut.isBefore(localCheckIn)) {
-        localCheckOut = localCheckOut.add(1, 'day');
-      }
-
-      // Convert to UTC ISO format
-      payload.check_in = localCheckIn.utc().toISOString();
-      payload.check_out = localCheckOut.utc().toISOString();
-    }
 
       await api.post(`property/bookings/create/`, payload);
       message.success("Walk-in Booking Created Successfully!");
@@ -706,8 +708,8 @@ function BookingManagement() {
                                       <Text style={{ fontSize: 12, color: '#cf1322' }}>
                                         <UserOutlined /> {currentBooking.guest_name || 'Guest'}<br />
                                         Until: {dayjs.utc(currentBooking.scheduled_check_out)
-                                        .tz(hotelTimezone || "UTC")
-                                        .format('DD MMM, HH:mm')}
+                                          .tz(hotelTimezone || "UTC")
+                                          .format('DD MMM, HH:mm')}
                                       </Text>
                                     </div>
                                   )}
@@ -1230,7 +1232,8 @@ function BookingManagement() {
                   onChange={(value) => {
                     // Fetch available slots when room type changes and booking type is HOURLY
                     if (bookingType === 'HOURLY') {
-                      fetchWalkinSlots(value);
+                      const selectedDate = newBookingForm.getFieldValue('check_in_date');
+                      fetchWalkinSlots(value, selectedDate);
                     }
                   }}
                 >
@@ -1254,7 +1257,7 @@ function BookingManagement() {
             <div style={{ marginBottom: 16, padding: 12, background: '#f0f9ff', borderRadius: 8, border: '1px solid #91d5ff' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                 <Text strong style={{ color: '#0050b3' }}>
-                  <ClockCircleOutlined /> Available Time Slots (Today)
+                  <ClockCircleOutlined /> Available Time Slots ({newBookingForm.getFieldValue('check_in_date')?.format('DD MMM') || 'Select Date'})
                 </Text>
                 {selectedRoomTypeForSlots?.min_duration && (
                   <Tag color="blue">Min: {selectedRoomTypeForSlots.min_duration}h</Tag>
@@ -1304,7 +1307,7 @@ function BookingManagement() {
           {/* NO SLOTS MESSAGE */}
           {bookingType === 'HOURLY' && newBookingForm.getFieldValue('room_type_id') && availableSlots.length === 0 && !slotsError && (
             <Alert
-              message="No available slots for selected room type today"
+              message={`No available slots for ${newBookingForm.getFieldValue('check_in_date')?.format('DD MMM') || 'selected date'}`}
               description="Please select a different room type or date"
               type="info"
               showIcon

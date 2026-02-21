@@ -57,8 +57,10 @@ const TransactionDetails = () => {
         );
     }
 
-    const commission = transaction.commission_amount || 0;
-    const netPayout = transaction.net_payout || 0;
+    const payout = transaction.payout || {};
+    const hotelDetails = transaction.hotel_details || {};
+
+    const formatCurrency = (amount) => `₹${parseFloat(amount || 0).toFixed(2)}`;
 
     return (
         <div style={{ padding: '24px' }}>
@@ -228,60 +230,93 @@ const TransactionDetails = () => {
 
                         {/* Financial Breakdown */}
                         <div style={{ marginTop: '16px' }}>
-                            <h4 style={{ marginBottom: '12px' }}>Financial Breakdown</h4>
+                            <h4 style={{ marginBottom: '12px' }}>Financial Split Breakdown</h4>
                             <div style={{ backgroundColor: '#f5f5f5', padding: '16px', borderRadius: '8px' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                                    <span>Base Amount:</span>
-                                    <span style={{ fontWeight: 500 }}>₹{parseFloat(transaction.base_amount).toFixed(2)}</span>
+                                    <span>Collected from Guest:</span>
+                                    <span style={{ fontWeight: 600 }}>{formatCurrency(transaction.total_amount)}</span>
                                 </div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                                    <span>Tax ({transaction.hotel_details?.tax_name} @ {transaction.hotel_details?.tax_percent}%):</span>
-                                    <span style={{ fontWeight: 500 }}>₹{parseFloat(transaction.tax_amount).toFixed(2)}</span>
-                                </div>
-                                {transaction.discount_amount > 0 && (
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', color: '#52c41a' }}>
-                                        <span>Discount:</span>
-                                        <span style={{ fontWeight: 500 }}>- ₹{parseFloat(transaction.discount_amount).toFixed(2)}</span>
+                                <Divider style={{ margin: '8px 0' }} />
+
+                                {Object.keys(payout).length > 0 ? (
+                                    <>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                                            <span>Room Base Amount:</span>
+                                            <span>{formatCurrency(payout.room_base_amount)}</span>
+                                        </div>
+
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                                            <span>Tax Collected ({hotelDetails.tax_name}):</span>
+                                            <span>{formatCurrency(payout.tax_collected)}</span>
+                                        </div>
+
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', color: '#1890ff' }}>
+                                            <span>Platform Commission ({transaction.hotel_details?.commission_type === 'PERCENTAGE' ? `${transaction.hotel_details?.commission_percent}%` : 'Fixed'}):</span>
+                                            <span>- {formatCurrency(payout.platform_commission)}</span>
+                                        </div>
+
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', color: '#fa8c16' }}>
+                                            <span>Commission GST (18%):</span>
+                                            <span>- {formatCurrency(payout.commission_gst)}</span>
+                                        </div>
+
+                                        {parseFloat(payout.tcs_deducted) > 0 && (
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', color: '#f5222d' }}>
+                                                <span>TCS Deducted (1%):</span>
+                                                <span>- {formatCurrency(payout.tcs_deducted)}</span>
+                                            </div>
+                                        )}
+
+                                        <Divider style={{ margin: '12px 0' }} />
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                                            <span style={{ fontSize: '16px', fontWeight: 600, color: '#52c41a' }}>Final Hotel Share:</span>
+                                            <span style={{ fontSize: '18px', fontWeight: 700, color: '#52c41a' }}>
+                                                {formatCurrency(payout.hotel_share)}
+                                            </span>
+                                        </div>
+                                        <div style={{ textAlign: 'right', fontSize: '12px', color: '#888' }}>
+                                            (Amount {payout.status === 'COMPLETED' ? 'transferred' : 'to be transferred'} to hotel)
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div style={{ textAlign: 'center', padding: '16px 0', color: '#888' }}>
+                                        <em>Payout calculations are pending. This will update when the background task runs.</em>
                                     </div>
                                 )}
-                                <Divider style={{ margin: '12px 0' }} />
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
-                                    <span style={{ fontSize: '16px', fontWeight: 600 }}>Gross Total:</span>
-                                    <span style={{ fontSize: '16px', fontWeight: 600 }}>₹{parseFloat(transaction.total_amount).toFixed(2)}</span>
-                                </div>
-
-                                {/* Commission Breakdown */}
-                                <div style={{ backgroundColor: '#e6f7ff', padding: '12px', borderRadius: '6px', marginBottom: '12px' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <div>
-                                            <div style={{ fontWeight: 500, color: '#1890ff' }}>Platform Commission</div>
-                                            {transaction.commission_percent_applied > 0 && (
-                                                <div style={{ fontSize: '12px', color: '#666' }}>
-                                                    @ {transaction.commission_percent_applied}%
-                                                </div>
-                                            )}
-                                        </div>
-                                        <span style={{ fontSize: '16px', fontWeight: 600, color: '#1890ff' }}>
-                                            ₹{commission.toFixed(2)}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <Divider style={{ margin: '12px 0' }} />
-
-                                {/* Net Payout */}
-                                <div style={{ backgroundColor: '#f6ffed', padding: '12px', borderRadius: '6px' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <span style={{ fontSize: '16px', fontWeight: 600, color: '#52c41a' }}>
-                                            Net Payout to Hotel:
-                                        </span>
-                                        <span style={{ fontSize: '18px', fontWeight: 700, color: '#52c41a' }}>
-                                            ₹{netPayout.toFixed(2)}
-                                        </span>
-                                    </div>
-                                </div>
                             </div>
                         </div>
+
+                        {/* Payout Tracking */}
+                        {payout.status && (
+                            <div style={{ marginTop: '24px' }}>
+                                <h4 style={{ marginBottom: '12px' }}>Payout Status</h4>
+                                <Descriptions column={1} bordered size="small">
+                                    <Descriptions.Item label="Status">
+                                        <Tag color={payout.status === 'COMPLETED' ? 'green' : payout.status === 'FAILED' ? 'red' : 'blue'}>
+                                            {payout.status}
+                                        </Tag>
+                                    </Descriptions.Item>
+                                    <Descriptions.Item label="Method">
+                                        {payout.method?.replace(/_/g, ' ')}
+                                    </Descriptions.Item>
+                                    {payout.payout_reference && (
+                                        <Descriptions.Item label="Reference ID">
+                                            <code>{payout.payout_reference}</code>
+                                        </Descriptions.Item>
+                                    )}
+                                    {payout.completed_at && (
+                                        <Descriptions.Item label="Processed At">
+                                            {dayjs(payout.completed_at).format('DD MMM YYYY, HH:mm')}
+                                        </Descriptions.Item>
+                                    )}
+                                    {payout.notes && (
+                                        <Descriptions.Item label="Notes">
+                                            <span style={{ color: '#f5222d' }}>{payout.notes}</span>
+                                        </Descriptions.Item>
+                                    )}
+                                </Descriptions>
+                            </div>
+                        )}
                     </Card>
                 </Col>
 

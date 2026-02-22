@@ -123,7 +123,7 @@ function BookingManagement() {
   const fetchBookings = async () => {
     setLoading(true);
     try {
-      const res = await api.get(`property/hotels/${id}/bookings/`);
+      const res = await api.get(`booking/hotels/${id}/bookings/`);
       setBookings(res.data);
     } catch {
       // message.error("Failed to load bookings");
@@ -314,7 +314,7 @@ function BookingManagement() {
         payload.check_out = localCheckOut.utc().toISOString();
       }
 
-      await api.post(`property/bookings/create/`, payload);
+      await api.post(`booking/bookings/create/`, payload);
       message.success("Walk-in Booking Created Successfully!");
       setIsNewBookingModalOpen(false);
       newBookingForm.resetFields();
@@ -347,7 +347,7 @@ function BookingManagement() {
     setAssignLoading(true);
 
     try {
-      const res = await api.get(`property/bookings/${booking.id}/available-rooms/`);
+      const res = await api.get(`booking/bookings/${booking.id}/available-rooms/`);
       setAvailableRooms(res.data);
     } catch {
       message.error("Could not fetch available rooms");
@@ -363,7 +363,7 @@ function BookingManagement() {
     }
 
     try {
-      await api.post(`property/bookings/${selectedBooking.id}/action/`, {
+      await api.post(`booking/bookings/${selectedBooking.id}/action/`, {
         action: "CHECK_IN",
         room_id: selectedRoomId
       });
@@ -379,7 +379,7 @@ function BookingManagement() {
 
   const handleBookingAction = async (bookingId, action) => {
     try {
-      await api.post(`property/bookings/${bookingId}/action/`, { action });
+      await api.post(`booking/bookings/${bookingId}/action/`, { action });
       message.success(`${action} successful`);
       fetchBookings();
       if (hourlyStatus === 'ACTIVE') {
@@ -392,7 +392,7 @@ function BookingManagement() {
   const handleDownloadInvoice = async (bookingId, bookingRef) => {
     try {
       message.loading({ content: 'Generating Invoice...', key: 'invoice' });
-      const response = await api.get(`property/public/bookings/${bookingId}/invoice/`, {
+      const response = await api.get(`booking/bookings/${bookingId}/invoice/`, {
         responseType: 'blob',
       });
       const file = new Blob([response.data], { type: 'application/pdf' });

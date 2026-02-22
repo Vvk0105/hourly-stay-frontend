@@ -106,7 +106,7 @@ function BookingManagement() {
   const fetchBookings = async () => {
     setLoading(true);
     try {
-      const res = await api.get(`property/hotels/${id}/bookings/`);
+      const res = await api.get(`booking/hotels/${id}/bookings/`);
       setBookings(res.data);
     } catch {
       message.error("Failed to load bookings");
@@ -138,7 +138,7 @@ function BookingManagement() {
         is_walk_in: true
       };
 
-      await api.post(`property/bookings/create/`, payload);
+      await api.post(`booking/bookings/create/`, payload);
       message.success("Walk-in Booking Confirmed!");
       setIsWalkInModalOpen(false);
       walkInForm.resetFields();
@@ -163,7 +163,7 @@ function BookingManagement() {
 
     try {
       const res = await api.get(
-        `property/bookings/${booking.id}/available-rooms/`
+        `booking/bookings/${booking.id}/available-rooms/`
       );
       setAvailableRooms(res.data);
     } catch {
@@ -181,7 +181,7 @@ function BookingManagement() {
 
     try {
       await api.post(
-        `property/bookings/${selectedBooking.id}/action/`,
+        `booking/bookings/${selectedBooking.id}/action/`,
         { action: "CHECK_IN", room_id: selectedRoomId }
       );
       message.success("Guest Checked In Successfully");
@@ -197,7 +197,7 @@ function BookingManagement() {
   const handleAction = async (bookingId, action) => {
     try {
       await api.post(
-        `property/bookings/${bookingId}/action/`,
+        `booking/bookings/${bookingId}/action/`,
         { action }
       );
       message.success(`Booking ${action} successful`);
@@ -217,7 +217,7 @@ function BookingManagement() {
 
     try {
       // Updated endpoint to match backend: /bookings/{id}/refund-preview/
-      const res = await api.get(`property/bookings/${booking.id}/refund-preview/`);
+      const res = await api.get(`booking/bookings/${booking.id}/refund-preview/`);
       setRefundPreview(res.data);
     } catch {
       message.error("Could not fetch refund preview");
@@ -235,7 +235,7 @@ function BookingManagement() {
     setCancelSubmitLoading(true);
     try {
       await api.post(
-        `property/bookings/${cancelBooking.id}/action/`,
+        `booking/bookings/${cancelBooking.id}/action/`,
         { action: "CANCEL", reason: cancelReason }
       );
       message.success("Booking Cancelled Successfully");

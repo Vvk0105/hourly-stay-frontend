@@ -50,8 +50,8 @@ const BookingDetails = () => {
         try {
             message.loading({ content: 'Generating Invoice...', key: 'invoice' });
 
-            const response = await api.get(`property/public/bookings/${bookingId}/invoice/`, {
-                responseType: 'blob', 
+            const response = await api.get(`booking/bookings/${bookingId}/invoice/`, {
+                responseType: 'blob',
             });
 
             const file = new Blob([response.data], { type: 'application/pdf' });

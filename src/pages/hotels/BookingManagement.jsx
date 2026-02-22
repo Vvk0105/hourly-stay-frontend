@@ -6,7 +6,7 @@ import {
 import {
   LoginOutlined, LogoutOutlined, CloseCircleOutlined,
   HomeOutlined, UserOutlined, PlusOutlined, ClockCircleOutlined, SearchOutlined, CalendarOutlined, ThunderboltOutlined, PoweroffOutlined,
-  EyeOutlined, InfoCircleOutlined
+  EyeOutlined, InfoCircleOutlined, DownloadOutlined
 } from "@ant-design/icons";
 import { useParams, useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
@@ -389,6 +389,27 @@ function BookingManagement() {
       message.error(`${action} failed`);
     }
   };
+  const handleDownloadInvoice = async (bookingId, bookingRef) => {
+    try {
+      message.loading({ content: 'Generating Invoice...', key: 'invoice' });
+      const response = await api.get(`property/public/bookings/${bookingId}/invoice/`, {
+        responseType: 'blob',
+      });
+      const file = new Blob([response.data], { type: 'application/pdf' });
+      const fileURL = URL.createObjectURL(file);
+      const link = document.createElement('a');
+      link.href = fileURL;
+      link.download = `Invoice_INV-${bookingId}_${bookingRef}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(fileURL);
+      message.success({ content: 'Invoice downloaded successfully!', key: 'invoice', duration: 3 });
+    } catch (error) {
+      console.error('Download failed:', error);
+      message.error({ content: 'Failed to generate invoice. Please try again.', key: 'invoice', duration: 3 });
+    }
+  };
 
   /* ================= COLUMNS ================= */
   const columns = [
@@ -494,11 +515,22 @@ function BookingManagement() {
               <Button type="text" danger icon={<CloseCircleOutlined />} size="small" />
             </Popconfirm>
           )}
-          <Button
-            size="small"
-            icon={<EyeOutlined />}
-            onClick={() => navigate(`/booking-details/${r.id}`)}
-          />
+          {['CONFIRMED', 'CHECKED_IN', 'CHECKED_OUT'].includes(r.status) && (
+            <Tooltip title="Download Invoice">
+              <Button
+                size="small"
+                icon={<DownloadOutlined />}
+                onClick={() => handleDownloadInvoice(r.id, r.booking_reference)}
+              />
+            </Tooltip>
+          )}
+          <Tooltip title="View Details">
+            <Button
+              size="small"
+              icon={<EyeOutlined />}
+              onClick={() => navigate(`/booking-details/${r.id}`)}
+            />
+          </Tooltip>
         </div>
       )
     }

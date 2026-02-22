@@ -8,10 +8,11 @@ import {
     ArrowLeftOutlined, HomeOutlined, BookOutlined,
     CalendarOutlined, UserOutlined, ClockCircleOutlined,
     CheckCircleOutlined, CloseCircleOutlined, InfoCircleOutlined,
-    TransactionOutlined
+    TransactionOutlined, DownloadOutlined
 } from '@ant-design/icons';
 
 import dayjs from 'dayjs';
+import api from '../../api/axios';
 import { fetchTransactionDetails, fetchHotelManagerTransactionDetails } from '../../api/transactionApi';
 import PageHeader from '../../components/common/PageHeader';
 
@@ -32,7 +33,7 @@ const BookingDetails = () => {
     const loadBookingDetails = async () => {
         setLoading(true);
         try {
-            // Reusing transaction detail endpoint as it provides enriched data
+
             const data = user?.role === 'HOTEL_MANAGER'
                 ? await fetchHotelManagerTransactionDetails(bookingId)
                 : await fetchTransactionDetails(bookingId);
@@ -42,6 +43,33 @@ const BookingDetails = () => {
             console.error(error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleDownloadInvoice = async () => {
+        try {
+            message.loading({ content: 'Generating Invoice...', key: 'invoice' });
+
+            const response = await api.get(`property/public/bookings/${bookingId}/invoice/`, {
+                responseType: 'blob', 
+            });
+
+            const file = new Blob([response.data], { type: 'application/pdf' });
+            const fileURL = URL.createObjectURL(file);
+
+            const link = document.createElement('a');
+            link.href = fileURL;
+            link.download = `Invoice_INV-${bookingId}_${booking.booking_reference}.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+
+            URL.revokeObjectURL(fileURL);
+
+            message.success({ content: 'Invoice downloaded successfully!', key: 'invoice', duration: 3 });
+        } catch (error) {
+            console.error('Download failed:', error);
+            message.error({ content: 'Failed to generate invoice. Please try again.', key: 'invoice', duration: 3 });
         }
     };
 
@@ -69,11 +97,21 @@ const BookingDetails = () => {
         <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto' }}>
             <PageHeader
                 title={`Booking: ${booking.booking_reference}`}
-                onBack={() => navigate(-1)}
-                extra={[
+                actions={[
                     <Tag key="status" color={getStatusColor(booking.status)} style={{ fontSize: '14px', padding: '4px 12px', borderRadius: '12px' }}>
                         {booking.status.replace(/_/g, ' ')}
-                    </Tag>
+                    </Tag>,
+                    ['CONFIRMED', 'CHECKED_IN', 'CHECKED_OUT'].includes(booking.status) ? (
+                        <Button
+                            key="download"
+                            type="primary"
+                            icon={<DownloadOutlined />}
+                            onClick={handleDownloadInvoice}
+                            ghost
+                        >
+                            Download Invoice
+                        </Button>
+                    ) : null
                 ]}
             />
 

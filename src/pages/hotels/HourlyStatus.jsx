@@ -148,7 +148,7 @@ function HourlyStatus() {
                         {status === 'ACTIVE' && currentWindow && (
                             <div style={{ marginTop: 16 }}>
                                 <Tag color="green" style={{ fontSize: 16, padding: '6px 14px' }}>
-                                    Accepting Guests until: <b>{dayjs(currentWindow.end_datetime).local().format("DD MMM, hh:mm A")}</b>
+                                    Accepting Guests until: <b>{dayjs(currentWindow.end_datetime).format("DD MMM, hh:mm A")}</b>
                                 </Tag>
                                 <div style={{ marginTop: 16 }}>
                                     <Button danger type="primary" onClick={handleStopOperations}>Stop Operations</Button>

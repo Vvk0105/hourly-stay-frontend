@@ -136,7 +136,7 @@ const HotelManagerTransactionManagement = () => {
             if (filters.search) params.append('search', filters.search);
 
             const queryString = params.toString();
-            const url = `property/hotel-manager/transactions/export/${queryString ? '?' + queryString : ''}`;
+            const url = `booking/hotel-manager/transactions/export/${queryString ? '?' + queryString : ''}`;
 
             // Make the API call with responseType blob
             const response = await api.get(url, {

@@ -278,7 +278,7 @@ const TransactionManagement = () => {
             render: (_, record) => (
                 <div>
                     <div style={{ fontWeight: 500, color: '#1890ff' }}>
-                        ₹{record.commission_amount?.toFixed(2) || '0.00'}
+                        ₹{record.commission_amount || '0.00'}
                     </div>
                     {record.hotel_details?.commission_type === 'PERCENTAGE' && (
                         <div style={{ fontSize: '12px', color: '#888' }}>

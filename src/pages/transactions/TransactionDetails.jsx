@@ -18,6 +18,19 @@ const TransactionDetails = () => {
 
     useEffect(() => {
         loadTransactionDetails();
+
+        const handleUpdate = () => {
+            console.log("WebSocket update received, refreshing transaction details...");
+            loadTransactionDetails();
+        };
+
+        window.addEventListener('bookingUpdated', handleUpdate);
+        window.addEventListener('paymentUpdated', handleUpdate);
+
+        return () => {
+            window.removeEventListener('bookingUpdated', handleUpdate);
+            window.removeEventListener('paymentUpdated', handleUpdate);
+        };
     }, [bookingId]);
 
     const loadTransactionDetails = async () => {

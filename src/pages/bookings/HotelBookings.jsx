@@ -50,53 +50,19 @@ function BookingManagement() {
   const [cancelReason, setCancelReason] = useState("");
   const [cancelSubmitLoading, setCancelSubmitLoading] = useState(false);
 
-  // useEffect(() => {
-  //   fetchBookings();
-  //   fetchRoomTypes();
-
-  //   const interval = setInterval(() => {
-  //     fetchBookings();
-  //   }, 5000);
-
-  //   return () => clearInterval(interval);
-
-  // }, [id]);
   useEffect(() => {
-    let interval = null;
+    fetchBookings();
+    fetchRoomTypes();
 
-    const startPolling = () => {
-      if (!interval) {
-        fetchBookings();
-        fetchRoomTypes();
-        interval = setInterval(fetchBookings, 5000);
-      }
+    const handleBookingUpdate = () => {
+      console.log("WebSocket event received: refreshing bookings");
+      fetchBookings();
     };
 
-    const stopPolling = () => {
-      if (interval) {
-        clearInterval(interval);
-        interval = null;
-      }
-    };
-
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === "visible") {
-        startPolling();
-      } else {
-        stopPolling();
-      }
-    };
-
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-
-    // Start immediately if visible
-    if (document.visibilityState === "visible") {
-      startPolling();
-    }
+    window.addEventListener('bookingUpdated', handleBookingUpdate);
 
     return () => {
-      stopPolling();
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener('bookingUpdated', handleBookingUpdate);
     };
   }, [id]);
 

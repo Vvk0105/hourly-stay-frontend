@@ -40,6 +40,14 @@ const useNotifications = () => {
                 const notification = data.notification;
 
                 if (notification) {
+                    // Intercept silent UI updates
+                    if (notification.type === 'SILENT_BOOKING_UPDATE' || notification.type === 'SILENT_PAYMENT_UPDATE') {
+                        const eventName = notification.type === 'SILENT_BOOKING_UPDATE' ? 'bookingUpdated' : 'paymentUpdated';
+                        console.log(`Received silent update (${notification.type}), dispatching DOM event: ${eventName}`);
+                        window.dispatchEvent(new Event(eventName));
+                        return; // do not store in db/redux or show toast
+                    }
+
                     dispatch(addNotification(notification));
 
                     // Show a browser-level toast for real-time alerts

@@ -112,11 +112,17 @@ function BookingManagement() {
     fetchHotelDetails();
     fetchSlots();
 
-    const interval = setInterval(() => {
+    const handleBookingUpdate = () => {
+      console.log("WebSocket event received: refreshing bookings and slots");
+      fetchBookings();
       fetchSlots();
-    }, 10000);
+    };
 
-    return () => clearInterval(interval);
+    window.addEventListener('bookingUpdated', handleBookingUpdate);
+
+    return () => {
+      window.removeEventListener('bookingUpdated', handleBookingUpdate);
+    };
   }, [id, selectedDate]);
 
   /* ================= API CALLS ================= */
@@ -125,7 +131,8 @@ function BookingManagement() {
     try {
       const res = await api.get(`booking/hotels/${id}/bookings/`);
       setBookings(res.data);
-    } catch {
+    } catch (error) {
+      console.error("Failed to load bookings:", error);
       // message.error("Failed to load bookings");
     } finally {
       setLoading(false);

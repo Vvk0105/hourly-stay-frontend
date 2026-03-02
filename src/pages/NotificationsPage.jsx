@@ -105,7 +105,7 @@ const NotificationsPage = () => {
                                     <Space direction="vertical" size={0} style={{ width: '100%' }}>
                                         <Text strong={!item.is_read} style={{ fontSize: 16 }}>{item.title}</Text>
                                         <Text type="secondary" style={{ fontSize: 12 }}>
-                                            {new Date(item.created_at).toLocaleString()}
+                                            {item.created_at && !isNaN(new Date(item.created_at).getTime()) ? new Date(item.created_at).toLocaleString() : 'Just now'}
                                         </Text>
                                     </Space>
                                 }

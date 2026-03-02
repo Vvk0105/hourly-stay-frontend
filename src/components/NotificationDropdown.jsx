@@ -69,7 +69,7 @@ const NotificationDropdown = () => {
                                 description={
                                     <Space direction="vertical" size={0}>
                                         <Text type="secondary" style={{ fontSize: 12 }}>{item.message}</Text>
-                                        <Text type="secondary" style={{ fontSize: 10 }}>{new Date(item.created_at).toLocaleString()}</Text>
+                                        <Text type="secondary" style={{ fontSize: 10 }}>{item.created_at && !isNaN(new Date(item.created_at).getTime()) ? new Date(item.created_at).toLocaleString() : 'Just now'}</Text>
                                     </Space>
                                 }
                             />

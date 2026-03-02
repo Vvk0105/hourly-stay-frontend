@@ -16,7 +16,7 @@ const { RangePicker } = DatePicker;
 
 function HourlyOperations({ hotelId }) {
   const [loading, setLoading] = useState(true);
-  const [status, setStatus] = useState("INACTIVE"); 
+  const [status, setStatus] = useState("INACTIVE");
   const [currentWindow, setCurrentWindow] = useState(null);
   const [mode, setMode] = useState("AUTO");
   const [customRange, setCustomRange] = useState([]);
@@ -124,7 +124,7 @@ function HourlyOperations({ hotelId }) {
         {status === 'ACTIVE' && currentWindow && (
           <div style={{ marginTop: 16 }}>
             <Tag color="green" style={{ fontSize: 14, padding: 6 }}>
-              Accepting Guests until: {dayjs(currentWindow.end_datetime).local().format("DD MMM, hh:mm A")}
+              Accepting Guests until: {dayjs(currentWindow.end_datetime).format("DD MMM, hh:mm A")}
             </Tag>
             <div style={{ marginTop: 12 }}>
               <Button danger type="primary" onClick={handleStop}>Stop Operations</Button>

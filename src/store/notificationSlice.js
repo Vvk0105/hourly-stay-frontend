@@ -16,7 +16,11 @@ const notificationSlice = createSlice({
         addNotification(state, action) {
             const exists = state.items.find(item => item.id === action.payload.id);
             if (!exists) {
-                state.items.unshift(action.payload);
+                const notification = {
+                    ...action.payload,
+                    created_at: action.payload.created_at || new Date().toISOString(),
+                };
+                state.items.unshift(notification);
                 if (!action.payload.is_read) {
                     state.unreadCount += 1;
                 }

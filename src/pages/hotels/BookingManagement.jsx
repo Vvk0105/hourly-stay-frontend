@@ -24,6 +24,15 @@ const { Option } = Select;
 const { Title, Text } = Typography;
 const { RangePicker } = DatePicker;
 
+// ID Number character limits based on ID Type
+const ID_LIMITS = {
+  AADHAAR: { maxLength: 12, pattern: /^[0-9]*$/, label: 'Aadhaar (12 digits)' },
+  PAN: { maxLength: 10, pattern: /^[A-Z0-9]*$/i, label: 'PAN (10 characters)' },
+  PASSPORT: { maxLength: 8, pattern: /^[A-Z0-9]*$/i, label: 'Passport (8 characters)' },
+  DRIVING_LICENSE: { maxLength: 16, pattern: /^[A-Z0-9-]*$/i, label: 'Driving License (16 characters)' },
+  VOTER_ID: { maxLength: 10, pattern: /^[A-Z0-9]*$/i, label: 'Voter ID (10 characters)' },
+};
+
 function BookingManagement() {
   const { id } = useParams(); // Only hotel ID needed
   const navigate = useNavigate();
@@ -283,9 +292,17 @@ function BookingManagement() {
       };
 
       if (bookingType === 'NIGHTLY') {
-        // Validate same-day check-in/out for nightly bookings
+        //Validate dates with clear error messages
+        if (!values.check_in_date || !values.check_out_date) {
+          message.error('Please select both check-in and check-out dates');
+          return;
+        }
+        if (values.check_out_date.isBefore(values.check_in_date)) {
+          message.error('Check-out date must be after check-in date');
+          return;
+        }
         if (values.check_in_date.isSame(values.check_out_date, 'day')) {
-          message.error('For nightly bookings, check-out must be on a different date than check-in');
+          message.error('For nightly bookings, check-in and check-out must be on different dates. For same-day stays, use Hourly Booking.');
           return;
         }
 
@@ -392,7 +409,7 @@ function BookingManagement() {
   const handleBookingAction = async (bookingId, action) => {
     try {
       await api.post(`booking/bookings/${bookingId}/action/`, { action });
-      message.success(`${action} successful`);
+      message.success(`${action.replace(/_/g, ' ')} successful`);
       fetchBookings();
       if (hourlyStatus === 'ACTIVE') {
         fetchSlots(); // Refresh hourly visualization
@@ -953,7 +970,7 @@ function BookingManagement() {
             },
             {
               key: 'calendar',
-              label: '📅 Calendar',
+              label: 'Calendar',
               children: (
                 <div>
                   <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
@@ -1191,8 +1208,28 @@ function BookingManagement() {
 
           <Row gutter={16}>
             <Col span={12}>
-              <Form.Item label="ID Type (Optional)" name="guest_id_type">
-                <Select placeholder="Select ID type" allowClear style={{ borderRadius: 6 }}>
+              <Form.Item
+                label="ID Type"
+                name="guest_id_type"
+                rules={[{
+                  validator: (_, value) => {
+                    const idNumber = newBookingForm.getFieldValue('guest_id_number');
+                    if (idNumber && !value) {
+                      return Promise.reject('Please select an ID Type when providing an ID Number');
+                    }
+                    return Promise.resolve();
+                  }
+                }]}
+              >
+                <Select
+                  placeholder="Select ID type"
+                  allowClear
+                  style={{ borderRadius: 6 }}
+                  onChange={() => {
+                    newBookingForm.setFieldsValue({ guest_id_number: '' });
+                    newBookingForm.validateFields(['guest_id_number']);
+                  }}
+                >
                   <Option value="AADHAAR">Aadhaar Card</Option>
                   <Option value="PAN">PAN Card</Option>
                   <Option value="PASSPORT">Passport</Option>
@@ -1202,15 +1239,34 @@ function BookingManagement() {
               </Form.Item>
             </Col>
             <Col span={12}>
-              <Form.Item label="ID Number (Optional)" name="guest_id_number">
-                <Input placeholder="Enter ID number" style={{ borderRadius: 6 }} />
+              <Form.Item
+                label={`ID Number${newBookingForm.getFieldValue('guest_id_type') ? ` (${ID_LIMITS[newBookingForm.getFieldValue('guest_id_type')]?.label || ''})` : ' (Optional)'}`}
+                name="guest_id_number"
+                rules={[{
+                  validator: (_, value) => {
+                    if (!value) return Promise.resolve();
+                    const idType = newBookingForm.getFieldValue('guest_id_type');
+                    if (idType && ID_LIMITS[idType]) {
+                      if (value.length > ID_LIMITS[idType].maxLength) {
+                        return Promise.reject(`${idType.replace(/_/g, ' ')} ID must be at most ${ID_LIMITS[idType].maxLength} characters`);
+                      }
+                    }
+                    return Promise.resolve();
+                  }
+                }]}
+              >
+                <Input
+                  placeholder="Enter ID number"
+                  style={{ borderRadius: 6 }}
+                  maxLength={newBookingForm.getFieldValue('guest_id_type') ? ID_LIMITS[newBookingForm.getFieldValue('guest_id_type')]?.maxLength : undefined}
+                />
               </Form.Item>
             </Col>
           </Row>
 
           <Row gutter={16}>
             <Col span={12}>
-              <Form.Item label="Check In Date" name="check_in_date" rules={[{ required: true }]}>
+              <Form.Item label="Check In Date" name="check_in_date" rules={[{ required: true, message: 'Please select a check-in date' }]}>
                 <DatePicker
                   style={{ width: '100%', borderRadius: 6 }}
                   onChange={(date) => {
@@ -1227,7 +1283,7 @@ function BookingManagement() {
             </Col>
             {bookingType === 'NIGHTLY' && (
               <Col span={12}>
-                <Form.Item label="Check In Time" name="check_in_time" rules={[{ required: true }]}>
+                <Form.Item label="Check In Time" name="check_in_time" rules={[{ required: true, message: 'Please select a check-in time' }]}>
                   <DatePicker picker="time" format="HH:mm" style={{ width: '100%', borderRadius: 6 }} />
                 </Form.Item>
               </Col>
@@ -1237,12 +1293,12 @@ function BookingManagement() {
           {bookingType === 'NIGHTLY' && (
             <Row gutter={16}>
               <Col span={12}>
-                <Form.Item label="Check Out Date" name="check_out_date" rules={[{ required: true }]}>
+                <Form.Item label="Check Out Date" name="check_out_date" rules={[{ required: true, message: 'Please select a check-out date' }]}>
                   <DatePicker style={{ width: '100%', borderRadius: 6 }} />
                 </Form.Item>
               </Col>
               <Col span={12}>
-                <Form.Item label="Check Out Time" name="check_out_time" rules={[{ required: true }]}>
+                <Form.Item label="Check Out Time" name="check_out_time" rules={[{ required: true, message: 'Please select a check-out time' }]}>
                   <DatePicker picker="time" format="HH:mm" style={{ width: '100%', borderRadius: 6 }} />
                 </Form.Item>
               </Col>
@@ -1253,12 +1309,12 @@ function BookingManagement() {
           {bookingType === 'HOURLY' && (
             <Row gutter={16}>
               <Col span={12}>
-                <Form.Item label="Start Time" name="start_time" rules={[{ required: true }]}>
+                <Form.Item label="Start Time" name="start_time" rules={[{ required: true, message: 'Please select a start time' }]}>
                   <DatePicker picker="time" format="HH:mm" style={{ width: '100%', borderRadius: 6 }} />
                 </Form.Item>
               </Col>
               <Col span={12}>
-                <Form.Item label="End Time" name="end_time" rules={[{ required: true }]}>
+                <Form.Item label="End Time" name="end_time" rules={[{ required: true, message: 'Please select an end time' }]}>
                   <DatePicker picker="time" format="HH:mm" style={{ width: '100%', borderRadius: 6 }} />
                 </Form.Item>
               </Col>
@@ -1286,8 +1342,8 @@ function BookingManagement() {
             <Col span={12}>
               <Form.Item label="Rooms" name="room_id">
                 <Select placeholder="Select" style={{ borderRadius: 6 }}>
-                  {rooms.filter(r => r.status === 'AVAILABLE').map(r => (
-                    <Option key={r.id} value={r.id}>{r.room_number}</Option>
+                  {rooms.filter(r => r.current_status === 'CLEAN').map(r => (
+                    <Option key={r.id} value={r.id}>Room {r.room_number}</Option>
                   ))}
                 </Select>
               </Form.Item>

@@ -1,9 +1,12 @@
 import { Table, Button, Tag, Space } from "antd";
 import { EyeTwoTone, EditOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { can } from "../../utils/accessControl";
 
 function HotelTable({ data, loading, bookingMode = false, pagination, onChange }) {
   const navigate = useNavigate();
+  const { user } = useSelector(state => state.auth);
   const safeData = Array.isArray(data) ? data : [];
 
 
@@ -50,10 +53,12 @@ function HotelTable({ data, loading, bookingMode = false, pagination, onChange }
           icon={<EyeTwoTone />}
           onClick={() => navigate(`/hotels/${record.id}`)}
         />
-        <Button
-          icon={<EditOutlined />}
-          onClick={() => navigate(`/hotels/${record.id}/edit`)}
-        />
+        {can(user, 'UPDATE_HOTEL') && (
+          <Button
+            icon={<EditOutlined />}
+            onClick={() => navigate(`/hotels/${record.id}/edit`)}
+          />
+        )}
       </Space>
     )
   };

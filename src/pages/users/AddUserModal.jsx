@@ -80,7 +80,11 @@ function AddUserModal({ open, onClose, role }) {
           </Form.Item>
         )}
 
-        <Form.Item label="Username" name="username" rules={[{ required: true }]}>
+        <Form.Item 
+          label="Username" 
+          name="username" 
+          rules={[{ required: true, message: 'Please enter Username' }]}
+        >
           <Input placeholder="Username" />
         </Form.Item>
 

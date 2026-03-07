@@ -9,9 +9,12 @@ import {
   EyeOutlined, InfoCircleOutlined, DownloadOutlined
 } from "@ant-design/icons";
 import { useParams, useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 import dayjs from "dayjs";
 import api from "../../api/axios";
 import PageHeader from "../../components/common/PageHeader";
+import Can from "../../components/auth/Can";
+import { can } from "../../utils/accessControl";
 
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
@@ -36,7 +39,7 @@ const ID_LIMITS = {
 function BookingManagement() {
   const { id } = useParams(); // Only hotel ID needed
   const navigate = useNavigate();
-
+  const { user } = useSelector(state => state.auth);
 
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -531,20 +534,20 @@ function BookingManagement() {
       key: "action",
       render: (_, r) => (
         <div style={{ display: 'flex', gap: 8 }}>
-          {r.status === 'CONFIRMED' && (
+          {r.status === 'CONFIRMED' && can(user, 'UPDATE_ROOM_STATUS') && (
             <Button type="primary" style={{ backgroundColor: '#333', borderColor: '#333' }} size="small" onClick={() => openCheckInModal(r)}>Check In</Button>
           )}
-          {r.status === 'CHECKED_IN' && (
+          {r.status === 'CHECKED_IN' && can(user, 'UPDATE_ROOM_STATUS') && (
             <Popconfirm title="Confirm Check Out?" onConfirm={() => handleBookingAction(r.id, "CHECK_OUT")}>
               <Button type="primary" style={{ backgroundColor: '#333', borderColor: '#333' }} size="small">Check Out</Button>
             </Popconfirm>
           )}
-          {r.status === 'CONFIRMED' && (
+          {r.status === 'CONFIRMED' && can(user, 'CANCEL_BOOKING') && (
             <Popconfirm title="Cancel Booking?" onConfirm={() => handleBookingAction(r.id, "CANCEL")}>
               <Button type="text" danger icon={<CloseCircleOutlined />} size="small" />
             </Popconfirm>
           )}
-          {['CONFIRMED', 'CHECKED_IN', 'CHECKED_OUT'].includes(r.status) && (
+          {['CONFIRMED', 'CHECKED_IN', 'CHECKED_OUT'].includes(r.status) && can(user, 'VIEW_BOOKINGS') && (
             <Tooltip title="Download Invoice">
               <Button
                 size="small"
@@ -603,16 +606,18 @@ function BookingManagement() {
           <div style={{ color: '#888', marginBottom: 4 }}>Home / Booking Management</div>
           <Title level={3} style={{ margin: 0 }}>Booking Management</Title>
         </div>
-        <Button
-          type="primary"
-          shape="round"
-          size="large"
-          icon={<PlusOutlined />}
-          style={{ backgroundColor: '#fff', color: '#000', border: '1px solid #d9d9d9' }}
-          onClick={() => setIsNewBookingModalOpen(true)}
-        >
-          New Booking
-        </Button>
+        <Can perform="CREATE_WALK_IN">
+          <Button
+            type="primary"
+            shape="round"
+            size="large"
+            icon={<PlusOutlined />}
+            style={{ backgroundColor: '#fff', color: '#000', border: '1px solid #d9d9d9' }}
+            onClick={() => setIsNewBookingModalOpen(true)}
+          >
+            New Booking
+          </Button>
+        </Can>
       </div>
 
       {/* CONTROLS */}
@@ -630,14 +635,16 @@ function BookingManagement() {
         </div>
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-        <div style={{ flex: 1 }}></div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 16, fontWeight: 500, color: '#555' }}>Hourly Booking</span>
-          <Switch checked={hourlyStatus === 'ACTIVE'} onChange={handleHourlySwitch} />
-          <span style={{ color: '#888' }}>{hourlyStatus === 'ACTIVE' ? 'Active' : 'Inactive'}</span>
+      <Can perform="UPDATE_HOTEL_STATUS">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+          <div style={{ flex: 1 }}></div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 16, fontWeight: 500, color: '#555' }}>Hourly Booking</span>
+            <Switch checked={hourlyStatus === 'ACTIVE'} onChange={handleHourlySwitch} />
+            <span style={{ color: '#888' }}>{hourlyStatus === 'ACTIVE' ? 'Active' : 'Inactive'}</span>
+          </div>
         </div>
-      </div>
+      </Can>
 
 
       {/* MAIN CONTENT CARD */}

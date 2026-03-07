@@ -11,6 +11,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../store/authSlice";
+import { can } from "../utils/accessControl";
 
 const { Sider } = Layout;
 const { useBreakpoint } = Grid;
@@ -34,60 +35,54 @@ function Sidebar({ mobileSiderOpen, setMobileSiderOpen }) {
       onClick: () => navigate("/dashboard"),
     },
 
-    user?.role === "SUPER_ADMIN" && {
+    can(user, 'VIEW_USERS') && {
       key: "/users",
       icon: <UserOutlined />,
       label: "Users Management",
       onClick: () => navigate("/users"),
     },
 
-    user?.role === "SUPER_ADMIN" && {
+    (can(user, 'CREATE_STAFF') || user?.role === "SUPER_ADMIN") && {
       key: "/assignandchange",
       icon: <UserOutlined />,
       label: "Assign and Change",
       onClick: () => navigate("/assignandchange"),
     },
-    {
+    
+    can(user, 'VIEW_HOTELS') && {
       key: "/hotels",
       icon: <HomeOutlined />,
       label: "Hotel Management",
       onClick: () => navigate("/hotels"),
     },
 
-    user?.role === "SUPER_ADMIN" && {
+    can(user, 'MANAGE_AMENITIES') && {
       key: "/amenities",
       icon: <SettingOutlined />,
       label: "Amenities",
       onClick: () => navigate("/amenities"),
     },
 
-    user?.role === "SUPER_ADMIN" && {
+    can(user, 'VIEW_PLATFORM_FINANCIALS') && {
       key: "/transactions",
       icon: <DollarOutlined />,
-      label: "Transactions",
+      label: "Platform Transactions",
       onClick: () => navigate("/transactions"),
     },
 
-    user?.role === "HOTEL_MANAGER" && {
+    can(user, 'VIEW_HOTEL_FINANCIALS') && {
       key: "/hotel-manager/transactions",
       icon: <DollarOutlined />,
-      label: "Transactions",
+      label: "Hotel Transactions",
       onClick: () => navigate("/hotel-manager/transactions"),
     },
 
-    {
+    can(user, 'VIEW_BOOKINGS') && {
       key: "/bookings",
       icon: <UserOutlined />,
       label: "Bookings",
       onClick: () => navigate("/bookings"),
     },
-
-    // {
-    //   key: "/settings",
-    //   icon: <SettingOutlined />,
-    //   label: "Settings",
-    //   onClick: () => navigate("/settings"),
-    // },
 
     {
       key: "logout",

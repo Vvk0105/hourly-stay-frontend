@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { Button, Input } from "antd";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
+import Can from "../../components/auth/Can";
 
 function HotelManagement() {
   const [hotels, setHotels] = useState([]);
@@ -70,11 +71,11 @@ function HotelManagement() {
       <PageHeader
         title="Hotel Management"
         actions={
-          <>
+          <Can perform="CREATE_HOTEL">
             <Button onClick={() => navigate("/hotels/add")}>
               + Add Hotel
             </Button>
-          </>
+          </Can>
         }
       />
 

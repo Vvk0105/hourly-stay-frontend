@@ -1,6 +1,7 @@
 import { Table, Button, Tag, Space } from "antd";
 import { EyeTwoTone, EditOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
+import api from "../../api/axios";
 
 function HotelTable({ data, loading, bookingMode = false, pagination, onChange }) {
   const navigate = useNavigate();
@@ -44,18 +45,48 @@ function HotelTable({ data, loading, bookingMode = false, pagination, onChange }
   const actionColumn = {
     title: "Action",
     key: "action",
-    render: (_, record) => (
-      <Space>
-        <Button
-          icon={<EyeTwoTone />}
-          onClick={() => navigate(`/hotels/${record.id}`)}
-        />
-        <Button
-          icon={<EditOutlined />}
-          onClick={() => navigate(`/hotels/${record.id}/edit`)}
-        />
-      </Space>
-    )
+    render: (_, record) => {
+      const isRazorpayXLinked = Boolean(record.razorpayx_contact_id && record.razorpayx_fund_account_id);
+
+      const handleOnboard = async () => {
+        try {
+          await api.post(`property/hotels/${record.id}/razorpayx/onboard/`);
+          // Note: using default antd message here is tricky without importing, 
+          // but we can trust the parent component to refresh or just reload for now
+          // A better way is firing onChange() to fetch data again
+          if (onChange) {
+            // trigger refresh
+            onChange({ current: pagination?.current || 1 });
+          }
+        } catch (error) {
+          console.error("Failed to onboard:", error);
+          const data = error.response?.data;
+          alert(data?.detail || data?.error || "Failed to onboard to RazorpayX.");
+        }
+      };
+
+      return (
+        <Space>
+          <Button
+            icon={<EyeTwoTone />}
+            onClick={() => navigate(`/hotels/${record.id}`)}
+          />
+          <Button
+            icon={<EditOutlined />}
+            onClick={() => navigate(`/hotels/${record.id}/edit`)}
+          />
+          {!bookingMode && (
+            isRazorpayXLinked ? (
+              <Tag color="success">RazorpayX Linked</Tag>
+            ) : (
+              <Button size="small" type="primary" onClick={handleOnboard}>
+                Link RazorpayX
+              </Button>
+            )
+          )}
+        </Space>
+      );
+    }
   };
 
   // Bookings column for Booking Navigation

@@ -151,6 +151,16 @@ const AddHotel = () => {
                     <TextArea rows={3} />
                   </Form.Item>
                 </Col>
+                <Col span={12}>
+                  <Form.Item label="Billing Email" name="email" rules={[{ type: 'email' }]} help="Used for RazorpayX Payout Receipts">
+                    <Input placeholder="admin@hotel.com" />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item label="Billing Phone" name="phone">
+                    <Input placeholder="9999999999" />
+                  </Form.Item>
+                </Col>
               </Row>
             </Card>
 

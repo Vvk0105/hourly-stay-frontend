@@ -122,8 +122,8 @@ function Sidebar({ mobileSiderOpen, setMobileSiderOpen }) {
         placement="left"
         onClose={() => setMobileSiderOpen && setMobileSiderOpen(false)}
         open={mobileSiderOpen}
-        bodyStyle={{ padding: 0 }}
-        width={240}
+        styles={{ body: { padding: 0 } }}
+        size={240}
         closable={false}
       >
         {LogoContent}

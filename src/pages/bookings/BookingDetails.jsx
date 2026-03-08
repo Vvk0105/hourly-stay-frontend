@@ -215,8 +215,7 @@ const BookingDetails = () => {
                         {booking.refund_request && (
                             <Card
                                 title={<Space><InfoCircleOutlined /> Refund Details</Space>}
-                                headStyle={{ backgroundColor: '#fff7e6' }}
-                                bodyStyle={{ backgroundColor: '#fffbe6' }}
+                                styles={{ header: { backgroundColor: '#fff7e6' }, body: { backgroundColor: '#fffbe6' } }}
                             >
                                 <Descriptions column={{ xs: 1, sm: 2 }}>
                                     <Descriptions.Item label="Refund Status">

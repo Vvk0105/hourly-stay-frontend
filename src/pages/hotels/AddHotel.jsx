@@ -295,9 +295,6 @@ const AddHotel = () => {
               <Form.Item label="Commission (%)" name="commission_percent" initialValue={15}>
                 <InputNumber min={0} max={100} style={{ width: '100%' }} placeholder="15" />
               </Form.Item>
-              <Form.Item label="Razorpay Account ID" name="razorpay_account_id" help="Optional: For split settlement">
-                <Input placeholder="acc_xxxxxxxxxxxxx" />
-              </Form.Item>
             </Card>
 
             <Card title="Payout & Banking" style={{ marginBottom: 24 }}>
@@ -400,8 +397,20 @@ const AddHotel = () => {
 
             <Card title="Cover Image">
               <Form.Item name="images" valuePropName="fileList" getValueFromEvent={normFile}>
-                <Upload listType="picture-card" beforeUpload={() => false} multiple>
-                  <div><PlusOutlined /><div style={{ marginTop: 8 }}>Upload Images</div></div>
+                <Upload 
+                  listType="picture-card" 
+                  beforeUpload={(file) => {
+                    const isLt5M = file.size / 1024 / 1024 <= 5;
+                    if (!isLt5M) {
+                      message.error('Image must be smaller than 5MB!');
+                      return Upload.LIST_IGNORE;
+                    }
+                    return false;
+                  }} 
+                  multiple
+                  accept="image/*"
+                >
+                  <div><PlusOutlined /><div style={{ marginTop: 8 }}>Upload Images<br/>(Max 5MB)</div></div>
                 </Upload>
               </Form.Item>
             </Card>

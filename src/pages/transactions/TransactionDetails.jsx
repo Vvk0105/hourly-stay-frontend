@@ -310,7 +310,7 @@ const TransactionDetails = () => {
                                         </Tag>
                                     </Descriptions.Item>
                                     <Descriptions.Item label="Method">
-                                        {payout.method?.replace(/_/g, ' ')}
+                                        {payout.method?.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ')}
                                     </Descriptions.Item>
                                     {payout.payout_reference && (
                                         <Descriptions.Item label="Reference ID">
@@ -349,11 +349,6 @@ const TransactionDetails = () => {
                                 <Descriptions.Item label="Fixed Commission Amount">
                                     ₹{parseFloat(transaction.hotel_details.fixed_commission_amount || 0).toFixed(2)}
                                 </Descriptions.Item>
-                                {transaction.hotel_details.razorpay_account_id && (
-                                    <Descriptions.Item label="Razorpay Account ID" span={3}>
-                                        <code>{transaction.hotel_details.razorpay_account_id}</code>
-                                    </Descriptions.Item>
-                                )}
                             </Descriptions>
                         </Card>
                     </Col>

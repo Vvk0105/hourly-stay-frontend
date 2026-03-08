@@ -75,7 +75,7 @@ const validationSchema = yup.object().shape({
     then: (schema) => schema.required('GSTIN is required if registered'),
     otherwise: (schema) => schema.notRequired(),
   }),
-  bank_account_number: yup.string().required("Bank Account Number is required"),
+  bank_account_number: yup.string().nullable(),
 });
 
 const EditHotel = () => {
@@ -97,7 +97,7 @@ const EditHotel = () => {
     formData.append("image", file);
 
     try {
-      const res = await api.post(`property / hotels / ${id} /images/`, formData);
+      const res = await api.post(`property/hotels/${id}/images/`, formData);
       message.success("Image uploaded!");
       setImages([...images, res.data]);
       onSuccess("Ok");
@@ -109,7 +109,7 @@ const EditHotel = () => {
 
   const handleDeleteImage = async (imageId) => {
     try {
-      await api.delete(`property / hotels / images / ${imageId}/`);
+      await api.delete(`property/hotels/images/${imageId}/`);
       message.success("Image deleted");
       setImages(images.filter(img => img.id !== imageId));
     } catch (err) {
@@ -304,8 +304,16 @@ const EditHotel = () => {
                 customRequest={handleUpload}
                 showUploadList={false}
                 accept="image/*"
+                beforeUpload={(file) => {
+                  const isLt5M = file.size / 1024 / 1024 <= 5;
+                  if (!isLt5M) {
+                    message.error('Image must be smaller than 5MB!');
+                    return Upload.LIST_IGNORE;
+                  }
+                  return true;
+                }}
               >
-                <Button icon={<UploadOutlined />}>Upload Image</Button>
+                <Button icon={<UploadOutlined />}>Upload Image (Max 5MB)</Button>
               </Upload>
 
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, marginTop: 16 }}>
@@ -481,10 +489,6 @@ const EditHotel = () => {
                       <InputNumber min={0} style={{ width: '100%' }} placeholder="500" />
                     </Form.Item>
                   )}
-
-                  <Form.Item label="Razorpay Account ID" name="razorpay_account_id" tooltip="Linked account ID for split settlement">
-                    <Input placeholder="acc_XXXXXXXXXXXXXX" />
-                  </Form.Item>
                 </>
               )}
             </Card>
@@ -509,7 +513,6 @@ const EditHotel = () => {
               <Form.Item
                 label="Bank Account Number"
                 name="bank_account_number"
-                rules={[{ required: true, message: 'Please enter bank account number' }]}
               >
                 <Input placeholder="Enter account number" />
               </Form.Item>

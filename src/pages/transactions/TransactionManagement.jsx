@@ -115,8 +115,8 @@ const TransactionManagement = () => {
         if (dates && dates.length === 2) {
             setFilters(prev => ({
                 ...prev,
-                date_from: dates[0].toISOString(),
-                date_to: dates[1].toISOString()
+                date_from: dates[0].startOf('day').toISOString(),
+                date_to: dates[1].endOf('day').toISOString()
             }));
         } else {
             setFilters(prev => ({ ...prev, date_from: null, date_to: null }));
@@ -129,7 +129,7 @@ const TransactionManagement = () => {
         setPagination(prev => ({ ...prev, current: 1 }));
     };
 
-    const handleTableChange = (newPagination) => {
+    const handleTableChange = (newPagination) =>     {
         setPagination(newPagination);
     };
 

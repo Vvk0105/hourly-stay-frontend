@@ -2,11 +2,13 @@ import { Table, Button, Tag, Space } from "antd";
 import { EyeTwoTone, EditOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/axios";
+import { useSelector } from "react-redux";
+import { can } from "../../utils/accessControl";
 
 function HotelTable({ data, loading, bookingMode = false, pagination, onChange }) {
   const navigate = useNavigate();
+  const { user } = useSelector(state => state.auth);
   const safeData = Array.isArray(data) ? data : [];
-
 
   // Common columns for both modes
   const commonColumns = [
@@ -41,7 +43,7 @@ function HotelTable({ data, loading, bookingMode = false, pagination, onChange }
     },
   ];
 
-  // Action column for Hotel Management (View/Edit)
+  // Action column for  Management (View/Edit)
   const actionColumn = {
     title: "Action",
     key: "action",
@@ -71,10 +73,12 @@ function HotelTable({ data, loading, bookingMode = false, pagination, onChange }
             icon={<EyeTwoTone />}
             onClick={() => navigate(`/hotels/${record.id}`)}
           />
+          {can(user, 'UPDATE.HOTEL') && (
           <Button
-            icon={<EditOutlined />}
-            onClick={() => navigate(`/hotels/${record.id}/edit`)}
-          />
+              icon={<EditOutlined />}
+              onClick={() => navigate(`/hotels/${record.id}/edit`)}
+            />
+          )}
           {!bookingMode && (
             isRazorpayXLinked ? (
               <Tag color="success">RazorpayX Linked</Tag>
@@ -89,7 +93,7 @@ function HotelTable({ data, loading, bookingMode = false, pagination, onChange }
     }
   };
 
-  // Bookings column for Booking Navigation
+  // Bookings column for booking Navigation
   const bookingsColumn = {
     title: "Bookings",
     key: "bookings",
@@ -115,12 +119,15 @@ function HotelTable({ data, loading, bookingMode = false, pagination, onChange }
       loading={loading}
       pagination={{
         ...pagination,
+        onChange: (page) => {
+          if (onChange) {
+            onChange({ current: page });
+          }
+        },
         placement: ["bottomCenter"],
       }}
-      onChange={onChange}
-
     />
   );
 }
 
-export default HotelTable;
+export default  Table;

@@ -185,7 +185,7 @@ function HourlyOperations({ hotelId }) {
           </Title>
           <div style={{ overflowX: 'auto', paddingBottom: 10 }}>
             {slotsData?.rooms.map(room => (
-              <Card key={room.id} size="small" style={{ marginBottom: 16 }} bodyStyle={{ padding: 12 }}>
+              <Card key={room.id} size="small" style={{ marginBottom: 16 }} styles={{ body: { padding: 12 } }}>
                 <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
                   <Tag color="geekblue" style={{ fontSize: 14 }}>Room {room.number}</Tag>
                   <Text type="secondary" style={{ marginRight: 8 }}>{room.type}</Text>

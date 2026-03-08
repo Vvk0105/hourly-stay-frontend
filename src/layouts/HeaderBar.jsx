@@ -31,7 +31,7 @@ function HeaderBar({ setMobileSiderOpen }) {
       </div>
 
       <div className="header-right" style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
-        <Dropdown dropdownRender={() => <NotificationDropdown />} trigger={['click']} placement="bottomRight">
+        <Dropdown popupRender={() => <NotificationDropdown />} trigger={['click']} placement="bottomRight">
           <Badge count={unreadCount} size="small" offset={[2, 0]}>
             <BellOutlined className="icon" style={{ fontSize: 20, cursor: 'pointer' }} />
           </Badge>

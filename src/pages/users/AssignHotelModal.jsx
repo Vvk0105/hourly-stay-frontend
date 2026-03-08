@@ -1,21 +1,29 @@
 import { Modal, Form, Select, Button, notification } from "antd";
 import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 import api from "../../api/axios";
 
 function AssignHotelModal({ open, onClose, user }) {
+  const { user: currentUser } = useSelector((state) => state.auth);
   const [form] = Form.useForm();
-  const [hotels, setHotels] = useState([]);
+  const [hotels, setHotels] = useState(currentUser?.hotels || []);
   const [loading, setLoading] = useState(false);
 
   const isMulti = user.role === "GROUP_ADMIN";
 
   useEffect(() => {
-    api.get("property/hotels/").then(res => setHotels(res.data));
-    
-    form.setFieldsValue({
-      hotels: user.hotels.map(h => h.id) || []
-    });
-  }, [user]);
+    if (open) {
+      api.get("property/hotels/").then(res => {
+        if (res.data.results && res.data.results.length > 0) {
+          setHotels(res.data.results);
+        }
+      });
+      
+      form.setFieldsValue({
+        hotels: (user.hotels || []).map(h => h.id)
+      });
+    }
+  }, [user, open]);
 
   const handleSubmit = async (values) => {
     setLoading(true);
@@ -63,6 +71,8 @@ function AssignHotelModal({ open, onClose, user }) {
       <Form form={form} onFinish={handleSubmit} layout="vertical">
         <Form.Item name="hotels" label="Hotel" rules={[{ required: true }]}>
           <Select
+            id="hotels"
+            name="hotels"
             mode={isMulti ? "multiple" : undefined}
             placeholder="Select Hotel"
           >

@@ -1,8 +1,24 @@
 import { Table, Space, Button } from "antd";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import RoleTag from "../../components/common/RoleTag";
+import { useSelector } from "react-redux";
+import { can, ROLES } from "../../utils/accessControl";
 
-function UserTable({ data, loading, pagination, onChange, onDelete, onEdit }) {  
+function UserTable({ data, loading, pagination, onChange, onDelete, onEdit }) {
+  const { user } = useSelector(state => state.auth);
+
+  // Helper to check if current user can manage a targeted record
+  const canManage = (targetRecord) => {
+    if (user.role === ROLES.SUPER_ADMIN) return true;
+    
+    // Check if they share any hotel_id
+    const sharedHotel = user.hotels?.some(h => 
+      targetRecord.hotels?.some(targetH => targetH.id === (h.id || h))
+    );
+    
+    return sharedHotel;
+  };
+
   const columns = [
     {
       title: "Name",
@@ -30,16 +46,21 @@ function UserTable({ data, loading, pagination, onChange, onDelete, onEdit }) {
       title: "Action",
       render: (_, record) => (
         <Space>
-          <Button 
-          type="text" 
-          icon={<EditOutlined />} 
-          onClick={() => onEdit(record.uuid)}
-          />
-          <Button type="text" 
-          danger 
-          icon={<DeleteOutlined />}
-          onClick={()=> {onDelete(record.uuid)}} 
-          />
+          {can(user, 'UPDATE_USER') && canManage(record) && (
+            <Button 
+              type="text" 
+              icon={<EditOutlined />} 
+              onClick={() => onEdit(record.uuid)}
+            />
+          )}
+          {can(user, 'DELETE_USER') && canManage(record) && (
+            <Button 
+              type="text" 
+              danger 
+              icon={<DeleteOutlined />}
+              onClick={()=> {onDelete(record.uuid)}} 
+            />
+          )}
         </Space>
       ),
     },

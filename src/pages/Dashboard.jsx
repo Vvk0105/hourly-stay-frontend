@@ -11,6 +11,7 @@ import {
     CalendarOutlined
 } from "@ant-design/icons";
 import { logout } from "../store/authSlice";
+import { can } from "../utils/accessControl";
 import "./Dashboard.css";
 
 const { Title, Text } = Typography;
@@ -25,21 +26,33 @@ export default function Dashboard() {
         navigate("/");
     };
 
-    // Determine quick actions based on role
+    // Determine quick actions based on permissions
     const getQuickActions = () => {
-        const actions = [
-            { label: 'Manage Hotels', icon: <ShopOutlined />, path: '/hotels' },
-            { label: 'My Settings', icon: <SettingOutlined />, path: '/settings' },
-        ];
+        const actions = [];
+
+        if (can(user, 'VIEW_USERS')) {
+            actions.push({ label: 'User Management', icon: <UserOutlined />, path: '/users' });
+        }
+
+        if (can(user, 'VIEW_HOTELS')) {
+            const hotel = user.hotels?.[0];
+            const hotelId = typeof hotel === 'object' ? hotel.id : hotel;
+            const path = (hotelId && user.role !== 'SUPER_ADMIN') ? `/hotels/${hotelId}` : '/hotels';
+            actions.push({ label: 'Manage Hotels', icon: <ShopOutlined />, path });
+        }
 
         if (user?.role === 'SUPER_ADMIN') {
-            actions.unshift({ label: 'User Management', icon: <UserOutlined />, path: '/users' });
             actions.push({ label: 'System Health', icon: <BarChartOutlined />, path: '/assignandchange' });
         }
 
-        if (user?.role === 'HOTEL_MANAGER') {
-            actions.unshift({ label: 'Bookings', icon: <CalendarOutlined />, path: '/bookings/1' });
+        if (can(user, 'VIEW_BOOKINGS')) {
+             const hotel = user.hotels?.[0];
+             const hotelId = typeof hotel === 'object' ? hotel.id : hotel;
+             const path = (hotelId && user.role !== 'SUPER_ADMIN') ? `/bookings/${hotelId}` : '/bookings';
+             actions.push({ label: 'Bookings', icon: <CalendarOutlined />, path });
         }
+
+        actions.push({ label: 'My Settings', icon: <SettingOutlined />, path: '/settings' });
 
         return actions;
     };

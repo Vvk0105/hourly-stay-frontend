@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { Button, Input } from "antd";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
+import Can from "../../components/auth/Can";
 
 function HotelManagement() {
   const [hotels, setHotels] = useState([]);
@@ -18,10 +19,11 @@ function HotelManagement() {
   });
   const user = useSelector((state) => state.auth.user);
 
-  // Role-based navigation: Hotel Managers auto-redirect to their hotel
+  // Role-based navigation: Hotel Managers and Front Desk auto-redirect to their hotel
   useEffect(() => {
-    if (user?.role === "HOTEL_MANAGER") {
-      const hotelId = user.hotels?.[0];
+    if (user?.role === "HOTEL_MANAGER" || user?.role === "FRONT_DESK") {
+      const hotel = user.hotels?.[0];
+      const hotelId = typeof hotel === 'object' ? hotel.id : hotel;
       if (hotelId) {
         navigate(`/hotels/${hotelId}`);
       }
@@ -51,8 +53,8 @@ function HotelManagement() {
 
 
   useEffect(() => {
-    // Only fetch hotels if user is not a Hotel Manager (they get redirected)
-    if (user?.role !== "HOTEL_MANAGER") {
+    // Only fetch hotels if user is not a Hotel Manager or Front Desk (they get redirected)
+    if (user?.role !== "HOTEL_MANAGER" && user?.role !== "FRONT_DESK") {
       const timer = setTimeout(() => {
         fetchHotels(1);
       }, 300);
@@ -60,8 +62,8 @@ function HotelManagement() {
     }
   }, [search, user]);
 
-  // Don't render anything for Hotel Managers (they're being redirected)
-  if (user?.role === "HOTEL_MANAGER") {
+  // Don't render anything for Hotel Managers/Front Desk (they're being redirected)
+  if (user?.role === "HOTEL_MANAGER" || user?.role === "FRONT_DESK") {
     return null;
   }
 
@@ -70,11 +72,11 @@ function HotelManagement() {
       <PageHeader
         title="Hotel Management"
         actions={
-          <>
+          <Can perform="CREATE_HOTEL">
             <Button onClick={() => navigate("/hotels/add")}>
               + Add Hotel
             </Button>
-          </>
+          </Can>
         }
       />
 

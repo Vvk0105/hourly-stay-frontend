@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 import { Breadcrumb, Button, Spin, Tag, message, Modal, Form, Input, InputNumber, Row, Col, Card, Divider, Typography, Switch, Select, Image } from "antd";
 import { HomeOutlined, EditOutlined, DeleteOutlined, RightOutlined, PlusOutlined } from "@ant-design/icons";
 import api from "../../api/axios";
 import { getImageUrl } from "../../utils/imageUtils";
+import Can from "../../components/auth/Can";
 import "./HotelDetails.css";
 
 const { TextArea } = Input;
@@ -19,6 +21,7 @@ const THUMB_3 = "https://images.unsplash.com/photo-1584132967334-10e028bd69f7?q=
 function HotelDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useSelector(state => state.auth);
   const [hotel, setHotel] = useState(null);
   const [amenities, setAmenities] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -128,17 +131,21 @@ function HotelDetails() {
           <h1 className="hd-title" style={{ marginBottom: 8 }}>{hotel.name}</h1>
 
         </div>
-        <div>
-          <EditOutlined
-            className="hd-action-icon"
-            onClick={() => navigate(`/hotels/${id}/edit`)}
-            title="Edit Hotel"
-          />
-          <DeleteOutlined
-            className="hd-action-icon danger"
-            onClick={() => message.warning("Delete functionality not implemented yet")}
-            title="Delete Hotel"
-          />
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <Can perform="UPDATE_HOTEL">
+            <EditOutlined
+              className="hd-action-icon"
+              onClick={() => navigate(`/hotels/${id}/edit`)}
+              title="Edit Hotel"
+            />
+          </Can>
+          <Can perform="SUPER_ADMIN">
+            <DeleteOutlined
+              className="hd-action-icon danger"
+              onClick={() => message.warning("Delete functionality not implemented yet")}
+              title="Delete Hotel"
+            />
+          </Can>
         </div>
       </div>
 
@@ -264,13 +271,15 @@ function HotelDetails() {
       {/* Categories Section */}
       <div className="hd-section-header">
         <h2 className="hd-section-title">Categories</h2>
-        <Button
-          className="hd-add-btn"
-          icon={<PlusOutlined />}
-          onClick={() => setIsModalVisible(true)}
-        >
-          Add Category
-        </Button>
+        <Can perform="MANAGE_ROOMS">
+          <Button
+            className="hd-add-btn"
+            icon={<PlusOutlined />}
+            onClick={() => setIsModalVisible(true)}
+          >
+            Add Category
+          </Button>
+        </Can>
       </div>
 
       <div className="hd-categories-grid">

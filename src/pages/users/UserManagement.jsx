@@ -6,6 +6,7 @@ import api from "../../api/axios";
 import { Button, notification, Modal } from "antd";
 import AddUserModal  from "./AddUserModal"
 import EditUserModal from "./EditUserModal";
+import Can from "../../components/auth/Can";
 
 function UserManagement() {
   const [editUserId, setEditUserId] = useState(null);
@@ -90,18 +91,27 @@ function UserManagement() {
       title="User Management" 
       actions={
           <>
-            <Button onClick={() => setOpenRole("GROUP_ADMIN")}>
-              + Group Admin
-            </Button>
-            <Button onClick={() => setOpenRole("HOTEL_MANAGER")}>
-              + Hotel Manager
-            </Button>
-            <Button onClick={() => setOpenRole("HOTEL_STAFF")}>
-              + Hotel Staff
-            </Button>
-            <Button onClick={() => setOpenRole("SUPPORT")}>
-              + Support Agent
-            </Button>
+            <Can perform="CREATE_GROUP_ADMIN">
+              <Button onClick={() => setOpenRole("GROUP_ADMIN")}>
+                + Group Admin
+              </Button>
+            </Can>
+            <Can perform="CREATE_HOTEL_MANAGER">
+              <Button onClick={() => setOpenRole("HOTEL_MANAGER")}>
+                + Hotel Manager
+              </Button>
+            </Can>
+            <Can perform="CREATE_STAFF">
+              <Button onClick={() => setOpenRole("FRONT_DESK")}>
+                + Hotel Staff
+              </Button>
+            </Can>
+            {/* Support Agents are usually platform-level, restricting to Super Admin for now via array if needed, but using role directly if simpler */}
+            <Can perform="CREATE_GROUP_ADMIN"> 
+              <Button onClick={() => setOpenRole("SUPPORT")}>
+                + Support Agent
+              </Button>
+            </Can>
           </>
         }
       />

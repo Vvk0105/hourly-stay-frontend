@@ -58,24 +58,24 @@ function HotelForm({ onCancel, onSuccess }) {
         name="name"
         rules={[{ required: true }]}
       >
-        <Input />
+        <Input id="name" name="name" />
       </Form.Item>
 
       <Form.Item label="Address" name="address" rules={[{ required: true }]}>
-        <Input />
+        <Input id="address" name="address" />
       </Form.Item>
 
       <div style={{ display: "flex", gap: 16 }}>
         <Form.Item label="City" name="city" rules={[{ required: true }]}>
-          <Input />
+          <Input id="city" name="city" />
         </Form.Item>
 
         <Form.Item label="State" name="state" rules={[{ required: true }]}>
-          <Input />
+          <Input id="state" name="state" />
         </Form.Item>
 
         <Form.Item label="Zip Code" name="zip_code">
-          <Input />
+          <Input id="zip_code" name="zip_code" />
         </Form.Item>
       </div>
 
@@ -86,6 +86,8 @@ function HotelForm({ onCancel, onSuccess }) {
         tooltip="All booking times will be displayed in this timezone"
       >
         <Select
+          id="timezone"
+          name="timezone"
           placeholder="Select hotel timezone"
           showSearch
           filterOption={(input, option) =>
@@ -127,7 +129,7 @@ function HotelForm({ onCancel, onSuccess }) {
       </div>
 
       <Form.Item label="Description" name="description">
-        <Input.TextArea rows={4} />
+        <Input.TextArea id="description" name="description" rows={4} />
       </Form.Item>
 
       <div style={{ display: "flex", gap: 12 }}>

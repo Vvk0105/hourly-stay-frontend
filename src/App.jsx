@@ -46,58 +46,55 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Login />} />
+        
+        {/* Auth-only routes */}
         <Route element={<ProtectedRoute />}>
-          <Route
-            path="/dashboard"
-            element={
-              <MainLayout>
-                <Dashboard />
-              </MainLayout>
-            } />
+          <Route path="/dashboard" element={<MainLayout><Dashboard /></MainLayout>} />
+          <Route path="/notifications" element={<MainLayout><NotificationsPage /></MainLayout>} />
         </Route>
-        <Route
-          path="/users"
-          element={
-            <MainLayout>
-              <UserManagement />
-            </MainLayout>
-          }
-        />
-        <Route
-          path="/assignandchange"
-          element={
-            <MainLayout>
-              <AssignChangePage />
-            </MainLayout>
-          }
-        />
-        <Route
-          path="/hotels"
-          element={
-            <MainLayout>
-              <HotelManagement />
-            </MainLayout>
-          }
-        />
-        <Route path="/hotels/add" element={<MainLayout><AddHotel /></MainLayout>} />
-        <Route path="/hotels/:id" element={<MainLayout><HotelDetails /></MainLayout>} />
-        <Route path="/hotels/:id/rooms/:roomId" element={<MainLayout><RoomDetails /></MainLayout>} />
-        <Route path="/hotels/:id/add-room-type" element={<MainLayout><AddRoomType /></MainLayout>} />
-        <Route path="/hotels/:id/room-types/:typeId/edit" element={<MainLayout><EditRoomType /></MainLayout>} />
-        <Route path="/hotels/:id/add-physical-room" element={<MainLayout><AddPhysicalRoom /></MainLayout>} />
-        <Route path="/hotels/:id/edit" element={<MainLayout><EditHotel /></MainLayout>} />
-        <Route path="/hotels/:id/booking-calendar" element={<MainLayout><BookingCalendar /></MainLayout>} />
-        <Route path="/hotels/:id/categories/:categoryId" element={<MainLayout><CategoryDetails /></MainLayout>} />
-        <Route path="/amenities" element={<MainLayout><AmenityManagement /></MainLayout>} />
-        <Route path="/bookings/:id" element={<MainLayout><BookingManagement /></MainLayout>} />
-        <Route path="/bookings" element={<MainLayout><BookingHotelList /></MainLayout>} />
-        <Route path="/booking-details/:id" element={<MainLayout><BookingDetails /></MainLayout>} />
 
-        <Route path="/transactions" element={<MainLayout><TransactionManagement /></MainLayout>} />
-        <Route path="/transactions/:bookingId" element={<MainLayout><TransactionDetails /></MainLayout>} />
-        <Route path="/hotel-manager/transactions" element={<MainLayout><HotelManagerTransactionManagement /></MainLayout>} />
+        {/* User Management */}
+        <Route element={<ProtectedRoute perform="VIEW_USERS" />}>
+          <Route path="/users" element={<MainLayout><UserManagement /></MainLayout>} />
+          <Route path="/assignandchange" element={<MainLayout><AssignChangePage /></MainLayout>} />
+        </Route>
 
-        <Route path="/notifications" element={<MainLayout><NotificationsPage /></MainLayout>} />
+        {/* Hotel Management */}
+        <Route element={<ProtectedRoute perform="VIEW_HOTELS" />}>
+          <Route path="/hotels" element={<MainLayout><HotelManagement /></MainLayout>} />
+          <Route path="/hotels/add" element={<MainLayout><AddHotel /></MainLayout>} />
+          <Route path="/hotels/:id" element={<MainLayout><HotelDetails /></MainLayout>} />
+          <Route path="/hotels/:id/rooms/:roomId" element={<MainLayout><RoomDetails /></MainLayout>} />
+          <Route path="/hotels/:id/add-room-type" element={<MainLayout><AddRoomType /></MainLayout>} />
+          <Route path="/hotels/:id/room-types/:typeId/edit" element={<MainLayout><EditRoomType /></MainLayout>} />
+          <Route path="/hotels/:id/add-physical-room" element={<MainLayout><AddPhysicalRoom /></MainLayout>} />
+          <Route path="/hotels/:id/edit" element={<MainLayout><EditHotel /></MainLayout>} />
+          <Route path="/hotels/:id/booking-calendar" element={<MainLayout><BookingCalendar /></MainLayout>} />
+          <Route path="/hotels/:id/categories/:categoryId" element={<MainLayout><CategoryDetails /></MainLayout>} />
+        </Route>
+
+        {/* Miscellaneous Ops */}
+        <Route element={<ProtectedRoute perform="MANAGE_AMENITIES" />}>
+           <Route path="/amenities" element={<MainLayout><AmenityManagement /></MainLayout>} />
+        </Route>
+
+        {/* Bookings */}
+        <Route element={<ProtectedRoute perform="VIEW_BOOKINGS" />}>
+          <Route path="/bookings/:id" element={<MainLayout><BookingManagement /></MainLayout>} />
+          <Route path="/bookings" element={<MainLayout><BookingHotelList /></MainLayout>} />
+          <Route path="/booking-details/:id" element={<MainLayout><BookingDetails /></MainLayout>} />
+        </Route>
+
+        {/* Financials (Platform) */}
+        <Route element={<ProtectedRoute perform="VIEW_PLATFORM_FINANCIALS" />}>
+          <Route path="/transactions" element={<MainLayout><TransactionManagement /></MainLayout>} />
+          <Route path="/transactions/:bookingId" element={<MainLayout><TransactionDetails /></MainLayout>} />
+        </Route>
+
+        {/* Financials (Hotel) */}
+        <Route element={<ProtectedRoute perform="VIEW_HOTEL_FINANCIALS" />}>
+          <Route path="/hotel-manager/transactions" element={<MainLayout><HotelManagerTransactionManagement /></MainLayout>} />
+        </Route>
       </Routes>
     </BrowserRouter>
   )

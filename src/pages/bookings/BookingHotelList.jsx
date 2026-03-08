@@ -13,10 +13,11 @@ function BookingHotelList() {
     const navigate = useNavigate();
     const user = useSelector((state) => state.auth.user);
 
-    // Role-based navigation: Hotel Managers auto-redirect to their bookings
+    // Role-based navigation: Hotel Managers and Front Desk auto-redirect to their bookings
     useEffect(() => {
-        if (user?.role === "HOTEL_MANAGER") {
-            const hotelId = user.hotels?.[0];
+        if (user?.role === "HOTEL_MANAGER" || user?.role === "FRONT_DESK") {
+            const hotel = user.hotels?.[0];
+            const hotelId = typeof hotel === 'object' ? hotel.id : hotel;
             if (hotelId) {
                 navigate(`/bookings/${hotelId}`);
             }
@@ -37,8 +38,8 @@ function BookingHotelList() {
     };
 
     useEffect(() => {
-        // Only fetch hotels if user is not a Hotel Manager (they get redirected)
-        if (user?.role !== "HOTEL_MANAGER") {
+        // Only fetch hotels if user is not a Hotel Manager or Front Desk (they get redirected)
+        if (user?.role !== "HOTEL_MANAGER" && user?.role !== "FRONT_DESK") {
             const timer = setTimeout(() => {
                 fetchHotels();
             }, 300);
@@ -46,8 +47,8 @@ function BookingHotelList() {
         }
     }, [search, user]);
 
-    // Don't render anything for Hotel Managers (they're being redirected)
-    if (user?.role === "HOTEL_MANAGER") {
+    // Don't render anything for Hotel Managers/Front Desk (they're being redirected)
+    if (user?.role === "HOTEL_MANAGER" || user?.role === "FRONT_DESK") {
         return null;
     }
 

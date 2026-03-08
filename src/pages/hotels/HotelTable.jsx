@@ -43,21 +43,20 @@ function HotelTable({ data, loading, bookingMode = false, pagination, onChange }
     },
   ];
 
-  // Action column for  Management (View/Edit)
+  // Action column for Hotel Management (View/Edit)
   const actionColumn = {
     title: "Action",
     key: "action",
     render: (_, record) => {
-      const isRazorpayXLinked = Boolean(record.razorpayx_contact_id && record.razorpayx_fund_account_id);
+      const isRazorpayXLinked = Boolean(
+        record.razorpayx_contact_id && record.razorpayx_fund_account_id
+      );
 
       const handleOnboard = async () => {
         try {
           await api.post(`property/hotels/${record.id}/razorpayx/onboard/`);
-          // Note: using default antd message here is tricky without importing, 
-          // but we can trust the parent component to refresh or just reload for now
-          // A better way is firing onChange() to fetch data again
+
           if (onChange) {
-            // trigger refresh
             onChange({ current: pagination?.current || 1 });
           }
         } catch (error) {
@@ -69,16 +68,21 @@ function HotelTable({ data, loading, bookingMode = false, pagination, onChange }
 
       return (
         <Space>
+          {/* View Button */}
           <Button
             icon={<EyeTwoTone />}
             onClick={() => navigate(`/hotels/${record.id}`)}
           />
-          {can(user, 'UPDATE.HOTEL') && (
-          <Button
+
+          {/* Edit Button with Permission */}
+          {can(user, "UPDATE_HOTEL") && (
+            <Button
               icon={<EditOutlined />}
               onClick={() => navigate(`/hotels/${record.id}/edit`)}
             />
           )}
+
+          {/* RazorpayX Link Status */}
           {!bookingMode && (
             isRazorpayXLinked ? (
               <Tag color="success">RazorpayX Linked</Tag>
@@ -93,7 +97,7 @@ function HotelTable({ data, loading, bookingMode = false, pagination, onChange }
     }
   };
 
-  // Bookings column for booking Navigation
+  // Bookings column for Booking Navigation
   const bookingsColumn = {
     title: "Bookings",
     key: "bookings",
@@ -119,15 +123,12 @@ function HotelTable({ data, loading, bookingMode = false, pagination, onChange }
       loading={loading}
       pagination={{
         ...pagination,
-        onChange: (page) => {
-          if (onChange) {
-            onChange({ current: page });
-          }
-        },
         placement: ["bottomCenter"],
       }}
+      onChange={onChange}
+
     />
   );
 }
 
-export default  Table;
+export default HotelTable;

@@ -314,6 +314,17 @@ const TransactionManagement = () => {
             )
         },
         {
+            title: 'Payment Status',
+            dataIndex: 'payment_status',
+            key: 'payment_status',
+            width: 130,
+            render: (status) => status ? (
+                <Tag color={status === 'SUCCESS' ? 'green' : status === 'FAILED' ? 'red' : status === 'CREATED' ? 'blue' : 'default'}>
+                    {status}
+                </Tag>
+            ) : <Tag color="default">N/A</Tag>
+        },
+        {
             title: 'Payout Status',
             dataIndex: ['payout', 'status'],
             key: 'payout_status',
@@ -322,7 +333,7 @@ const TransactionManagement = () => {
                 <Tag color={getPayoutStatusColor(status)}>
                     {status}
                 </Tag>
-            ) : '-'
+            ) : <Tag color="default">N/A</Tag>
         },
         {
             title: 'Refund',

@@ -53,7 +53,15 @@ function Sidebar({ mobileSiderOpen, setMobileSiderOpen }) {
       key: "/hotels",
       icon: <HomeOutlined />,
       label: "Hotel Management",
-      onClick: () => navigate("/hotels"),
+      onClick: () => {
+        const hotel = user.hotels?.[0];
+        const hotelId = typeof hotel === 'object' ? hotel.id : hotel;
+        if (hotelId) {
+          navigate(`/hotels/${hotelId}`);
+        } else {
+          navigate("/hotels");
+        }
+      },
     },
 
     can(user, 'MANAGE_AMENITIES') && {
@@ -81,7 +89,15 @@ function Sidebar({ mobileSiderOpen, setMobileSiderOpen }) {
       key: "/bookings",
       icon: <UserOutlined />,
       label: "Bookings",
-      onClick: () => navigate("/bookings"),
+      onClick: () => {
+        const hotel = user.hotels?.[0];
+        const hotelId = typeof hotel === 'object' ? hotel.id : hotel;
+        if (hotelId) {
+          navigate(`/bookings/${hotelId}`);
+        } else {
+          navigate("/bookings");
+        }
+      },
     },
 
     {

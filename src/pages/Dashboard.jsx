@@ -35,7 +35,10 @@ export default function Dashboard() {
         }
 
         if (can(user, 'VIEW_HOTELS')) {
-            actions.push({ label: 'Manage Hotels', icon: <ShopOutlined />, path: '/hotels' });
+            const hotel = user.hotels?.[0];
+            const hotelId = typeof hotel === 'object' ? hotel.id : hotel;
+            const path = (hotelId && user.role !== 'SUPER_ADMIN') ? `/hotels/${hotelId}` : '/hotels';
+            actions.push({ label: 'Manage Hotels', icon: <ShopOutlined />, path });
         }
 
         if (user?.role === 'SUPER_ADMIN') {
@@ -43,8 +46,9 @@ export default function Dashboard() {
         }
 
         if (can(user, 'VIEW_BOOKINGS')) {
-             // For manager/front desk, we might want to link to a specific hotel or list
-             const path = user.role === 'SUPER_ADMIN' ? '/bookings' : '/bookings'; // Simplify for now
+             const hotel = user.hotels?.[0];
+             const hotelId = typeof hotel === 'object' ? hotel.id : hotel;
+             const path = (hotelId && user.role !== 'SUPER_ADMIN') ? `/bookings/${hotelId}` : '/bookings';
              actions.push({ label: 'Bookings', icon: <CalendarOutlined />, path });
         }
 

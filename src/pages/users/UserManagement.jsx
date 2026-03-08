@@ -102,7 +102,7 @@ function UserManagement() {
               </Button>
             </Can>
             <Can perform="CREATE_STAFF">
-              <Button onClick={() => setOpenRole("HOTEL_STAFF")}>
+              <Button onClick={() => setOpenRole("FRONT_DESK")}>
                 + Hotel Staff
               </Button>
             </Can>

@@ -1,26 +1,34 @@
-import { Modal, Form, Input, Select, Button } from "antd";
+import { Modal, Form, Input, Select, Button, notification } from "antd";
 import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 import api from "../../api/axios";
 
 function AddUserModal({ open, onClose, role }) {
+  const { user } = useSelector((state) => state.auth);
   const [form] = Form.useForm();
-  const [hotels, setHotels] = useState([]);
+  const [hotels, setHotels] = useState(user?.hotels || []);
   const [loading, setLoading] = useState(false);
 
   const CREATE_USER_API_MAP = {
     GROUP_ADMIN: "users/create-group-admin/",
     HOTEL_MANAGER: "users/create-hotel-manager/",
-    HOTEL_STAFF: "users/create-staff/",
+    FRONT_DESK: "users/create-staff/",
     SUPPORT: "users/create-support-agent/",
   };
 
   useEffect(() => {
     if (open) {
-      api.get("property/hotels/").then((res) => {
-        setHotels(res.data.results);
-      });
+      if (user?.role === "SUPER_ADMIN") {
+        api.get("property/hotels/").then((res) => {
+          if (res.data.results && res.data.results.length > 0) {
+            setHotels(res.data.results);
+          }
+        });
+      } else {
+        setHotels(user?.hotels || []);
+      }
     }
-  }, [open]);
+  }, [open, user]);
 
   const isMultiHotel = role === "GROUP_ADMIN";
 
@@ -43,9 +51,18 @@ function AddUserModal({ open, onClose, role }) {
 
       await api.post(CREATE_USER_API_MAP[role], payload);
 
+      notification.success({
+        message: "User Created",
+        description: "User account created successfully",
+      });
+
       form.resetFields();
       onClose(true);
     } catch (err) {
+      notification.error({
+        message: "Creation Failed",
+        description: err.response?.data?.error || "Unable to create user",
+      });
       console.error(err);
     } finally {
       setLoading(false);
@@ -55,7 +72,7 @@ function AddUserModal({ open, onClose, role }) {
   return (
     <Modal
       open={open}
-      title={`Add ${role.replace("_", " ")}`}
+      title={`Add ${role === "FRONT_DESK" ? "Hotel Staff" : role.replace("_", " ")}`}
       onCancel={() => onClose(false)}
       footer={null}
       width={600}

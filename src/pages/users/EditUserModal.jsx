@@ -58,21 +58,21 @@ function EditUserModal({ userId, open, onClose }) {
     >
       <Form form={form} layout="vertical" onFinish={handleSubmit}>
         <Form.Item label="Full Name" name="username">
-          <Input />
+          <Input id="username" name="username" />
         </Form.Item>
 
         <Form.Item label="Email" name="email">
-          <Input />
+          <Input id="email" name="email" />
         </Form.Item>
 
         <Form.Item label="Phone Number" name="phone_number">
-          <Input />
+          <Input id="phone_number" name="phone_number" />
         </Form.Item>
 
         {isSuperAdmin && (
           <>
             <Form.Item label="Role" name="role">
-              <Select>
+              <Select id="role" name="role">
                 <Select.Option value="GROUP_ADMIN">Group Admin</Select.Option>
                 <Select.Option value="HOTEL_MANAGER">Hotel Manager</Select.Option>
                 <Select.Option value="FRONT_DESK">Hotel Staff</Select.Option>
@@ -81,7 +81,7 @@ function EditUserModal({ userId, open, onClose }) {
             </Form.Item>
 
             <Form.Item label="Status" name="status">
-              <Select>
+              <Select id="status" name="status">
                 <Select.Option value="ACTIVE">Active</Select.Option>
                 <Select.Option value="SUSPENDED">Suspended</Select.Option>
                 <Select.Option value="DELETED">Deleted</Select.Option>

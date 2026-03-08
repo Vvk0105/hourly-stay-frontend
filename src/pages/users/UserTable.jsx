@@ -12,8 +12,8 @@ function UserTable({ data, loading, pagination, onChange, onDelete, onEdit }) {
     if (user.role === ROLES.SUPER_ADMIN) return true;
     
     // Check if they share any hotel_id
-    const sharedHotel = user.hotels?.some(hId => 
-      targetRecord.hotels?.some(targetH => targetH.id === hId)
+    const sharedHotel = user.hotels?.some(h => 
+      targetRecord.hotels?.some(targetH => targetH.id === (h.id || h))
     );
     
     return sharedHotel;

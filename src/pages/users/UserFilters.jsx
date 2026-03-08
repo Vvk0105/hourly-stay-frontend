@@ -35,6 +35,8 @@ function UserFilters({ role, setRole, search, setSearch }) {
       />
 
       <Input.Search
+        id="user-search"
+        name="user-search"
         placeholder="Search here..."
         style={{ width: 240 }}
         value={search}

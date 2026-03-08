@@ -85,21 +85,21 @@ function AddUserModal({ open, onClose, role }) {
           name="username" 
           rules={[{ required: true, message: 'Please enter Username' }]}
         >
-          <Input placeholder="Username" />
+          <Input id="username" name="username" placeholder="Username" />
         </Form.Item>
 
         <Form.Item label="Email ID" name="email" rules={[
           { required: true, message: "Please enter Email ID" },
           { type: 'email', message: "Please enter a valid email" }
         ]}>
-          <Input placeholder="Email ID" />
+          <Input id="email" name="email" placeholder="Email ID" />
         </Form.Item>
 
         <Form.Item label="Phone Number" name="phone" rules={[
           { required: true, message: "Please enter Phone Number" },
           { pattern: /^[0-9]{10}$/, message: "Phone number must be 10 digits" }
         ]}>
-          <Input placeholder="Phone Number" maxLength={10} />
+          <Input id="phone" name="phone" placeholder="Phone Number" maxLength={10} />
         </Form.Item>
 
         <Button

@@ -58,7 +58,7 @@ function Login() {
                 { type: "email", message: "Please enter a valid Email ID!" },
               ]}
             >
-              <Input placeholder="Enter your email" className="login-input" />
+              <Input id="email" name="email" placeholder="Enter your email" className="login-input" />
             </Form.Item>
 
             <Form.Item
@@ -70,6 +70,8 @@ function Login() {
               ]}
             >
               <Input.Password
+                id="password"
+                name="password"
                 placeholder="Enter your password"
                 iconRender={(visible) =>
                   visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />

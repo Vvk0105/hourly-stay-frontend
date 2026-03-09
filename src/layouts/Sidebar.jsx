@@ -42,7 +42,7 @@ function Sidebar({ mobileSiderOpen, setMobileSiderOpen }) {
       onClick: () => navigate("/users"),
     },
 
-    (can(user, 'CREATE_STAFF') || user?.role === "SUPER_ADMIN") && {
+    (can(user, 'CREATE_STAFF') || user?.role === "SUPER_ADMIN") && user?.role !== "HOTEL_MANAGER" && {
       key: "/assignandchange",
       icon: <UserOutlined />,
       label: "Assign and Change",

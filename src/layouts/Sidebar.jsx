@@ -54,9 +54,10 @@ function Sidebar({ mobileSiderOpen, setMobileSiderOpen }) {
       icon: <HomeOutlined />,
       label: "Hotel Management",
       onClick: () => {
-        const hotel = user.hotels?.[0];
-        const hotelId = typeof hotel === 'object' ? hotel.id : hotel;
-        if (hotelId) {
+        const hotels = user.hotels || [];
+        if (hotels.length === 1 && user.role !== 'GROUP_ADMIN') {
+          const hotel = hotels[0];
+          const hotelId = typeof hotel === 'object' ? hotel.id : hotel;
           navigate(`/hotels/${hotelId}`);
         } else {
           navigate("/hotels");
@@ -90,9 +91,10 @@ function Sidebar({ mobileSiderOpen, setMobileSiderOpen }) {
       icon: <UserOutlined />,
       label: "Bookings",
       onClick: () => {
-        const hotel = user.hotels?.[0];
-        const hotelId = typeof hotel === 'object' ? hotel.id : hotel;
-        if (hotelId) {
+        const hotels = user.hotels || [];
+        if (hotels.length === 1 && user.role !== 'GROUP_ADMIN') {
+          const hotel = hotels[0];
+          const hotelId = typeof hotel === 'object' ? hotel.id : hotel;
           navigate(`/bookings/${hotelId}`);
         } else {
           navigate("/bookings");

@@ -5,13 +5,25 @@ const notificationSlice = createSlice({
     initialState: {
         items: [],
         unreadCount: 0,
+        totalCount: 0,
         loading: false,
         error: null,
+        soundEnabled: localStorage.getItem('notif_sound_enabled') !== 'false', // Default to true
     },
     reducers: {
         setNotifications(state, action) {
-            state.items = action.payload;
-            state.unreadCount = action.payload.filter(item => !item.is_read).length;
+            const { results, count, unread_count } = action.payload;
+            state.items = results || action.payload;
+            state.unreadCount = unread_count !== undefined ? unread_count : state.items.filter(item => !item.is_read).length;
+            state.totalCount = count || state.items.length;
+        },
+        appendNotifications(state, action) {
+            const { results } = action.payload;
+            const newItems = results || [];
+            // filter out duplicates
+            const existingIds = new Set(state.items.map(i => i.id));
+            const filtered = newItems.filter(i => !existingIds.has(i.id));
+            state.items = [...state.items, ...filtered];
         },
         addNotification(state, action) {
             const exists = state.items.find(item => item.id === action.payload.id);
@@ -39,6 +51,10 @@ const notificationSlice = createSlice({
             });
             state.unreadCount = 0;
         },
+        toggleSound(state) {
+            state.soundEnabled = !state.soundEnabled;
+            localStorage.setItem('notif_sound_enabled', state.soundEnabled);
+        },
         setLoading(state, action) {
             state.loading = action.payload;
         },
@@ -50,9 +66,11 @@ const notificationSlice = createSlice({
 
 export const {
     setNotifications,
+    appendNotifications,
     addNotification,
     markAsRead,
     markAllAsRead,
+    toggleSound,
     setLoading,
     setError,
 } = notificationSlice.actions;

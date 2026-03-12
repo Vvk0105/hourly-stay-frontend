@@ -27,6 +27,7 @@ import TransactionDetails from "./pages/transactions/TransactionDetails";
 import HotelManagerTransactionManagement from "./pages/hotel-manager/HotelManagerTransactionManagement";
 import BookingDetails from "./pages/bookings/BookingDetails";
 import NotificationsPage from "./pages/NotificationsPage";
+import HotelReviews from "./pages/hotels/HotelReviews";
 
 
 
@@ -83,6 +84,12 @@ function App() {
           <Route path="/bookings/:id" element={<MainLayout><BookingManagement /></MainLayout>} />
           <Route path="/bookings" element={<MainLayout><BookingHotelList /></MainLayout>} />
           <Route path="/booking-details/:id" element={<MainLayout><BookingDetails /></MainLayout>} />
+        </Route>
+
+        {/* Reviews */}
+        <Route element={<ProtectedRoute perform="VIEW_BOOKINGS" />}>
+           <Route path="/reviews" element={<MainLayout><HotelReviews /></MainLayout>} />
+           <Route path="/reviews/:hotelId" element={<MainLayout><HotelReviews /></MainLayout>} />
         </Route>
 
         {/* Financials (Platform) */}

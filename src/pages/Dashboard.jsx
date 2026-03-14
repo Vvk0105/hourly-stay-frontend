@@ -12,7 +12,7 @@ import {
 } from "@ant-design/icons";
 import { logout } from "../store/authSlice";
 import { can } from "../utils/accessControl";
-import axios from "axios";
+import api from "../api/axios";
 import DashboardStats from "../components/dashboard/DashboardStats";
 import "./Dashboard.css";
 
@@ -36,12 +36,12 @@ export default function Dashboard() {
             setLoading(true);
             try {
                 // Fetch financial/booking stats
-                const statsResponse = await axios.get(`${import.meta.env.VITE_BOOKING_SERVICE_URL}/api/v1/booking/dashboard/stats/`);
+                const statsResponse = await api.get('booking/dashboard/stats/');
                 setStats(statsResponse.data);
 
                 // For operational roles, fetch property stats
                 if (user?.role !== 'GUEST') {
-                    const opResponse = await axios.get(`${import.meta.env.VITE_PROPERTY_SERVICE_URL}/api/v1/property/dashboard/operational/`);
+                    const opResponse = await api.get('property/dashboard/operational/');
                     setOpStats(opResponse.data);
                 }
             } catch (error) {

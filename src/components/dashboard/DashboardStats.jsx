@@ -143,6 +143,51 @@ const DashboardStats = ({ stats, role }) => {
         </Row>
     );
 
+    const renderFrontDeskStats = () => (
+        <Row gutter={[16, 16]}>
+            <Col xs={24} sm={12} md={8}>
+                <Card bordered={false} className="stat-card">
+                    <Statistic 
+                        title="My Bookings" 
+                        value={stats.total_bookings} 
+                        prefix={<CalendarOutlined />} 
+                    />
+                </Card>
+            </Col>
+            <Col xs={24} sm={12} md={8}>
+                <Card bordered={false} className="stat-card">
+                    <Statistic 
+                        title="Active Now" 
+                        value={stats.active_bookings} 
+                        prefix={<ClockCircleOutlined />} 
+                        valueStyle={{ color: '#1890ff' }}
+                    />
+                </Card>
+            </Col>
+            <Col xs={24} sm={12} md={8}>
+                <Card bordered={false} className="stat-card">
+                    <Statistic 
+                        title={
+                            <span>
+                                Success Rate <Tooltip title="Percentage of bookings that were confirmed, checked-in, or checked-out out of total bookings."><InfoCircleOutlined style={{ fontSize: '12px', color: '#8c8c8c' }} /></Tooltip>
+                            </span>
+                        }
+                        value={
+                            ((stats.status_breakdown?.CONFIRMED || 0) + 
+                             (stats.status_breakdown?.CHECKED_IN || 0) + 
+                             (stats.status_breakdown?.CHECKED_OUT || 0)) / 
+                            (stats.total_bookings || 1) * 100
+                        } 
+                        suffix="%" 
+                        prefix={<CheckCircleOutlined />} 
+                        precision={1}
+                    />
+
+                </Card>
+            </Col>
+        </Row>
+    );
+
     const renderOperationalStats = (opStats) => (
         <Row gutter={[16, 16]}>
             <Col xs={24} sm={12} md={6}>
@@ -190,6 +235,7 @@ const DashboardStats = ({ stats, role }) => {
 
     if (stats.arrivals_today !== undefined) return renderOperationalStats(stats);
     if (role === 'SUPER_ADMIN') return renderSuperAdminStats();
+    if (role === 'FRONT_DESK') return renderFrontDeskStats();
     return renderManagementStats();
 };
 

@@ -12,6 +12,8 @@ import {
 } from "@ant-design/icons";
 import { logout } from "../store/authSlice";
 import { can } from "../utils/accessControl";
+import axios from "axios";
+import DashboardStats from "../components/dashboard/DashboardStats";
 import "./Dashboard.css";
 
 const { Title, Text } = Typography;
@@ -20,11 +22,39 @@ export default function Dashboard() {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const user = useSelector(state => state.auth.user);
+    const [stats, setStats] = React.useState(null);
+    const [opStats, setOpStats] = React.useState(null);
+    const [loading, setLoading] = React.useState(true);
 
     const handleLogout = () => {
         dispatch(logout());
         navigate("/");
     };
+
+    React.useEffect(() => {
+        const fetchDashboardData = async () => {
+            setLoading(true);
+            try {
+                // Fetch financial/booking stats
+                const statsResponse = await axios.get(`${import.meta.env.VITE_BOOKING_SERVICE_URL}/api/v1/booking/dashboard/stats/`);
+                setStats(statsResponse.data);
+
+                // For operational roles, fetch property stats
+                if (user?.role !== 'GUEST') {
+                    const opResponse = await axios.get(`${import.meta.env.VITE_PROPERTY_SERVICE_URL}/api/v1/property/dashboard/operational/`);
+                    setOpStats(opResponse.data);
+                }
+            } catch (error) {
+                console.error("Failed to fetch dashboard data:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (user) {
+            fetchDashboardData();
+        }
+    }, [user]);
 
     // Determine quick actions based on permissions
     const getQuickActions = () => {
@@ -42,8 +72,9 @@ export default function Dashboard() {
         }
 
         if (user?.role === 'SUPER_ADMIN') {
-            actions.push({ label: 'System Health', icon: <BarChartOutlined />, path: '/assignandchange' });
+            actions.push({ label: 'Assign & Change', icon: <SettingOutlined />, path: '/assignandchange' });
         }
+
 
         if (can(user, 'VIEW_BOOKINGS')) {
              const hotel = user.hotels?.[0];
@@ -82,30 +113,17 @@ export default function Dashboard() {
                 </div>
             </div>
 
-            {/* Stats Example */}
-            <div className="dashboard-stats-grid">
-                <Row gutter={[24, 24]}>
-                    <Col xs={24} sm={12} md={6}>
-                        <div className="stat-card">
-                            <Statistic title="Total Properties" value={12} prefix={<ShopOutlined />} />
-                        </div>
-                    </Col>
-                    <Col xs={24} sm={12} md={6}>
-                        <div className="stat-card">
-                            <Statistic title="Active Bookings" value={8} prefix={<CalendarOutlined />} valueStyle={{ color: '#3f8600' }} />
-                        </div>
-                    </Col>
-                    <Col xs={24} sm={12} md={6}>
-                        <div className="stat-card">
-                            <Statistic title="Total Users" value={93} prefix={<UserOutlined />} />
-                        </div>
-                    </Col>
-                    <Col xs={24} sm={12} md={6}>
-                        <div className="stat-card">
-                            <Statistic title="System Status" value="Online" valueStyle={{ color: '#52c41a' }} />
-                        </div>
-                    </Col>
-                </Row>
+            {/* Dashboard Stats */}
+            <div className="dashboard-stats-section">
+                <Title level={4} style={{ marginBottom: 16 }}>Key Metrics</Title>
+                <DashboardStats stats={stats} role={user?.role} />
+                
+                {opStats && (user?.role === 'HOTEL_MANAGER' || user?.role === 'FRONT_DESK' || user?.role === 'SUPER_ADMIN') && (
+                    <div style={{ marginTop: 24 }}>
+                        <Title level={4} style={{ marginBottom: 16 }}>Operations (Today)</Title>
+                        <DashboardStats stats={opStats} role={user?.role} />
+                    </div>
+                )}
             </div>
 
             {/* Quick Actions */}

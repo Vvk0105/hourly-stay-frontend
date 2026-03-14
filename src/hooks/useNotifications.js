@@ -7,13 +7,18 @@ import notificationApi from '../api/notificationApi';
 const useNotifications = () => {
     const dispatch = useDispatch();
     const user = useSelector((state) => state.auth.user);
+    const soundEnabled = useSelector((state) => state.notifications.soundEnabled);
     const ws = useRef(null);
 
-    const fetchHistory = useCallback(async () => {
+    const fetchHistory = useCallback(async (page = 1, append = false) => {
         dispatch(setLoading(true));
         try {
-            const history = await notificationApi.getHistory();
-            dispatch(setNotifications(history));
+            const data = await notificationApi.getHistory(page);
+            if (append) {
+                dispatch({ type: 'notifications/appendNotifications', payload: data });
+            } else {
+                dispatch(setNotifications(data));
+            }
         } catch (err) {
             dispatch(setError(err.message));
         } finally {
@@ -24,7 +29,8 @@ const useNotifications = () => {
     const connectWS = useCallback(() => {
         if (!user?.id) return;
 
-        const wsUrl = `${import.meta.env.VITE_NOTIFICATION_WS_URL}${user.id}/`;
+        const baseUrl = import.meta.env.VITE_NOTIFICATION_WS_URL;
+        const wsUrl = `${baseUrl.endsWith('/') ? baseUrl : baseUrl + '/'}${user.id}/`;
         console.log(`Connecting to Notification WebSocket: ${wsUrl}`);
 
         const socket = new WebSocket(wsUrl);
@@ -45,12 +51,24 @@ const useNotifications = () => {
                         const eventName = notification.type === 'SILENT_BOOKING_UPDATE' ? 'bookingUpdated' : 'paymentUpdated';
                         console.log(`Received silent update (${notification.type}), dispatching DOM event: ${eventName}`);
                         window.dispatchEvent(new Event(eventName));
-                        return; // do not store in db/redux or show toast
+                        return;
                     }
 
                     dispatch(addNotification(notification));
 
-                    // Show a browser-level toast for real-time alerts
+                    // Play sound for critical notifications
+                    const criticalTypes = ['BOOKING', 'NEW_BOOKING', 'NEW_REVIEW', 'CLEANING_ALERT', 'PAYMENT_SUCCESS'];
+                    
+                    if (criticalTypes.includes(notification.type) && soundEnabled) {
+                        try {
+                            const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+                            audio.play().catch(e => console.log('Audio play failed (user interaction required):', e));
+                        } catch (err) {
+                            console.error('Error playing notification sound:', err);
+                        }
+                    }
+
+                    // Show a browser-level toast
                     antdNotification.info({
                         message: notification.title,
                         description: notification.message,

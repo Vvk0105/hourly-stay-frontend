@@ -6,7 +6,9 @@ import {
   LogoutOutlined,
   HomeOutlined,
   ClockCircleFilled,
-  DollarOutlined
+  DollarOutlined,
+  BellOutlined,
+  StarOutlined
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -42,7 +44,14 @@ function Sidebar({ mobileSiderOpen, setMobileSiderOpen }) {
       onClick: () => navigate("/users"),
     },
 
-    (can(user, 'CREATE_STAFF') || user?.role === "SUPER_ADMIN") && {
+    {
+      key: "/notifications",
+      icon: <BellOutlined />,
+      label: "Notifications",
+      onClick: () => navigate("/notifications"),
+    },
+
+    (can(user, 'CREATE_STAFF') || user?.role === "SUPER_ADMIN") && user?.role !== "HOTEL_MANAGER" && {
       key: "/assignandchange",
       icon: <UserOutlined />,
       label: "Assign and Change",
@@ -54,9 +63,10 @@ function Sidebar({ mobileSiderOpen, setMobileSiderOpen }) {
       icon: <HomeOutlined />,
       label: "Hotel Management",
       onClick: () => {
-        const hotel = user.hotels?.[0];
-        const hotelId = typeof hotel === 'object' ? hotel.id : hotel;
-        if (hotelId) {
+        const hotels = user.hotels || [];
+        if (hotels.length === 1 && user.role !== 'GROUP_ADMIN') {
+          const hotel = hotels[0];
+          const hotelId = typeof hotel === 'object' ? hotel.id : hotel;
           navigate(`/hotels/${hotelId}`);
         } else {
           navigate("/hotels");
@@ -90,12 +100,29 @@ function Sidebar({ mobileSiderOpen, setMobileSiderOpen }) {
       icon: <UserOutlined />,
       label: "Bookings",
       onClick: () => {
-        const hotel = user.hotels?.[0];
-        const hotelId = typeof hotel === 'object' ? hotel.id : hotel;
-        if (hotelId) {
+        const hotels = user.hotels || [];
+        if (hotels.length === 1 && user.role !== 'GROUP_ADMIN') {
+          const hotel = hotels[0];
+          const hotelId = typeof hotel === 'object' ? hotel.id : hotel;
           navigate(`/bookings/${hotelId}`);
         } else {
           navigate("/bookings");
+        }
+      },
+    },
+
+    can(user, 'VIEW_BOOKINGS') && {
+      key: "/reviews",
+      icon: <StarOutlined />,
+      label: "Reviews",
+      onClick: () => {
+        const hotels = user.hotels || [];
+        if (hotels.length === 1 && user.role !== 'GROUP_ADMIN') {
+          const hotel = hotels[0];
+          const hotelId = typeof hotel === 'object' ? hotel.id : hotel;
+          navigate(`/reviews/${hotelId}`);
+        } else {
+          navigate("/reviews");
         }
       },
     },

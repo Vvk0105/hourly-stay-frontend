@@ -1,8 +1,8 @@
 import api from './axios';
 
 const notificationApi = {
-    getHistory: async () => {
-        const response = await api.get('notifications/');
+    getHistory: async (page = 1) => {
+        const response = await api.get('notifications/', { params: { page } });
         return response.data;
     },
     markRead: async (notificationId) => {

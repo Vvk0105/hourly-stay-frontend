@@ -20,10 +20,11 @@ const TransactionManagement = () => {
     const navigate = useNavigate();
     const { user } = useSelector((state) => state.auth);
 
-    // Check if user is SUPER_ADMIN
+    // Check if user is allowed
     useEffect(() => {
-        if (user?.role !== 'SUPER_ADMIN') {
-            message.error('Access denied. SuperAdmin only.');
+        const isAllowed = user?.role === 'SUPER_ADMIN' || user?.role === 'GROUP_ADMIN';
+        if (!isAllowed) {
+            message.error('Access denied. SuperAdmin or Group Admin only.');
             navigate('/dashboard');
         }
     }, [user, navigate]);
@@ -62,7 +63,11 @@ const TransactionManagement = () => {
     const loadHotels = async () => {
         try {
             const response = await api.get('property/hotels/');
-            setHotels(response.data.results || response.data);
+            const results = response.data.results || response.data;
+            
+            // For Group Admins, they might already only get their hotels from backend,
+            // but we can also filter here if user.hotel_ids is available for extra safety
+            setHotels(results);
         } catch (error) {
             console.error('Error loading hotels:', error);
         }

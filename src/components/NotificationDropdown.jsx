@@ -48,7 +48,7 @@ const NotificationDropdown = () => {
                 <List
                     loading={loading}
                     itemLayout="horizontal"
-                    dataSource={items}
+                    dataSource={items.filter(item => !['SILENT_NOTIFICATION_UPDATE', 'SILENT_BOOKING_UPDATE', 'SILENT_PAYMENT_UPDATE', 'SYSTEM_SYNC'].includes(item.type))}
                     locale={{ emptyText: <Empty description="No notifications" /> }}
                     renderItem={(item) => (
                         <List.Item
@@ -67,7 +67,7 @@ const NotificationDropdown = () => {
                                 avatar={<Avatar icon={<BellOutlined />} style={{ backgroundColor: item.is_read ? '#d9d9d9' : '#1890ff' }} />}
                                 title={<Text strong={!item.is_read}>{item.title}</Text>}
                                 description={
-                                    <Space direction="vertical" size={0}>
+                                    <Space orientation="vertical" size={0}>
                                         <Text type="secondary" style={{ fontSize: 12 }}>{item.message}</Text>
                                         <Text type="secondary" style={{ fontSize: 10 }}>{item.created_at && !isNaN(new Date(item.created_at).getTime()) ? new Date(item.created_at).toLocaleString() : 'Just now'}</Text>
                                     </Space>

@@ -53,7 +53,10 @@ function BookingHotelList() {
     }
 
     return (
-        <>
+        <div style={{ padding: '24px' }}>
+            <div style={{ color: '#888', marginBottom: 16 }}>
+                <span style={{ cursor: 'pointer' }} onClick={() => navigate('/dashboard')}>Home</span> / Bookings
+            </div>
             <PageHeader
                 title="Bookings - Select Hotel"
             />
@@ -72,7 +75,7 @@ function BookingHotelList() {
                 loading={loading}
                 bookingMode={true}
             />
-        </>
+        </div>
     )
 }
 

@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import useSocketEvent, { SOCKET_EVENTS } from '../../hooks/useSocketEvent';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -73,7 +74,7 @@ const TransactionManagement = () => {
         }
     };
 
-    const loadTransactions = async () => {
+    const loadTransactions = useCallback(async () => {
         setLoading(true);
         try {
             const params = {
@@ -92,9 +93,9 @@ const TransactionManagement = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [filters, pagination.current]);
 
-    const loadStats = async () => {
+    const loadStats = useCallback(async () => {
         setStatsLoading(true);
         try {
             const params = {
@@ -109,7 +110,14 @@ const TransactionManagement = () => {
         } finally {
             setStatsLoading(false);
         }
-    };
+    }, [filters.hotel_id, filters.date_from, filters.date_to]);
+
+    const handleSocketUpdate = useCallback(() => {
+        loadTransactions();
+        loadStats();
+    }, [loadTransactions, loadStats]);
+
+    useSocketEvent([SOCKET_EVENTS.BOOKING_UPDATED, SOCKET_EVENTS.PAYMENT_UPDATED], handleSocketUpdate);
 
     const handleFilterChange = (key, value) => {
         setFilters(prev => ({ ...prev, [key]: value }));
@@ -400,7 +408,7 @@ const TransactionManagement = () => {
                                 value={stats?.total_revenue || 0}
                                 prefix="₹"
                                 precision={2}
-                                valueStyle={{ color: '#3f8600' }}
+                                styles={{ content: { color: '#3f8600' } }}
                             />
                         </Card>
                     </Col>
@@ -410,7 +418,7 @@ const TransactionManagement = () => {
                                 title="Platform Commission"
                                 value={stats?.total_commission || 0}
                                 precision={2}
-                                valueStyle={{ color: '#1890ff' }}
+                                styles={{ content: { color: '#1890ff' } }}
                                 prefix={<DollarOutlined />}
                             />
                         </Card>
@@ -421,7 +429,7 @@ const TransactionManagement = () => {
                                 title="Net Payout"
                                 value={stats?.total_payout || 0}
                                 precision={2}
-                                valueStyle={{ color: '#52c41a' }}
+                                styles={{ content: { color: '#52c41a' } }}
                                 prefix={<BankOutlined />}
                             />
                         </Card>

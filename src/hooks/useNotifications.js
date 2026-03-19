@@ -48,18 +48,41 @@ const useNotifications = () => {
 
                 if (!notification) return;
 
-                if (
-                    notification.type === 'SILENT_BOOKING_UPDATE' ||
-                    notification.type === 'BOOKING' ||
-                    notification.type === 'BOOKING_CONFIRMED'
-                ) {
-                    console.log("Dispatching bookingUpdated event");
-                    window.dispatchEvent(new Event("bookingUpdated"));
+                if (notification.type === 'BOOKING_CONFIRMED' || 
+                    notification.type === 'SILENT_BOOKING_UPDATE' || 
+                    notification.type === 'BOOKING' || 
+                    notification.type === 'NEW_BOOKING' ||
+                    notification.type === 'CANCELLED' || 
+                    notification.type === 'BOOKING_CANCELLED' ||
+                    notification.type === 'CHECK_IN' || 
+                    notification.type === 'CHECK_OUT') {
+                    window.dispatchEvent(new CustomEvent('bookingUpdated', { detail: data }));
                 }
 
-                if (notification.type === 'SILENT_PAYMENT_UPDATE') {
-                    console.log("Dispatching paymentUpdated event");
-                    window.dispatchEvent(new Event("paymentUpdated"));
+                if (notification.type === 'SILENT_PAYMENT_UPDATE' || 
+                    notification.type === 'PAYMENT_SUCCESS' || 
+                    notification.type === 'PAYMENT_FAILED') {
+                    window.dispatchEvent(new CustomEvent('paymentUpdated', { detail: data }));
+                }
+
+                if (notification.type === 'NEW_REVIEW' || notification.type === 'REVIEW_UPDATED') {
+                    window.dispatchEvent(new CustomEvent('reviewUpdated', { detail: data }));
+                }
+
+                if (notification.type === 'CLEANING_ALERT' || 
+                    notification.type === 'CHECK_IN' || 
+                    notification.type === 'CHECK_OUT') {
+                    window.dispatchEvent(new CustomEvent('roomStatusUpdated', { detail: data }));
+                }
+
+                if (notification.type === 'SILENT_NOTIFICATION_UPDATE') {
+                    fetchHistory();
+                }
+
+                if (notification.type === 'SILENT_NOTIFICATION_UPDATE' || 
+                    notification.type === 'SILENT_BOOKING_UPDATE' || 
+                    notification.type === 'SILENT_PAYMENT_UPDATE') {
+                    return;
                 }
 
                 dispatch(addNotification(notification));

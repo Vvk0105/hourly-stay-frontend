@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import useSocketEvent, { SOCKET_EVENTS } from '../../hooks/useSocketEvent';
 import {
   Table, Button, Tag, Tabs, Modal, Select, message,
   Card, Popconfirm, Tooltip, Badge, Form, DatePicker, Input
@@ -14,7 +15,6 @@ import api from "../../api/axios";
 import PageHeader from "../../components/common/PageHeader";
 
 
-const { TabPane } = Tabs;
 const { Option } = Select;
 
 function BookingManagement() {
@@ -53,18 +53,9 @@ function BookingManagement() {
   useEffect(() => {
     fetchBookings();
     fetchRoomTypes();
-
-    const handleBookingUpdate = () => {
-      console.log("WebSocket event received: refreshing bookings");
-      fetchBookings();
-    };
-
-    window.addEventListener('bookingUpdated', handleBookingUpdate);
-
-    return () => {
-      window.removeEventListener('bookingUpdated', handleBookingUpdate);
-    };
   }, [id]);
+
+  useSocketEvent([SOCKET_EVENTS.BOOKING_UPDATED, SOCKET_EVENTS.PAYMENT_UPDATED], fetchBookings);
 
 
   /* ================= API CALLS ================= */
@@ -380,54 +371,69 @@ function BookingManagement() {
         }
       />
 
-      <Card bordered={false}>
-        <Tabs defaultActiveKey="1">
-          <TabPane tab={`Upcoming (${confirmed.length})`} key="1">
-            <div style={{ marginBottom: 16, display: 'flex', gap: 8, alignItems: 'center' }}>
-              <DatePicker.RangePicker
-                value={upcomingDateFilter}
-                onChange={setUpcomingDateFilter}
-                format="DD MMM YYYY"
-                placeholder={['Start Date', 'End Date']}
-                style={{ width: 300 }}
-              />
-              {upcomingDateFilter && (
-                <Button onClick={() => setUpcomingDateFilter(null)} size="small">
-                  Clear Filter
-                </Button>
-              )}
-              <span style={{ color: '#888', fontSize: 12 }}>
-                Showing {filteredConfirmed.length} of {confirmed.length} bookings
-              </span>
-            </div>
-            <Table columns={columns} dataSource={filteredConfirmed} rowKey="id" />
-          </TabPane>
-
-          <TabPane tab={`Checked In (${checkedIn.length})`} key="2">
-            <Table columns={columns} dataSource={checkedIn} rowKey="id" />
-          </TabPane>
-
-          <TabPane tab="History" key="3">
-            <div style={{ marginBottom: 16, display: 'flex', gap: 8, alignItems: 'center' }}>
-              <DatePicker.RangePicker
-                value={historyDateFilter}
-                onChange={setHistoryDateFilter}
-                format="DD MMM YYYY"
-                placeholder={['Start Date', 'End Date']}
-                style={{ width: 300 }}
-              />
-              {historyDateFilter && (
-                <Button onClick={() => setHistoryDateFilter(null)} size="small">
-                  Clear Filter
-                </Button>
-              )}
-              <span style={{ color: '#888', fontSize: 12 }}>
-                Showing {filteredHistory.length} of {history.length} bookings
-              </span>
-            </div>
-            <Table columns={columns} dataSource={filteredHistory} rowKey="id" />
-          </TabPane>
-        </Tabs>
+      <Card variant="borderless" className="booking-card-glass">
+        <Tabs 
+          defaultActiveKey="1"
+          items={[
+            {
+              key: '1',
+              label: `Upcoming (${confirmed.length})`,
+              children: (
+                <>
+                  <div style={{ marginBottom: 16, display: 'flex', gap: 8, alignItems: 'center' }}>
+                    <DatePicker.RangePicker
+                      value={upcomingDateFilter}
+                      onChange={setUpcomingDateFilter}
+                      format="DD MMM YYYY"
+                      placeholder={['Start Date', 'End Date']}
+                      style={{ width: 300 }}
+                    />
+                    {upcomingDateFilter && (
+                      <Button onClick={() => setUpcomingDateFilter(null)} size="small">
+                        Clear Filter
+                      </Button>
+                    )}
+                    <span style={{ color: '#888', fontSize: 12 }}>
+                      Showing {filteredConfirmed.length} of {confirmed.length} bookings
+                    </span>
+                  </div>
+                  <Table columns={columns} dataSource={filteredConfirmed} rowKey="id" />
+                </>
+              )
+            },
+            {
+              key: '2',
+              label: `Checked In (${checkedIn.length})`,
+              children: <Table columns={columns} dataSource={checkedIn} rowKey="id" />
+            },
+            {
+              key: '3',
+              label: 'History',
+              children: (
+                <>
+                  <div style={{ marginBottom: 16, display: 'flex', gap: 8, alignItems: 'center' }}>
+                    <DatePicker.RangePicker
+                      value={historyDateFilter}
+                      onChange={setHistoryDateFilter}
+                      format="DD MMM YYYY"
+                      placeholder={['Start Date', 'End Date']}
+                      style={{ width: 300 }}
+                    />
+                    {historyDateFilter && (
+                      <Button onClick={() => setHistoryDateFilter(null)} size="small">
+                        Clear Filter
+                      </Button>
+                    )}
+                    <span style={{ color: '#888', fontSize: 12 }}>
+                      Showing {filteredHistory.length} of {history.length} bookings
+                    </span>
+                  </div>
+                  <Table columns={columns} dataSource={filteredHistory} rowKey="id" />
+                </>
+              )
+            }
+          ]}
+        />
       </Card>
 
       {/* ================= WALK-IN MODAL ================= */}
@@ -460,7 +466,9 @@ function BookingManagement() {
           </Form.Item>
 
           <Form.Item label="Duration" name="dates" rules={[{ required: true }]}>
-            <DatePicker.RangePicker showTime style={{ width: "100%" }} />
+            <Space orientation="vertical" size="middle" style={{ width: '100%', marginBottom: 16 }}>
+              <DatePicker.RangePicker showTime style={{ width: "100%" }} />
+            </Space>
           </Form.Item>
 
           <Button type="primary" htmlType="submit" block>

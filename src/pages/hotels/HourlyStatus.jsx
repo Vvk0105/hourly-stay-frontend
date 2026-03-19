@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import useSocketEvent, { SOCKET_EVENTS } from '../../hooks/useSocketEvent';
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, Button, Typography, Row, Col, Tag, message, Spin, Tooltip, Radio, DatePicker, Statistic, Alert } from "antd";
 import { PoweroffOutlined, ArrowLeftOutlined, ClockCircleOutlined, ThunderboltOutlined } from "@ant-design/icons";
@@ -36,15 +37,19 @@ function HourlyStatus() {
 
     useEffect(() => {
         fetchStatus();
-        const interval = setInterval(() => {
-            if (status === 'ACTIVE') {
-                fetchSlots();
-            }
-        }, 10000); // Poll every 10s
-        return () => clearInterval(interval);
-    }, [id, status]);
+    }, [id]);
 
-    const fetchStatus = async () => {
+    const handleSocketUpdate = useCallback(() => {
+        if (status === 'ACTIVE') {
+            fetchSlots();
+        } else {
+            fetchStatus();
+        }
+    }, [status, fetchSlots, fetchStatus]);
+
+    useSocketEvent([SOCKET_EVENTS.BOOKING_UPDATED, SOCKET_EVENTS.PAYMENT_UPDATED, SOCKET_EVENTS.ROOM_STATUS_UPDATED], handleSocketUpdate);
+
+    const fetchStatus = useCallback(async () => {
         setLoading(true);
         try {
             // 1. Get Hotel Name
@@ -69,16 +74,16 @@ function HourlyStatus() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [id]);
 
-    const fetchSlots = async () => {
+    const fetchSlots = useCallback(async () => {
         try {
             const res = await api.get(`property/hotels/${id}/hourly-slots/`);
             setSlotsData(res.data);
         } catch (e) {
             console.error("Failed to fetch slots");
         }
-    };
+    }, [id]);
 
     const handleStartOperations = async () => {
         try {
@@ -142,7 +147,7 @@ function HourlyStatus() {
                         <Statistic
                             title="Current Hourly Status"
                             value={status}
-                            valueStyle={{ color: status === 'ACTIVE' ? '#3f8600' : '#cf1322', fontWeight: 'bold' }}
+                            styles={{ content: { color: status === 'ACTIVE' ? '#3f8600' : '#cf1322', fontWeight: 'bold' } }}
                             prefix={status === 'ACTIVE' ? <ThunderboltOutlined /> : <PoweroffOutlined />}
                         />
                         {status === 'ACTIVE' && currentWindow && (

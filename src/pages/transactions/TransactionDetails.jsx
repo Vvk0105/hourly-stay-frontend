@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import useSocketEvent, { SOCKET_EVENTS } from '../../hooks/useSocketEvent';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import {
@@ -18,20 +19,9 @@ const TransactionDetails = () => {
 
     useEffect(() => {
         loadTransactionDetails();
-
-        const handleUpdate = () => {
-            console.log("WebSocket update received, refreshing transaction details...");
-            loadTransactionDetails();
-        };
-
-        window.addEventListener('bookingUpdated', handleUpdate);
-        window.addEventListener('paymentUpdated', handleUpdate);
-
-        return () => {
-            window.removeEventListener('bookingUpdated', handleUpdate);
-            window.removeEventListener('paymentUpdated', handleUpdate);
-        };
     }, [bookingId]);
+
+    useSocketEvent([SOCKET_EVENTS.BOOKING_UPDATED, SOCKET_EVENTS.PAYMENT_UPDATED], loadTransactionDetails);
 
     const loadTransactionDetails = async () => {
         setLoading(true);
@@ -78,16 +68,27 @@ const TransactionDetails = () => {
     return (
         <div style={{ padding: '24px' }}>
             {/* Breadcrumb */}
-            <Breadcrumb style={{ marginBottom: '16px' }}>
-                <Breadcrumb.Item href="/dashboard">
-                    <HomeOutlined />
-                </Breadcrumb.Item>
-                <Breadcrumb.Item href={user?.role === 'HOTEL_MANAGER' ? '/hotel-manager/transactions' : '/transactions'}>
-                    <TransactionOutlined />
-                    <span>Transactions</span>
-                </Breadcrumb.Item>
-                <Breadcrumb.Item>{transaction.booking_reference}</Breadcrumb.Item>
-            </Breadcrumb>
+            <Breadcrumb 
+                style={{ marginBottom: '16px' }}
+                items={[
+                    {
+                        href: "/dashboard",
+                        title: <HomeOutlined />,
+                    },
+                    {
+                        href: user?.role === 'HOTEL_MANAGER' ? '/hotel-manager/transactions' : '/transactions',
+                        title: (
+                            <>
+                                <TransactionOutlined />
+                                <span style={{ marginLeft: 8 }}>Transactions</span>
+                            </>
+                        ),
+                    },
+                    {
+                        title: transaction.booking_reference,
+                    },
+                ]}
+            />
 
             {/* Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
@@ -117,7 +118,7 @@ const TransactionDetails = () => {
             <Row gutter={[16, 16]}>
                 {/* Booking Information */}
                 <Col xs={24} lg={12}>
-                    <Card title="Booking Information" bordered>
+                    <Card title="Booking Information" variant="outlined">
                         <Descriptions column={1} bordered size="small">
                             <Descriptions.Item label="Hotel">
                                 {transaction.hotel_details?.name}
@@ -172,7 +173,7 @@ const TransactionDetails = () => {
 
                     {/* Refund Information */}
                     {transaction.refund_request && (
-                        <Card title="Refund Information" bordered style={{ marginTop: '16px' }}>
+                        <Card title="Refund Information" variant="outlined" style={{ marginTop: '16px' }}>
                             <Descriptions column={1} bordered size="small">
                                 <Descriptions.Item label="Status">
                                     <Tag color={transaction.refund_request.status === 'COMPLETED' ? 'green' : 'red'}>
@@ -205,7 +206,7 @@ const TransactionDetails = () => {
 
                 {/* Payment Information */}
                 <Col xs={24} lg={12}>
-                    <Card title="Payment Information" bordered>
+                    <Card title="Payment Information" variant="outlined">
                         <Descriptions column={1} bordered size="small">
                             <Descriptions.Item label="Payment Status">
                                 <Tag color={transaction.payment_status === 'SUCCESS' ? 'green' : 'orange'}>
@@ -336,7 +337,7 @@ const TransactionDetails = () => {
                 {/* Hotel Commission Configuration (for reference) */}
                 {transaction.hotel_details && (
                     <Col xs={24}>
-                        <Card title="Hotel Commission Settings" bordered>
+                        <Card title="Hotel Commission Settings" variant="outlined">
                             <Descriptions column={3} bordered size="small">
                                 <Descriptions.Item label="Commission Type">
                                     <Tag color={transaction.hotel_details.commission_type === 'PERCENTAGE' ? 'blue' : 'green'}>

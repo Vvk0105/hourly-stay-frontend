@@ -8,7 +8,6 @@ import useNotifications from '../hooks/useNotifications';
 import notificationApi from '../api/notificationApi';
 
 const { Title, Text } = Typography;
-const { TabPane } = Tabs;
 
 const NotificationsPage = () => {
     const dispatch = useDispatch();
@@ -71,6 +70,10 @@ const NotificationsPage = () => {
             );
         }
 
+        // Filter out silent/system notifications
+        const SILENT_TYPES = ['SILENT_NOTIFICATION_UPDATE', 'SILENT_BOOKING_UPDATE', 'SILENT_PAYMENT_UPDATE', 'SYSTEM_SYNC'];
+        filtered = filtered.filter(item => !SILENT_TYPES.includes(item.type));
+
         return filtered;
     }, [items, activeTab, searchText]);
 
@@ -125,12 +128,17 @@ const NotificationsPage = () => {
                     </Space>
                 </div>
 
-                <Tabs activeKey={activeTab} onChange={setActiveTab} style={{ marginBottom: 16 }}>
-                    <TabPane tab="All" key="all" />
-                    <TabPane tab="Unread" key="unread" />
-                    <TabPane tab="Bookings" key="booking" />
-                    <TabPane tab="Payments" key="payment" />
-                </Tabs>
+                <Tabs 
+                    activeKey={activeTab} 
+                    onChange={setActiveTab} 
+                    style={{ marginBottom: 16 }}
+                    items={[
+                        { label: 'All', key: 'all' },
+                        { label: 'Unread', key: 'unread' },
+                        { label: 'Bookings', key: 'booking' },
+                        { label: 'Payments', key: 'payment' },
+                    ]}
+                />
 
                 <List
                     loading={loading && page === 1}
@@ -186,7 +194,7 @@ const NotificationsPage = () => {
                                 }
                                 title={
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                        <Space direction="vertical" size={0}>
+                                        <Space orientation="vertical" size={0}>
                                             <Space>
                                                 <Text strong={!item.is_read} style={{ fontSize: 16 }}>{item.title}</Text>
                                                 <Tag color={getTagColor(item.type)} style={{ fontSize: 10, borderRadius: 4 }}>

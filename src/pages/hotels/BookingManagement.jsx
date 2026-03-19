@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import useSocketEvent, { SOCKET_EVENTS } from '../../hooks/useSocketEvent';
 import {
   Table, Button, Tag, Tabs, Modal, Select, message,
   Card, Popconfirm, Tooltip, Badge, Form, DatePicker, Input, Switch, Row, Col, Typography, Radio, Alert, Statistic, Calendar
@@ -22,7 +23,6 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 
 
-const { TabPane } = Tabs;
 const { Option } = Select;
 const { Title, Text } = Typography;
 const { RangePicker } = DatePicker;
@@ -67,6 +67,9 @@ function BookingManagement() {
   const [isNewBookingModalOpen, setIsNewBookingModalOpen] = useState(false);
   const [bookingType, setBookingType] = useState('NIGHTLY');
   const [newBookingForm] = Form.useForm();
+  const watchedGuestIdType = Form.useWatch('guest_id_type', newBookingForm);
+  const watchedCheckInDate = Form.useWatch('check_in_date', newBookingForm);
+  const watchedRoomTypeId = Form.useWatch('room_type_id', newBookingForm);
 
   // Walk-in Hourly Slots State
   const [availableSlots, setAvailableSlots] = useState([]);
@@ -87,14 +90,16 @@ function BookingManagement() {
   const [roomStatusLoading, setRoomStatusLoading] = useState({});
 
   const [hotelTimezone, setHotelTimezone] = useState("UTC");
+  const [hotelName, setHotelName] = useState("");
 
   /* ================= API CALLS ================= */
   const fetchHotelDetails = useCallback(async () => {
     try {
       const res = await api.get(`property/hotels/${id}/`);
+      setHotelName(res.data.name || "");
       setHotelTimezone(res.data.timezone || "UTC");
     } catch (err) {
-      console.error("Failed to fetch hotel timezone");
+      console.error("Failed to fetch hotel details");
     }
   }, [id]);
 
@@ -178,17 +183,17 @@ function BookingManagement() {
     fetchSlots();
   }, [id, fetchBookings, fetchRoomTypes, fetchRooms, fetchHourlyStatus, fetchHotelDetails, fetchSlots]);
 
-  useEffect(() => {
-    const handleBookingUpdate = (e) => {
-      fetchBookings(true);
-      fetchSlots();
-    };
+  const handleSocketUpdate = useCallback(() => {
+    fetchBookings(true);
+    fetchRooms();
+    fetchSlots();
+  }, [fetchBookings, fetchRooms, fetchSlots]);
 
-    window.addEventListener('bookingUpdated', handleBookingUpdate);
-    return () => {
-      window.removeEventListener('bookingUpdated', handleBookingUpdate);
-    };
-  }, [id, fetchBookings, fetchSlots]);
+  useSocketEvent([
+    SOCKET_EVENTS.BOOKING_UPDATED, 
+    SOCKET_EVENTS.PAYMENT_UPDATED,
+    SOCKET_EVENTS.ROOM_STATUS_UPDATED
+  ], handleSocketUpdate);
 
   const filteredRooms = rooms.filter(
     r => !selectedRoomType || r.room_type === selectedRoomType
@@ -615,8 +620,14 @@ function BookingManagement() {
       {/* HEADER */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
         <div>
-          <div style={{ color: '#888', marginBottom: 4 }}>Home / Booking Management</div>
-          <Title level={3} style={{ margin: 0 }}>Booking Management</Title>
+          <div style={{ color: '#888', marginBottom: 4 }}>
+            <span style={{ cursor: 'pointer' }} onClick={() => navigate('/dashboard')}>Home</span> / 
+            <span style={{ cursor: 'pointer', marginLeft: 4, marginRight: 4 }} onClick={() => navigate('/bookings')}>Bookings</span> / 
+            {hotelName || "..."}
+          </div>
+          <Title level={3} style={{ margin: 0 }}>
+            Booking Management {hotelName && `- ${hotelName}`}
+          </Title>
         </div>
         <Can perform="CREATE_WALK_IN">
           <Button
@@ -660,7 +671,7 @@ function BookingManagement() {
 
 
       {/* MAIN CONTENT CARD */}
-      <Card bordered={false} style={{ borderRadius: 12, boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}>
+      <Card variant="borderless">
         <Tabs
           defaultActiveKey="upcoming"
           tabBarStyle={{ marginBottom: 24 }}
@@ -748,6 +759,7 @@ function BookingManagement() {
                             <Col xs={24} sm={12} md={8} lg={6} key={room.id}>
                               <Card
                                 hoverable={isAvailable}
+                                variant="outlined"
                                 style={{
                                   borderColor: isAvailable ? '#52c41a' : isDirty ? '#faad14' : isMaintenance ? '#ff4d4f' : '#d9d9d9',
                                   borderWidth: 2
@@ -886,7 +898,7 @@ function BookingManagement() {
                     <Row gutter={[16, 16]}>
                       {slotsData.rooms.map(room => (
                         <Col span={12} key={room.id}>
-                          <Card bordered={true} style={{ borderRadius: 8 }}>
+                          <Card variant="outlined" style={{ borderRadius: 8 }}>
                             <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
                               <span style={{ fontWeight: 600 }}>Room. {room.number}</span>
                               <Tag>{room.type}</Tag>
@@ -1003,11 +1015,11 @@ function BookingManagement() {
                       </Card>
                     </Col>
                     <Col span={6}>
-                      <Card>
+                      <Card title="Payment Information" variant="outlined">
                         <Statistic
                           title="Confirmed"
                           value={confirmed.length}
-                          valueStyle={{ color: '#52c41a' }}
+                          styles={{ content: { color: '#52c41a' } }}
                         />
                       </Card>
                     </Col>
@@ -1016,7 +1028,7 @@ function BookingManagement() {
                         <Statistic
                           title="Hourly Bookings"
                           value={bookings.filter(b => b.booking_type === 'HOURLY').length}
-                          valueStyle={{ color: '#722ed1' }}
+                          styles={{ content: { color: '#722ed1' } }}
                         />
                       </Card>
                     </Col>
@@ -1025,7 +1037,7 @@ function BookingManagement() {
                         <Statistic
                           title="Nightly Bookings"
                           value={bookings.filter(b => b.booking_type === 'NIGHTLY').length}
-                          valueStyle={{ color: '#1890ff' }}
+                          styles={{ content: { color: '#1890ff' } }}
                         />
                       </Card>
                     </Col>
@@ -1259,7 +1271,7 @@ function BookingManagement() {
             </Col>
             <Col span={12}>
               <Form.Item
-                label={`ID Number${newBookingForm.getFieldValue('guest_id_type') ? ` (${ID_LIMITS[newBookingForm.getFieldValue('guest_id_type')]?.label || ''})` : ' (Optional)'}`}
+                label={`ID Number${watchedGuestIdType ? ` (${ID_LIMITS[watchedGuestIdType]?.label || ''})` : ' (Optional)'}`}
                 name="guest_id_number"
                 rules={[{
                   validator: (_, value) => {
@@ -1277,7 +1289,7 @@ function BookingManagement() {
                 <Input
                   placeholder="Enter ID number"
                   style={{ borderRadius: 6 }}
-                  maxLength={newBookingForm.getFieldValue('guest_id_type') ? ID_LIMITS[newBookingForm.getFieldValue('guest_id_type')]?.maxLength : undefined}
+                  maxLength={watchedGuestIdType ? ID_LIMITS[watchedGuestIdType]?.maxLength : undefined}
                 />
               </Form.Item>
             </Col>
@@ -1291,7 +1303,7 @@ function BookingManagement() {
                   onChange={(date) => {
                     // Fetch slots when date changes for HOURLY booking
                     if (bookingType === 'HOURLY') {
-                      const roomTypeId = newBookingForm.getFieldValue('room_type_id');
+                      const roomTypeIdValue = watchedRoomTypeId;
                       if (roomTypeId && date) {
                         fetchWalkinSlots(roomTypeId, date);
                       }
@@ -1349,7 +1361,7 @@ function BookingManagement() {
                   onChange={(value) => {
                     // Fetch available slots when room type changes and booking type is HOURLY
                     if (bookingType === 'HOURLY') {
-                      const selectedDate = newBookingForm.getFieldValue('check_in_date');
+                      const selectedDate = watchedCheckInDate;
                       fetchWalkinSlots(value, selectedDate);
                     }
                   }}
@@ -1374,7 +1386,7 @@ function BookingManagement() {
             <div style={{ marginBottom: 16, padding: 12, background: '#f0f9ff', borderRadius: 8, border: '1px solid #91d5ff' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                 <Text strong style={{ color: '#0050b3' }}>
-                  <ClockCircleOutlined /> Available Time Slots ({newBookingForm.getFieldValue('check_in_date')?.format('DD MMM') || 'Select Date'})
+                  <ClockCircleOutlined /> Available Time Slots ({watchedCheckInDate?.format('DD MMM') || 'Select Date'})
                 </Text>
                 {selectedRoomTypeForSlots?.min_duration && (
                   <Tag color="blue">Min: {selectedRoomTypeForSlots.min_duration}h</Tag>
@@ -1422,9 +1434,9 @@ function BookingManagement() {
           )}
 
           {/* NO SLOTS MESSAGE */}
-          {bookingType === 'HOURLY' && newBookingForm.getFieldValue('room_type_id') && availableSlots.length === 0 && !slotsError && (
+          {bookingType === 'HOURLY' && watchedRoomTypeId && availableSlots.length === 0 && !slotsError && (
             <Alert
-              message={`No available slots for ${newBookingForm.getFieldValue('check_in_date')?.format('DD MMM') || 'selected date'}`}
+              message={`No available slots for ${watchedCheckInDate?.format('DD MMM') || 'selected date'}`}
               description="Please select a different room type or date"
               type="info"
               showIcon

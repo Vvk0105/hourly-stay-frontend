@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import useSocketEvent, { SOCKET_EVENTS } from '../../hooks/useSocketEvent';
 import { useParams, useNavigate } from "react-router-dom";
 import {
     Row, Col, Typography, Breadcrumb, Image, Button, Space, Spin, message, theme, Card, Tag, Modal, Select, Form, Input, InputNumber, Statistic
@@ -51,6 +52,8 @@ function RoomDetails() {
     useEffect(() => {
         fetchRoomDetails();
     }, [id, roomId]);
+
+    useSocketEvent([SOCKET_EVENTS.ROOM_STATUS_UPDATED, SOCKET_EVENTS.BOOKING_UPDATED], fetchRoomDetails);
 
     const fetchRoomDetails = async () => {
         try {

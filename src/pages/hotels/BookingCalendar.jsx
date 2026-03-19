@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import useSocketEvent, { SOCKET_EVENTS } from '../../hooks/useSocketEvent';
 import { useParams, useNavigate } from "react-router-dom";
 import {
     Calendar, Badge, Modal, Table, Tag, Spin, message, Select, Card, Row, Col, Statistic
@@ -26,6 +27,8 @@ function BookingCalendar() {
     useEffect(() => {
         fetchBookings();
     }, [id]);
+
+    useSocketEvent([SOCKET_EVENTS.BOOKING_UPDATED, SOCKET_EVENTS.PAYMENT_UPDATED], fetchBookings);
 
     const fetchBookings = async () => {
         setLoading(true);
@@ -208,7 +211,7 @@ function BookingCalendar() {
                         <Statistic
                             title="Confirmed"
                             value={confirmedCount}
-                            valueStyle={{ color: "#52c41a" }}
+                            styles={{ content: { color: "#52c41a" } }}
                             prefix={<CheckCircleOutlined />}
                         />
                     </Card>
@@ -218,7 +221,7 @@ function BookingCalendar() {
                         <Statistic
                             title="Hourly Bookings"
                             value={hourlyCount}
-                            valueStyle={{ color: "#722ed1" }}
+                            styles={{ content: { color: "#722ed1" } }}
                         />
                     </Card>
                 </Col>
@@ -227,7 +230,7 @@ function BookingCalendar() {
                         <Statistic
                             title="Nightly Bookings"
                             value={nightlyCount}
-                            valueStyle={{ color: "#1890ff" }}
+                            styles={{ content: { color: "#1890ff" } }}
                         />
                     </Card>
                 </Col>

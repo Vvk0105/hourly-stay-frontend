@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import useSocketEvent, { SOCKET_EVENTS } from '../../hooks/useSocketEvent';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -55,7 +56,7 @@ const HotelManagerTransactionManagement = () => {
         loadTransactions();
     }, [filters, pagination.current]);
 
-    const loadTransactions = async () => {
+    const loadTransactions = useCallback(async () => {
         setLoading(true);
         try {
             const params = {
@@ -74,9 +75,9 @@ const HotelManagerTransactionManagement = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [filters, pagination.current]);
 
-    const loadStats = async () => {
+    const loadStats = useCallback(async () => {
         setStatsLoading(true);
         try {
             const params = {
@@ -90,7 +91,14 @@ const HotelManagerTransactionManagement = () => {
         } finally {
             setStatsLoading(false);
         }
-    };
+    }, [filters.date_from, filters.date_to]);
+
+    const handleSocketUpdate = useCallback(() => {
+        loadTransactions();
+        loadStats();
+    }, [loadTransactions, loadStats]);
+
+    useSocketEvent([SOCKET_EVENTS.BOOKING_UPDATED, SOCKET_EVENTS.PAYMENT_UPDATED], handleSocketUpdate);
 
     const handleFilterChange = (key, value) => {
         setFilters(prev => ({ ...prev, [key]: value }));
@@ -354,7 +362,7 @@ const HotelManagerTransactionManagement = () => {
                                 title="Hourly Bookings"
                                 value={stats?.bookings_by_type?.HOURLY || 0}
                                 prefix={<DollarOutlined />}
-                                valueStyle={{ color: '#722ed1' }}
+                                styles={{ content: { color: '#722ed1' } }}
                             />
                         </Card>
                     </Col>
@@ -364,7 +372,7 @@ const HotelManagerTransactionManagement = () => {
                                 title="Nightly Bookings"
                                 value={stats?.bookings_by_type?.NIGHTLY || 0}
                                 prefix={<DollarOutlined />}
-                                valueStyle={{ color: '#1890ff' }}
+                                styles={{ content: { color: '#1890ff' } }}
                             />
                         </Card>
                     </Col>

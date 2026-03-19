@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
+import useSocketEvent, { SOCKET_EVENTS } from '../../hooks/useSocketEvent';
 import { useParams, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { 
@@ -87,6 +88,8 @@ function HotelReviews() {
   useEffect(() => {
     fetchReviews();
   }, [fetchReviews]);
+
+  useSocketEvent(SOCKET_EVENTS.REVIEW_UPDATED, fetchReviews);
 
   const handleHotelChange = (value) => {
     setSelectedHotelId(value);

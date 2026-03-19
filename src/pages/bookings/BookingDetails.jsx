@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import useSocketEvent, { SOCKET_EVENTS } from '../../hooks/useSocketEvent';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import {
@@ -26,27 +27,9 @@ const BookingDetails = () => {
     const [loading, setLoading] = useState(false);
     const [booking, setBooking] = useState(null);
 
-    useEffect(() => {
-        loadBookingDetails();
-
-        const handleUpdate = () => {
-            console.log("WebSocket update received, refreshing booking details...");
-            loadBookingDetails();
-        };
-
-        window.addEventListener('bookingUpdated', handleUpdate);
-        window.addEventListener('paymentUpdated', handleUpdate);
-
-        return () => {
-            window.removeEventListener('bookingUpdated', handleUpdate);
-            window.removeEventListener('paymentUpdated', handleUpdate);
-        };
-    }, [bookingId]);
-
     const loadBookingDetails = async () => {
         setLoading(true);
         try {
-
             const data = user?.role === 'HOTEL_MANAGER'
                 ? await fetchHotelManagerTransactionDetails(bookingId)
                 : await fetchTransactionDetails(bookingId);
@@ -58,6 +41,12 @@ const BookingDetails = () => {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        loadBookingDetails();
+    }, [bookingId]);
+
+    useSocketEvent([SOCKET_EVENTS.BOOKING_UPDATED, SOCKET_EVENTS.PAYMENT_UPDATED], loadBookingDetails);
 
     const handleDownloadInvoice = async () => {
         try {
@@ -101,13 +90,21 @@ const BookingDetails = () => {
     if (loading || !booking) {
         return (
             <div style={{ padding: '40px', textAlign: 'center' }}>
-                <Spin size="large" tip="Loading booking details..." />
+                <Spin size="large">
+                    <div style={{ marginTop: 16 }}>Loading booking details...</div>
+                </Spin>
             </div>
         );
     }
 
     return (
         <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto' }}>
+            <div style={{ color: '#888', marginBottom: 16 }}>
+                <span style={{ cursor: 'pointer' }} onClick={() => navigate('/dashboard')}>Home</span> / 
+                <span style={{ cursor: 'pointer', marginLeft: 4, marginRight: 4 }} onClick={() => navigate('/bookings')}> Bookings </span> / 
+                <span style={{ cursor: 'pointer' }} onClick={() => navigate(`/bookings/${booking.hotel}`)}> {booking.hotel_details?.name || "..."} </span> / 
+                 {booking.booking_reference}
+            </div>
             <PageHeader
                 title={`Booking: ${booking.booking_reference}`}
                 actions={[
@@ -131,10 +128,10 @@ const BookingDetails = () => {
             <Row gutter={[24, 24]}>
                 {/* Main Information Section */}
                 <Col xs={24} lg={16}>
-                    <Space direction="vertical" size="large" style={{ width: '100%' }}>
+                    <Space orientation="vertical" size="large" style={{ width: '100%' }}>
 
                         {/* Stay Details */}
-                        <Card title={<Space><CalendarOutlined />Stay Details</Space>} bordered={false} className="detail-card">
+                        <Card title={<Space><CalendarOutlined />Stay Details</Space>} variant="borderless" className="detail-card">
                             <Descriptions column={{ xs: 1, sm: 2 }} bordered>
                                 <Descriptions.Item label="Check-In">
                                     <Text strong>{dayjs(booking.scheduled_check_in).format('DD MMM YYYY')}</Text>
@@ -161,7 +158,7 @@ const BookingDetails = () => {
                                     {booking.rooms_count} Room(s), {booking.adults_count} Adult(s)
                                 </Descriptions.Item>
                                 {booking.assigned_room_details && (
-                                    <Descriptions.Item label="Assigned Room" span={2}>
+                                    <Descriptions.Item label="Assigned Room">
                                         <Tag color="blue">Room {booking.assigned_room_details.room_number}</Tag>
                                         <Text type="secondary"> (Floor {booking.assigned_room_details.floor_number})</Text>
                                     </Descriptions.Item>
@@ -170,7 +167,7 @@ const BookingDetails = () => {
                         </Card>
 
                         {/* Financial Details */}
-                        <Card title={<Space><TransactionOutlined />Financial Breakdown</Space>} bordered={false}>
+                        <Card title={<Space><TransactionOutlined />Financial Breakdown</Space>} variant="borderless">
                             <Row gutter={24}>
                                 <Col span={12}>
                                     <Descriptions column={1} size="small">
@@ -231,7 +228,7 @@ const BookingDetails = () => {
                                             ({booking.refund_request.refund_percentage}%)
                                         </Text>
                                     </Descriptions.Item>
-                                    <Descriptions.Item label="Reason" span={2}>
+                                    <Descriptions.Item label="Reason">
                                         {booking.refund_request.reason}
                                     </Descriptions.Item>
                                     {booking.refund_request.processed_at && (
@@ -247,8 +244,8 @@ const BookingDetails = () => {
 
                 {/* Sidebar Info */}
                 <Col xs={24} lg={8}>
-                    <Space direction="vertical" size="large" style={{ width: '100%' }}>
-                        <Card title="Hotel Details">
+                    <Space orientation="vertical" size="large" style={{ width: '100%' }}>
+                        <Card title="Hotel Details" variant="outlined">
                             <Descriptions column={1} size="small">
                                 <Descriptions.Item label="Name"><Text strong>{booking.hotel_details?.name}</Text></Descriptions.Item>
                                 <Descriptions.Item label="Location">{booking.hotel_details?.city}, {booking.hotel_details?.state}</Descriptions.Item>

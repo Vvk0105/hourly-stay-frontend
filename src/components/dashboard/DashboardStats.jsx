@@ -20,7 +20,7 @@ const DashboardStats = ({ stats, role }) => {
         <>
             <Row gutter={[16, 16]}>
                 <Col xs={24} sm={12} md={6}>
-                    <Card bordered={false} className="stat-card">
+                    <Card variant="borderless" className="stat-card">
                         <Statistic 
                             title="Total Bookings" 
                             value={stats.total_bookings} 
@@ -29,18 +29,18 @@ const DashboardStats = ({ stats, role }) => {
                     </Card>
                 </Col>
                 <Col xs={24} sm={12} md={6}>
-                    <Card bordered={false} className="stat-card">
+                    <Card variant="borderless" className="stat-card">
                         <Statistic 
                             title="Monthly Revenue" 
                             value={stats.monthly_revenue} 
                             prefix="₹" 
                             precision={2}
-                            valueStyle={{ color: '#3f8600' }}
+                            styles={{ content: { color: '#3f8600' } }}
                         />
                     </Card>
                 </Col>
                 <Col xs={24} sm={12} md={6}>
-                    <Card bordered={false} className="stat-card">
+                    <Card variant="borderless" className="stat-card">
                         <Statistic 
                             title="Total Revenue" 
                             value={stats.total_revenue} 
@@ -50,19 +50,19 @@ const DashboardStats = ({ stats, role }) => {
                     </Card>
                 </Col>
                 <Col xs={24} sm={12} md={6}>
-                    <Card bordered={false} className="stat-card">
+                    <Card variant="borderless" className="stat-card">
                         <Statistic 
                             title="Active Bookings" 
                             value={stats.active_bookings} 
                             prefix={<ClockCircleOutlined />} 
-                            valueStyle={{ color: '#1890ff' }}
+                            styles={{ content: { color: '#1890ff' } }}
                         />
                     </Card>
                 </Col>
             </Row>
             <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
                 <Col xs={24} sm={12} md={6}>
-                    <Card bordered={false} className="stat-card">
+                    <Card variant="borderless" className="stat-card">
                         <Statistic 
                             title={
                                 <span>
@@ -89,7 +89,7 @@ const DashboardStats = ({ stats, role }) => {
     const renderManagementStats = () => (
         <Row gutter={[16, 16]}>
             <Col xs={24} sm={12} md={6}>
-                <Card bordered={false} className="stat-card">
+                <Card variant="borderless" className="stat-card">
                     <Statistic 
                         title="My Bookings" 
                         value={stats.total_bookings} 
@@ -98,29 +98,29 @@ const DashboardStats = ({ stats, role }) => {
                 </Card>
             </Col>
             <Col xs={24} sm={12} md={6}>
-                <Card bordered={false} className="stat-card">
+                <Card variant="borderless" className="stat-card">
                     <Statistic 
                         title="Revenue (MTD)" 
                         value={stats.monthly_revenue} 
                         prefix="₹" 
                         precision={2}
-                        valueStyle={{ color: '#3f8600' }}
+                        styles={{ content: { color: '#3f8600' } }}
                     />
 
                 </Card>
             </Col>
             <Col xs={24} sm={12} md={6}>
-                <Card bordered={false} className="stat-card">
+                <Card variant="borderless" className="stat-card">
                     <Statistic 
                         title="Active Now" 
                         value={stats.active_bookings} 
                         prefix={<ClockCircleOutlined />} 
-                        valueStyle={{ color: '#1890ff' }}
+                        styles={{ content: { color: '#1890ff' } }}
                     />
                 </Card>
             </Col>
             <Col xs={24} sm={12} md={6}>
-                <Card bordered={false} className="stat-card">
+                <Card variant="borderless" className="stat-card">
                     <Statistic 
                         title={
                             <span>
@@ -146,7 +146,7 @@ const DashboardStats = ({ stats, role }) => {
     const renderFrontDeskStats = () => (
         <Row gutter={[16, 16]}>
             <Col xs={24} sm={12} md={8}>
-                <Card bordered={false} className="stat-card">
+                <Card variant="borderless" className="stat-card">
                     <Statistic 
                         title="My Bookings" 
                         value={stats.total_bookings} 
@@ -155,17 +155,17 @@ const DashboardStats = ({ stats, role }) => {
                 </Card>
             </Col>
             <Col xs={24} sm={12} md={8}>
-                <Card bordered={false} className="stat-card">
+                <Card variant="borderless" className="stat-card">
                     <Statistic 
                         title="Active Now" 
                         value={stats.active_bookings} 
                         prefix={<ClockCircleOutlined />} 
-                        valueStyle={{ color: '#1890ff' }}
+                        styles={{ content: { color: '#1890ff' } }}
                     />
                 </Card>
             </Col>
             <Col xs={24} sm={12} md={8}>
-                <Card bordered={false} className="stat-card">
+                <Card variant="borderless" className="stat-card">
                     <Statistic 
                         title={
                             <span>
@@ -191,42 +191,42 @@ const DashboardStats = ({ stats, role }) => {
     const renderOperationalStats = (opStats) => (
         <Row gutter={[16, 16]}>
             <Col xs={24} sm={12} md={6}>
-                <Card bordered={false} className="stat-card highlight-arrival">
+                <Card variant="borderless" className="stat-card highlight-arrival">
                     <Statistic 
                         title="Today's Arrivals" 
                         value={opStats.arrivals_today} 
                         prefix={<CalendarOutlined />} 
-                        valueStyle={{ color: '#52c41a' }}
+                        styles={{ content: { color: '#52c41a' } }}
                     />
                 </Card>
             </Col>
             <Col xs={24} sm={12} md={6}>
-                <Card bordered={false} className="stat-card highlight-departure">
+                <Card variant="borderless" className="stat-card highlight-departure">
                     <Statistic 
                         title="Today's Departures" 
                         value={opStats.departures_today} 
                         prefix={<LogoutOutlined />} 
-                        valueStyle={{ color: '#faad14' }}
+                        styles={{ content: { color: '#faad14' } }}
                     />
                 </Card>
             </Col>
             <Col xs={24} sm={12} md={6}>
-                <Card bordered={false} className="stat-card highlight-dirty">
+                <Card variant="borderless" className="stat-card highlight-dirty">
                     <Statistic 
                         title="Dirty Rooms" 
                         value={opStats.dirty_rooms} 
                         prefix={<ExclamationCircleOutlined />} 
-                        valueStyle={{ color: '#ff4d4f' }}
+                        styles={{ content: { color: '#ff4d4f' } }}
                     />
                 </Card>
             </Col>
             <Col xs={24} sm={12} md={6}>
-                <Card bordered={false} className="stat-card highlight-available">
+                <Card variant="borderless" className="stat-card highlight-available">
                     <Statistic 
                         title="Available Rooms" 
                         value={opStats.available_rooms} 
                         prefix={<ShopOutlined />} 
-                        valueStyle={{ color: '#1890ff' }}
+                        styles={{ content: { color: '#1890ff' } }}
                     />
                 </Card>
             </Col>

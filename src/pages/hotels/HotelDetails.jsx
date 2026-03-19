@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import useSocketEvent, { SOCKET_EVENTS } from '../../hooks/useSocketEvent';
 import { useParams, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { Breadcrumb, Button, Spin, Tag, message, Modal, Form, Input, InputNumber, Row, Col, Card, Divider, Typography, Switch, Select, Image } from "antd";
@@ -57,6 +58,8 @@ function HotelDetails() {
     fetchHotel();
     fetchAmenities();
   }, [id]);
+
+  useSocketEvent([SOCKET_EVENTS.ROOM_STATUS_UPDATED, SOCKET_EVENTS.BOOKING_UPDATED], fetchHotel);
 
 
 

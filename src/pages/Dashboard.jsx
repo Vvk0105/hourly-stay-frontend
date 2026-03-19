@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useCallback } from "react";
+import useSocketEvent, { SOCKET_EVENTS } from '../hooks/useSocketEvent';
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { Row, Col, Statistic, Button, Card, Typography } from "antd";
@@ -31,30 +32,32 @@ export default function Dashboard() {
         navigate("/");
     };
 
-    React.useEffect(() => {
-        const fetchDashboardData = async () => {
-            setLoading(true);
-            try {
-                // Fetch financial/booking stats
-                const statsResponse = await api.get('booking/dashboard/stats/');
-                setStats(statsResponse.data);
+    const fetchDashboardData = useCallback(async () => {
+        setLoading(true);
+        try {
+            // Fetch financial/booking stats
+            const statsResponse = await api.get('booking/dashboard/stats/');
+            setStats(statsResponse.data);
 
-                // For operational roles, fetch property stats
-                if (user?.role !== 'GUEST') {
-                    const opResponse = await api.get('property/dashboard/operational/');
-                    setOpStats(opResponse.data);
-                }
-            } catch (error) {
-                console.error("Failed to fetch dashboard data:", error);
-            } finally {
-                setLoading(false);
+            // For operational roles, fetch property stats
+            if (user?.role !== 'GUEST') {
+                const opResponse = await api.get('property/dashboard/operational/');
+                setOpStats(opResponse.data);
             }
-        };
+        } catch (error) {
+            console.error("Failed to fetch dashboard data:", error);
+        } finally {
+            setLoading(false);
+        }
+    }, [user]);
 
+    React.useEffect(() => {
         if (user) {
             fetchDashboardData();
         }
-    }, [user]);
+    }, [user, fetchDashboardData]);
+
+    useSocketEvent([SOCKET_EVENTS.BOOKING_UPDATED, SOCKET_EVENTS.PAYMENT_UPDATED], fetchDashboardData);
 
     // Determine quick actions based on permissions
     const getQuickActions = () => {

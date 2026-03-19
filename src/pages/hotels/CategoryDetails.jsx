@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import useSocketEvent, { SOCKET_EVENTS } from '../../hooks/useSocketEvent';
 import { useParams, useNavigate } from "react-router-dom";
 import { Breadcrumb, Button, Spin, Modal, Form, Input, InputNumber, message, Select, Tag, Image } from "antd";
 import { HomeOutlined, PlusOutlined, EditOutlined, DeleteOutlined, WifiOutlined, DesktopOutlined, RocketOutlined, ThunderboltOutlined, VideoCameraOutlined, CoffeeOutlined, StarOutlined } from "@ant-design/icons";
@@ -54,6 +55,8 @@ function CategoryDetails() {
     useEffect(() => {
         fetchDetails();
     }, [categoryId]);
+
+    useSocketEvent([SOCKET_EVENTS.BOOKING_UPDATED, SOCKET_EVENTS.ROOM_STATUS_UPDATED], fetchDetails);
 
     const handleDelete = async () => {
         try {

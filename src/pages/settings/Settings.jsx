@@ -14,7 +14,7 @@ const Settings = () => {
         <div style={{ padding: 24, maxWidth: 800, margin: '0 auto' }}>
             <Title level={2} style={{ marginBottom: 24 }}>My Settings</Title>
             
-            <Card title="User Profile" bordered={false} className="settings-card">
+            <Card title="User Profile" variant="borderless" className="settings-card">
                 <div style={{ display: 'flex', alignItems: 'center', marginBottom: 24 }}>
                     <Avatar size={64} icon={<UserOutlined />} style={{ backgroundColor: '#1890ff', marginRight: 16 }} />
                     <div>

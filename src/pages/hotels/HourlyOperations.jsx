@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import useSocketEvent, { SOCKET_EVENTS } from '../../hooks/useSocketEvent';
 import { Card, Button, Tag, Typography, Radio, DatePicker, Statistic, Row, Col, Alert, message, Spin, Tooltip } from "antd";
 import { ClockCircleOutlined, PoweroffOutlined, ThunderboltOutlined, UserOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
@@ -28,13 +29,17 @@ function HourlyOperations({ hotelId }) {
 
   useEffect(() => {
     fetchStatus();
-    const interval = setInterval(() => {
-      if (status === 'ACTIVE') {
-        fetchSlots();
-      }
-    }, 10000);
-    return () => clearInterval(interval);
-  }, [hotelId, status]);
+  }, [hotelId]);
+
+  const handleSocketUpdate = useCallback(() => {
+    if (status === 'ACTIVE') {
+      fetchSlots();
+    } else {
+      fetchStatus();
+    }
+  }, [status]);
+
+  useSocketEvent([SOCKET_EVENTS.BOOKING_UPDATED, SOCKET_EVENTS.ROOM_STATUS_UPDATED], handleSocketUpdate);
 
   const fetchStatus = async () => {
     setLoading(true);
@@ -118,7 +123,7 @@ function HourlyOperations({ hotelId }) {
         <Statistic
           title="Current Hourly Status"
           value={status}
-          valueStyle={{ color: status === 'ACTIVE' ? '#3f8600' : '#cf1322', fontWeight: 'bold' }}
+          styles={{ content: { color: status === 'ACTIVE' ? '#3f8600' : '#cf1322', fontWeight: 'bold' } }}
           prefix={status === 'ACTIVE' ? <ThunderboltOutlined /> : <PoweroffOutlined />}
         />
         {status === 'ACTIVE' && currentWindow && (

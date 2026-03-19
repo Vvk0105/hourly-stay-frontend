@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Table, Button, Tag, Tabs, Modal, Select, message,
   Card, Popconfirm, Tooltip, Badge, Form, DatePicker, Input, Switch, Row, Col, Typography, Radio, Alert, Statistic, Calendar
@@ -88,21 +88,74 @@ function BookingManagement() {
 
   const [hotelTimezone, setHotelTimezone] = useState("UTC");
 
-  const fetchHotelDetails = async () => {
+  /* ================= API CALLS ================= */
+  const fetchHotelDetails = useCallback(async () => {
     try {
       const res = await api.get(`property/hotels/${id}/`);
       setHotelTimezone(res.data.timezone || "UTC");
     } catch (err) {
       console.error("Failed to fetch hotel timezone");
     }
-  };
+  }, [id]);
 
-  const filteredRooms = rooms.filter(
-    r => !selectedRoomType || r.room_type === selectedRoomType
-  );
+  const fetchBookings = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
+    try {
+      const res = await api.get(`booking/hotels/${id}/bookings/`);
+      setBookings(res.data);
+    } catch (error) {
+      console.error("fetchBookings FAILED:", error);
+    } finally {
+      if (!silent) setLoading(false);
+    }
+  }, [id]);
 
-  /* ================= ROOM STATUS CHANGE HANDLER ================= */
-  const handleQuickStatusChange = async (roomId, newStatus) => {
+  const fetchRoomTypes = useCallback(async () => {
+    try {
+      const res = await api.get(`property/hotels/${id}/room-types/`);
+      setRoomTypes(res.data);
+    } catch {
+      console.error("Failed to load room types");
+    }
+  }, [id]);
+
+  const fetchRooms = useCallback(async () => {
+    try {
+      const res = await api.get(`property/hotels/${id}/rooms/`);
+      setRooms(res.data);
+    } catch {
+      console.error("Failed to load rooms");
+    }
+  }, [id]);
+
+  const fetchSlots = useCallback(async (date = null) => {
+    setSlotsLoading(true);
+    try {
+      const dateStr = (date || selectedDate).format('YYYY-MM-DD');
+      const res = await api.get(`property/hotels/${id}/room-slots/?date=${dateStr}`);
+      setSlotsData(res.data);
+    } catch (e) {
+      console.error("Failed to fetch slots");
+    } finally {
+      setSlotsLoading(false);
+    }
+  }, [id, selectedDate]);
+
+  const fetchHourlyStatus = useCallback(async () => {
+    try {
+      const res = await api.get(`property/hotels/${id}/hourly-operations/`);
+      setHourlyStatus(res.data.status);
+      if (res.data.status === 'ACTIVE' && res.data.window) {
+        setCurrentWindow(res.data.window);
+        // fetchSlots is called here but we don't want it in deps if possible
+        // or ensure fetchSlots is stable.
+      }
+    } catch (err) {
+      console.error("Failed to fetch hourly status", err);
+    }
+  }, [id]);
+
+  const handleQuickStatusChange = useCallback(async (roomId, newStatus) => {
     setRoomStatusLoading(prev => ({ ...prev, [roomId]: true }));
     try {
       await api.patch(`property/rooms/${roomId}/status/`, { status: newStatus });
@@ -114,7 +167,7 @@ function BookingManagement() {
     } finally {
       setRoomStatusLoading(prev => ({ ...prev, [roomId]: false }));
     }
-  };
+  }, [fetchRooms]);
 
   useEffect(() => {
     fetchBookings();
@@ -123,77 +176,23 @@ function BookingManagement() {
     fetchHourlyStatus();
     fetchHotelDetails();
     fetchSlots();
+  }, [id, fetchBookings, fetchRoomTypes, fetchRooms, fetchHourlyStatus, fetchHotelDetails, fetchSlots]);
 
-    const handleBookingUpdate = () => {
-      console.log("WebSocket event received: refreshing bookings and slots");
-      fetchBookings();
+  useEffect(() => {
+    const handleBookingUpdate = (e) => {
+      fetchBookings(true);
       fetchSlots();
     };
 
     window.addEventListener('bookingUpdated', handleBookingUpdate);
-
     return () => {
       window.removeEventListener('bookingUpdated', handleBookingUpdate);
     };
-  }, [id, selectedDate]);
+  }, [id, fetchBookings, fetchSlots]);
 
-  /* ================= API CALLS ================= */
-  const fetchBookings = async () => {
-    setLoading(true);
-    try {
-      const res = await api.get(`booking/hotels/${id}/bookings/`);
-      setBookings(res.data);
-    } catch (error) {
-      console.error("Failed to load bookings:", error);
-      // message.error("Failed to load bookings");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchRoomTypes = async () => {
-    try {
-      const res = await api.get(`property/hotels/${id}/room-types/`);
-      setRoomTypes(res.data);
-    } catch {
-      console.error("Failed to load room types");
-    }
-  };
-
-  const fetchRooms = async () => {
-    try {
-      const res = await api.get(`property/hotels/${id}/rooms/`);
-      setRooms(res.data);
-    } catch {
-      console.error("Failed to load rooms");
-    }
-  }
-
-  const fetchHourlyStatus = async () => {
-    try {
-      const res = await api.get(`property/hotels/${id}/hourly-operations/`);
-      setHourlyStatus(res.data.status);
-      if (res.data.status === 'ACTIVE' && res.data.window) {
-        setCurrentWindow(res.data.window);
-        fetchSlots();
-      }
-    } catch (err) {
-      console.error("Failed to fetch hourly status", err);
-    }
-  };
-
-  const fetchSlots = async (date = null) => {
-    setSlotsLoading(true);
-    try {
-      const dateStr = (date || selectedDate).format('YYYY-MM-DD');
-      const res = await api.get(`property/hotels/${id}/room-slots/?date=${dateStr}`);
-      setSlotsData(res.data);
-    } catch (e) {
-      console.error("Failed to fetch slots");
-    } finally {
-      setSlotsLoading(false);
-    }
-  };
+  const filteredRooms = rooms.filter(
+    r => !selectedRoomType || r.room_type === selectedRoomType
+  );
 
   const fetchWalkinSlots = async (roomTypeId, date = null) => {
     if (!roomTypeId || bookingType !== 'HOURLY') {
@@ -576,15 +575,28 @@ function BookingManagement() {
     const [startDate, endDate] = dateRange;
     return bookingsList.filter(booking => {
       const checkInDate = dayjs(booking.scheduled_check_in);
-      // Check if checkInDate is between startDate and endDate (inclusive)
       return (checkInDate.isAfter(startDate, 'day') || checkInDate.isSame(startDate, 'day')) &&
         (checkInDate.isBefore(endDate, 'day') || checkInDate.isSame(endDate, 'day'));
     });
   };
 
-  const confirmed = bookings.filter(b => b.status === "CONFIRMED");
-  const checkedIn = bookings.filter(b => b.status === "CHECKED_IN");
-  const history = bookings.filter(b => ["CHECKED_OUT", "CANCELLED"].includes(b.status));
+  const applySearchAndFilters = (bookingsList) => {
+    if (!search) return bookingsList;
+    const lowerSearch = search.toLowerCase();
+    return bookingsList.filter(b => 
+      (b.booking_reference?.toLowerCase().includes(lowerSearch)) ||
+      (b.guest_name?.toLowerCase().includes(lowerSearch)) ||
+      (b.guest_phone?.includes(lowerSearch))
+    );
+  };
+
+  const confirmed = applySearchAndFilters(bookings.filter(b => 
+    ["CONFIRMED", "PENDING_PAYMENT"].includes(b.status)
+  ));
+  const checkedIn = applySearchAndFilters(bookings.filter(b => b.status === "CHECKED_IN"));
+  const history = applySearchAndFilters(bookings.filter(b => 
+    ["CHECKED_OUT", "CANCELLED", "FAILED"].includes(b.status)
+  ));
 
   // Apply date filters
   const filteredConfirmed = filterByDateRange(confirmed, upcomingDateFilter);

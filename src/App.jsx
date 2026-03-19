@@ -28,6 +28,8 @@ import HotelManagerTransactionManagement from "./pages/hotel-manager/HotelManage
 import BookingDetails from "./pages/bookings/BookingDetails";
 import NotificationsPage from "./pages/NotificationsPage";
 import HotelReviews from "./pages/hotels/HotelReviews";
+import Settings from "./pages/settings/Settings";
+
 
 
 
@@ -52,7 +54,9 @@ function App() {
         <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<MainLayout><Dashboard /></MainLayout>} />
           <Route path="/notifications" element={<MainLayout><NotificationsPage /></MainLayout>} />
+          <Route path="/settings" element={<MainLayout><Settings /></MainLayout>} />
         </Route>
+
 
         {/* User Management */}
         <Route element={<ProtectedRoute perform="VIEW_USERS" />}>

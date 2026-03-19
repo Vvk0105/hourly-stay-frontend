@@ -1,4 +1,10 @@
 /* Dashboard.css */
+/* Dashboard Stat Highlights */
+.stat-card.highlight-arrival { border-left: 4px solid #52c41a; }
+.stat-card.highlight-departure { border-left: 4px solid #faad14; }
+.stat-card.highlight-dirty { border-left: 4px solid #ff4d4f; }
+.stat-card.highlight-available { border-left: 4px solid #1890ff; }
+
 .dashboard-container {
     padding: 24px;
     font-family: 'Inter', sans-serif;

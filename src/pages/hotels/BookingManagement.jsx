@@ -618,7 +618,7 @@ function BookingManagement() {
           <div style={{ color: '#888', marginBottom: 4 }}>Home / Booking Management</div>
           <Title level={3} style={{ margin: 0 }}>Booking Management</Title>
         </div>
-        <Can perform="CREATE_WALK_IN">
+        <Can perform="WALK_IN_BOOKING">
           <Button
             type="primary"
             shape="round"
@@ -647,7 +647,7 @@ function BookingManagement() {
         </div>
       </div>
 
-      <Can perform="UPDATE_HOTEL_STATUS">
+      <Can perform="HOURLY_OPERATIONS">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
           <div style={{ flex: 1 }}></div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

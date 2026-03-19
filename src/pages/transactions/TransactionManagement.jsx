@@ -402,7 +402,7 @@ const TransactionManagement = () => {
             <Spin spinning={statsLoading}>
                 <Row gutter={16} style={{ marginBottom: '24px' }}>
                     <Col xs={24} sm={12} lg={6}>
-                        <Card>
+                        <Card variant="outlined">
                             <Statistic
                                 title="Total Revenue"
                                 value={stats?.total_revenue || 0}
@@ -413,7 +413,7 @@ const TransactionManagement = () => {
                         </Card>
                     </Col>
                     <Col xs={24} sm={12} lg={6}>
-                        <Card>
+                        <Card variant="outlined">
                             <Statistic
                                 title="Platform Commission"
                                 value={stats?.total_commission || 0}
@@ -424,7 +424,7 @@ const TransactionManagement = () => {
                         </Card>
                     </Col>
                     <Col xs={24} sm={12} lg={6}>
-                        <Card>
+                        <Card variant="outlined">
                             <Statistic
                                 title="Net Payout"
                                 value={stats?.total_payout || 0}
@@ -435,7 +435,7 @@ const TransactionManagement = () => {
                         </Card>
                     </Col>
                     <Col xs={24} sm={12} lg={6}>
-                        <Card>
+                        <Card variant="outlined">
                             <Statistic
                                 title="Total Transactions"
                                 value={stats?.total_bookings || 0}
@@ -447,7 +447,7 @@ const TransactionManagement = () => {
             </Spin>
 
             {/* Filters */}
-            <Card style={{ marginBottom: '24px' }}>
+            <Card variant="outlined" style={{ marginBottom: '24px' }}>
                 <Row gutter={[16, 16]}>
                     <Col xs={24} sm={12} md={6}>
                         <Select
@@ -523,7 +523,7 @@ const TransactionManagement = () => {
                         />
                     </Col>
                     <Col xs={24} md={12} style={{ textAlign: 'right' }}>
-                        <Space>
+                        <Space orientation="horizontal">
                             <Button
                                 icon={<FilterOutlined />}
                                 onClick={loadStats}
@@ -542,7 +542,7 @@ const TransactionManagement = () => {
             </Card>
 
             {/* Transactions Table */}
-            <Card>
+            <Card variant="outlined">
                 <Table
                     columns={columns}
                     dataSource={transactions}

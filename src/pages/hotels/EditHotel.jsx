@@ -269,7 +269,7 @@ const EditHotel = () => {
       >
         <Row gutter={24}>
           <Col xs={24} lg={16}>
-            <Card title="Basic Details">
+            <Card title="Basic Details" variant="outlined">
               <Row gutter={16}>
                 <Col xs={24} sm={12}>
                   <Form.Item
@@ -299,7 +299,7 @@ const EditHotel = () => {
               </Row>
             </Card>
 
-            <Card title="Hotel Images" style={{ marginTop: 24 }}>
+            <Card title="Hotel Images" variant="outlined" style={{ marginTop: 24 }}>
               <Upload
                 customRequest={handleUpload}
                 showUploadList={false}
@@ -349,7 +349,7 @@ const EditHotel = () => {
               </div>
             </Card>
 
-            <Card title="Location" style={{ marginTop: 24 }}>
+            <Card title="Location" variant="outlined" style={{ marginTop: 24 }}>
               <Row gutter={16}>
                 <Col xs={24}>
                   <Form.Item label="Address" name="address_line_1">
@@ -443,7 +443,7 @@ const EditHotel = () => {
           </Col>
 
           <Col xs={24} lg={8}>
-            <Card title="Financial Details" style={{ marginTop: 24 }}>
+            <Card title="Financial Details" variant="outlined" style={{ marginTop: 24 }}>
               <Form.Item
                 label="Hotel Currency"
                 name="currency_code"
@@ -493,7 +493,7 @@ const EditHotel = () => {
               )}
             </Card>
 
-            <Card title="Payout & Banking" style={{ marginTop: 24 }}>
+            <Card title="Payout & Banking" variant="outlined" style={{ marginTop: 24 }}>
               <Form.Item name="is_gst_registered" valuePropName="checked">
                 <Checkbox onChange={(e) => setIsGstRegistered(e.target.checked)}>
                   Hotel is GST Registered
@@ -557,7 +557,7 @@ const EditHotel = () => {
               </Row>
             </Card>
 
-            <Card title="Operations">
+            <Card title="Operations" variant="outlined">
               <Form.Item label="Check In Time" name="check_in_time">
                 <TimePicker format="HH:mm" style={{ width: "100%" }} />
               </Form.Item>
@@ -575,7 +575,7 @@ const EditHotel = () => {
               </Form.Item>
             </Card>
 
-            <Card title="Refund Policy" style={{ marginTop: 24 }}>
+            <Card title="Refund Policy" variant="outlined" style={{ marginTop: 24 }}>
               <Form.Item name="refund_policy_type" label="Select Policy">
                 <Radio.Group onChange={(e) => setRefundPolicyType(e.target.value)}>
                   <Radio value="DEFAULT" style={{ display: 'block', marginBottom: 8 }}>

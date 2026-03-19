@@ -131,7 +131,7 @@ const BookingDetails = () => {
                     <Space orientation="vertical" size="large" style={{ width: '100%' }}>
 
                         {/* Stay Details */}
-                        <Card title={<Space><CalendarOutlined />Stay Details</Space>} variant="borderless" className="detail-card">
+                        <Card title={<Space orientation="horizontal"><CalendarOutlined />Stay Details</Space>} variant="borderless" className="detail-card">
                             <Descriptions column={{ xs: 1, sm: 2 }} bordered>
                                 <Descriptions.Item label="Check-In">
                                     <Text strong>{dayjs(booking.scheduled_check_in).format('DD MMM YYYY')}</Text>
@@ -167,7 +167,7 @@ const BookingDetails = () => {
                         </Card>
 
                         {/* Financial Details */}
-                        <Card title={<Space><TransactionOutlined />Financial Breakdown</Space>} variant="borderless">
+                        <Card title={<Space orientation="horizontal"><TransactionOutlined />Financial Breakdown</Space>} variant="borderless">
                             <Row gutter={24}>
                                 <Col span={12}>
                                     <Descriptions column={1} size="small">
@@ -211,7 +211,8 @@ const BookingDetails = () => {
                         {/* Refund Information */}
                         {booking.refund_request && (
                             <Card
-                                title={<Space><InfoCircleOutlined /> Refund Details</Space>}
+                                title={<Space orientation="horizontal"><InfoCircleOutlined /> Refund Details</Space>}
+                                variant="outlined"
                                 styles={{ header: { backgroundColor: '#fff7e6' }, body: { backgroundColor: '#fffbe6' } }}
                             >
                                 <Descriptions column={{ xs: 1, sm: 2 }}>
@@ -256,7 +257,7 @@ const BookingDetails = () => {
                             </Button>
                         </Card>
 
-                        <Card title="Customer Information">
+                        <Card title="Customer Information" variant="outlined">
                             <Descriptions column={1} size="small">
                                 <Descriptions.Item label="Guest Name">
                                     <Text strong>{booking.guest_name || "Online Guest"}</Text>

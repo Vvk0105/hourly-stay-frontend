@@ -313,40 +313,40 @@ const HotelManagerTransactionManagement = () => {
             <Spin spinning={statsLoading}>
                 <Row gutter={16} style={{ marginBottom: '24px' }}>
                     <Col xs={24} sm={12} lg={6}>
-                        <Card>
+                        <Card variant="outlined">
                             <Statistic
                                 title="Total Revenue"
                                 value={stats?.total_revenue || 0}
                                 prefix="₹"
                                 precision={2}
-                                valueStyle={{ color: '#3f8600' }}
+                                styles={{ content: { color: '#3f8600' } }}
                             />
                         </Card>
                     </Col>
                     <Col xs={24} sm={12} lg={6}>
-                        <Card>
+                        <Card variant="outlined">
                             <Statistic
                                 title="Platform Commission"
                                 value={stats?.total_commission || 0}
                                 prefix="₹"
                                 precision={2}
-                                valueStyle={{ color: '#1890ff' }}
+                                styles={{ content: { color: '#1890ff' } }}
                             />
                         </Card>
                     </Col>
                     <Col xs={24} sm={12} lg={6}>
-                        <Card>
+                        <Card variant="outlined">
                             <Statistic
                                 title="Net Earnings"
                                 value={stats?.total_payout || 0}
                                 prefix="₹"
                                 precision={2}
-                                valueStyle={{ color: '#52c41a' }}
+                                styles={{ content: { color: '#52c41a' } }}
                             />
                         </Card>
                     </Col>
                     <Col xs={24} sm={12} lg={6}>
-                        <Card>
+                        <Card variant="outlined">
                             <Statistic
                                 title="Total Bookings"
                                 value={stats?.total_bookings || 0}
@@ -357,7 +357,7 @@ const HotelManagerTransactionManagement = () => {
                 </Row>
                 <Row gutter={16} style={{ marginBottom: '24px' }}>
                     <Col xs={24} sm={12}>
-                        <Card>
+                        <Card variant="outlined">
                             <Statistic
                                 title="Hourly Bookings"
                                 value={stats?.bookings_by_type?.HOURLY || 0}
@@ -367,7 +367,7 @@ const HotelManagerTransactionManagement = () => {
                         </Card>
                     </Col>
                     <Col xs={24} sm={12}>
-                        <Card>
+                        <Card variant="outlined">
                             <Statistic
                                 title="Nightly Bookings"
                                 value={stats?.bookings_by_type?.NIGHTLY || 0}
@@ -380,7 +380,7 @@ const HotelManagerTransactionManagement = () => {
             </Spin>
 
             {/* Filters */}
-            <Card style={{ marginBottom: '24px' }}>
+            <Card variant="outlined" style={{ marginBottom: '24px' }}>
                 <Row gutter={[16, 16]}>
                     <Col xs={24} sm={12} md={8}>
                         <Select
@@ -443,7 +443,7 @@ const HotelManagerTransactionManagement = () => {
             </Card>
 
             {/* Transactions Table */}
-            <Card>
+            <Card variant="outlined">
                 <Table
                     columns={columns}
                     dataSource={transactions}

@@ -143,7 +143,7 @@ function HourlyStatus() {
                 {/* Left Column: Status, Controls, Live View */}
                 <Col xs={24} md={14}>
                     {/* 1. Status Card */}
-                    <Card style={{ marginBottom: 24, textAlign: 'center', border: status === 'ACTIVE' ? '1px solid #52c41a' : '1px solid #d9d9d9' }}>
+                    <Card variant="outlined" style={{ marginBottom: 24, textAlign: 'center', border: status === 'ACTIVE' ? '1px solid #52c41a' : '1px solid #d9d9d9' }}>
                         <Statistic
                             title="Current Hourly Status"
                             value={status}
@@ -164,7 +164,7 @@ function HourlyStatus() {
 
                     {/* 2. Start Operations Control (Only if Inactive) */}
                     {status === 'INACTIVE' && (
-                        <Card title="Start Operations" style={{ marginBottom: 24 }}>
+                        <Card variant="outlined" title="Start Operations" style={{ marginBottom: 24 }}>
                             <Text strong>Choose how you want to open availability:</Text>
                             <div style={{ margin: '16px 0' }}>
                                 <Radio.Group value={mode} onChange={(e) => setMode(e.target.value)} buttonStyle="solid">
@@ -217,7 +217,7 @@ function HourlyStatus() {
 
                             <div style={{ overflowX: 'auto', paddingBottom: 10 }}>
                                 {slotsData?.rooms.map(room => (
-                                    <Card key={room.id} size="small" style={{ marginBottom: 16 }} styles={{ body: { padding: 12 } }}>
+                                    <Card variant="outlined" key={room.id} size="small" style={{ marginBottom: 16 }} styles={{ body: { padding: 12 } }}>
                                         <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8, justifyContent: 'space-between' }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                                                 <Tag color="geekblue" style={{ fontSize: 14 }}>Room {room.number}</Tag>
@@ -279,7 +279,7 @@ function HourlyStatus() {
 
                 {/* Right Column: Stats */}
                 <Col xs={24} md={10}>
-                    <Card title="Quick Stats">
+                    <Card variant="outlined" title="Quick Stats">
                         <div style={{ marginBottom: 16 }}>
                             <Text type="secondary">Hourly Guests Today</Text>
                             <div style={{ fontSize: 20, fontWeight: 'bold' }}>

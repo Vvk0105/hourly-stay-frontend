@@ -514,7 +514,7 @@ function BookingManagement() {
         {refundLoading ? (
           <p>Loading refund details...</p>
         ) : refundPreview ? (
-          <Card size="small" style={{ background: "#fff1f0", borderColor: "#ffa39e", marginBottom: 16 }}>
+          <Card variant="outlined" size="small" style={{ background: "#fff1f0", borderColor: "#ffa39e", marginBottom: 16 }}>
             <p><strong>Total Amount:</strong> ₹{refundPreview.total_amount}</p>
             <p><strong>Refund Amount:</strong> <span style={{ color: "green", fontSize: 16, fontWeight: "bold" }}>₹{refundPreview.refund_amount}</span> ({refundPreview.refund_percentage}%)</p>
             <Tag color={refundPreview.refund_percentage > 0 ? "green" : "red"}>{refundPreview.refund_label}</Tag>

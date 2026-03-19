@@ -134,7 +134,7 @@ const AddHotel = () => {
 
         <Row gutter={24}>
           <Col span={16}>
-            <Card title="Basic Details" style={{ marginBottom: 24 }}>
+            <Card title="Basic Details" variant="outlined" style={{ marginBottom: 24 }}>
               <Row gutter={16}>
                 <Col span={12}>
                   <Form.Item label="Hotel Name" name="name" rules={[{ required: true }]}>
@@ -164,7 +164,7 @@ const AddHotel = () => {
               </Row>
             </Card>
 
-            <Card title="Location">
+            <Card title="Location" variant="outlined">
               <Row gutter={16}>
                 <Col span={24}>
                   <Form.Item label="Address" name="address_line_1" rules={[{ required: true }]}>
@@ -258,7 +258,7 @@ const AddHotel = () => {
           </Col>
 
           <Col span={8}>
-            <Card title="Financial Details" style={{ marginBottom: 24 }}>
+            <Card title="Financial Details" variant="outlined" style={{ marginBottom: 24 }}>
               <Form.Item
                 label="Hotel Currency"
                 name="currency_code"
@@ -297,7 +297,7 @@ const AddHotel = () => {
               </Form.Item>
             </Card>
 
-            <Card title="Payout & Banking" style={{ marginBottom: 24 }}>
+            <Card title="Payout & Banking" variant="outlined" style={{ marginBottom: 24 }}>
               <Form.Item name="is_gst_registered" valuePropName="checked">
                 <Checkbox onChange={(e) => setIsGstRegistered(e.target.checked)}>
                   Hotel is GST Registered
@@ -346,7 +346,7 @@ const AddHotel = () => {
               </Row>
             </Card>
 
-            <Card title="Operations" style={{ marginBottom: 24 }}>
+            <Card title="Operations" variant="outlined" style={{ marginBottom: 24 }}>
               <Form.Item label="Standard Check In" name="check_in_time" rules={[{ required: true }]}>
                 <TimePicker format="HH:mm" style={{ width: "100%" }} />
               </Form.Item>
@@ -367,7 +367,7 @@ const AddHotel = () => {
               </div>
             </Card>
 
-            <Card title="Refund Policy" style={{ marginBottom: 24 }}>
+            <Card title="Refund Policy" variant="outlined" style={{ marginBottom: 24 }}>
               <Form.Item name="refund_policy_type" label="Select Policy">
                 <Radio.Group onChange={(e) => setRefundPolicyType(e.target.value)}>
                   <Radio value="DEFAULT" style={{ display: 'block', marginBottom: 8 }}>
@@ -395,7 +395,7 @@ const AddHotel = () => {
               )}
             </Card>
 
-            <Card title="Cover Image">
+            <Card title="Cover Image" variant="outlined">
               <Form.Item name="images" valuePropName="fileList" getValueFromEvent={normFile}>
                 <Upload 
                   listType="picture-card" 

@@ -119,7 +119,7 @@ function HourlyOperations({ hotelId }) {
     <div style={{ padding: 16 }}>
 
       {/* 1. STATUS DISPLAY */}
-      <Card style={{ marginBottom: 24, textAlign: 'center', border: status === 'ACTIVE' ? '1px solid #52c41a' : '1px solid #d9d9d9' }}>
+      <Card variant="outlined" style={{ marginBottom: 24, textAlign: 'center', border: status === 'ACTIVE' ? '1px solid #52c41a' : '1px solid #d9d9d9' }}>
         <Statistic
           title="Current Hourly Status"
           value={status}
@@ -140,7 +140,7 @@ function HourlyOperations({ hotelId }) {
 
       {/* 2. CONTROL PANEL (Only show if Inactive) */}
       {status === 'INACTIVE' && (
-        <Card title="Start Operations">
+        <Card variant="outlined" title="Start Operations">
           <Text>Choose how you want to open availability:</Text>
           <div style={{ margin: '16px 0' }}>
             <Radio.Group value={mode} onChange={(e) => setMode(e.target.value)} buttonStyle="solid">
@@ -190,7 +190,7 @@ function HourlyOperations({ hotelId }) {
           </Title>
           <div style={{ overflowX: 'auto', paddingBottom: 10 }}>
             {slotsData?.rooms.map(room => (
-              <Card key={room.id} size="small" style={{ marginBottom: 16 }} styles={{ body: { padding: 12 } }}>
+              <Card variant="outlined" key={room.id} size="small" style={{ marginBottom: 16 }} styles={{ body: { padding: 12 } }}>
                 <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
                   <Tag color="geekblue" style={{ fontSize: 14 }}>Room {room.number}</Tag>
                   <Text type="secondary" style={{ marginRight: 8 }}>{room.type}</Text>

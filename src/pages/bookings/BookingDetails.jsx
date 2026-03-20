@@ -99,14 +99,14 @@ const BookingDetails = () => {
 
     return (
         <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto' }}>
-            <div style={{ color: '#888', marginBottom: 16 }}>
-                <span style={{ cursor: 'pointer' }} onClick={() => navigate('/dashboard')}>Home</span> / 
-                <span style={{ cursor: 'pointer', marginLeft: 4, marginRight: 4 }} onClick={() => navigate('/bookings')}> Bookings </span> / 
-                <span style={{ cursor: 'pointer' }} onClick={() => navigate(`/bookings/${booking.hotel}`)}> {booking.hotel_details?.name || "..."} </span> / 
-                 {booking.booking_reference}
-            </div>
             <PageHeader
                 title={`Booking: ${booking.booking_reference}`}
+                breadcrumbs={[
+                    { title: 'Home', path: '/dashboard' },
+                    { title: 'Bookings', path: '/bookings' },
+                    { title: booking.hotel_details?.name || "...", path: `/bookings/${booking.hotel}` },
+                    { title: booking.booking_reference }
+                ]}
                 actions={[
                     <Tag key="status" color={getStatusColor(booking.status)} style={{ fontSize: '14px', padding: '4px 12px', borderRadius: '12px' }}>
                         {booking.status.replace(/_/g, ' ')}

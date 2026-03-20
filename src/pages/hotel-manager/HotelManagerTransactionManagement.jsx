@@ -13,6 +13,7 @@ import {
 import dayjs from 'dayjs';
 import { fetchHotelManagerTransactions, fetchHotelManagerTransactionStats } from '../../api/transactionApi';
 import api from '../../api/axios';
+import PageHeader from '../../components/common/PageHeader';
 
 const { RangePicker } = DatePicker;
 const { Option } = Select;
@@ -307,7 +308,13 @@ const HotelManagerTransactionManagement = () => {
 
     return (
         <div style={{ padding: '24px' }}>
-            <h1 style={{ marginBottom: '24px' }}>Transaction Management</h1>
+            <PageHeader 
+                title="Transaction Management" 
+                breadcrumbs={[
+                    { title: 'Home', path: '/dashboard' },
+                    { title: 'Transactions' }
+                ]}
+            />
 
             {/* Statistics Cards */}
             <Spin spinning={statsLoading}>
@@ -424,7 +431,7 @@ const HotelManagerTransactionManagement = () => {
                         />
                     </Col>
                     <Col xs={24} md={12} style={{ textAlign: 'right' }}>
-                        <Space>
+                        <Space orientation="horizontal">
                             <Button
                                 icon={<FilterOutlined />}
                                 onClick={loadStats}
